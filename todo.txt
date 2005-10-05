@@ -1,0 +1,127 @@
+fix morphing
+
+edge labels
+
+node labels should color based on background
+
+> g.jkkLayout2()
+None
+java.lang.NullPointerException
+        at edu.uci.ics.jung.visualization.contrib.KKLayoutInt.initializeLocation
+s(KKLayoutInt.java:130)
+        at edu.uci.ics.jung.visualization.AbstractLayout.initialize(AbstractLayo
+ut.java:87)
+        at com.hp.hpl.guess.Graph$1.run(Graph.java:461)
+        at java.lang.Thread.run(Thread.java:534)
+
+creation of node/edge betweenness, degrank, etc. returns an exception the first time.  They also violate the node field as default rule.
+
+relate anchor sizes to node size (hard to grab nodes)
+
+eflat77: the simplest way for weighted is to run DijkstraShortestPath for each vertex in a loop, thus:
+eflat77: DijkstraShortestPath dsp = new DijkstraShortestPath(g, nev, cached);
+eflat77: // g: graph, nev: way to get edge weights, cached: boolean that tells you whether the (partial) results will be cached for later use
+eflat77: and then:
+eflat77: Map distances = dsp.getDistanceMap(v);
+eflat77: for each v in g.
+eflat77: this will also work for unweighted graphs if nev is not specified (that is, just DijkstraShortestPath(g, cached), or just DSP(g)) but it's not the most efficient method. 
+
+
+* Radial layout: asks for a central vertex.  If all vertices are
+  assumed to have labels of some sort, perhaps throwing up a
+  table/list of them (or giving an option for this) might be handy.
+  As it is, I don't have any way of even guessing (so to speak) what
+  the format is and naming a "random" vertex.
+
+* A possibly useful display: show the number of vertices and edges
+  (total, and those at least partially currently visible).  This lets
+  users know how much they're missing (as it were) when they're way
+  zoomed in.
+
+* MDS layout is practically useless for this graph, it appears.
+
+* find equivalent graphs - take each subgraph, order nodes by degree
+  and generate a matrix, where two nodes have equal degree define a
+  potential "transpose"... if two graphs have equivalent matricies,
+  they're equal.
+
+* nodes should have label by default
+
+* nodes seem to forget about resizings when in edit mode
+
+* bug in DRAW_EDIT_MODE, whole frame moves when dragged
+
+* make special kind of pysequence as output of node-node that gives
+  the "last" node.  This will let us "append"
+
+* make pysequence behave like collection
+
+* groupings... perhaps a cool (and easily implementable feature) is to
+have a flag on D which tells it if it should 1) evaluated once, and
+the cache, or 2) be re-evaluated on each access or add a method that
+invalidates the cache in D, and a function that invalidates all
+caches...?
+
+2. use awt filedialog, not swing, on macs. check for System property os.name startsWithIgnoreCase("mac")
+instead of the text field to the left of it, have a static text field with the result of the Choose file... dialog
+and when you show the file name in the static text field, drop the path prefix and just show the file name
+ if you really wnat to look right, OK and Cancel should be swapped positions on the mac.
+it's what you'll need, but you have to modify the two .icns files to use your own icons (use photoshop to make them), and i moved your lib/ directory into Guess.app/Contents/Resources and renamed it to Java.
+http://developer.apple.com/technotes/tn/tn2042.html
+Begel Mac: ok, running
+Begel Mac: what do i do once it's loaded
+Begel Mac: i clicked on the rightmost tool at the bottom toolbar
+Begel Mac: adn this panel popped open from the side
+Begel Mac: but the buttons are all the wrong size and unviewable
+Begel Mac: oh, it's not a button
+Begel Mac: it was a tab, with only one tab that wasn't wide enough to show the label
+Begel Mac: you need to pop open the left panel bigger
+Begel Mac: when i click any tool in there, it keeps shrinking back to the original size
+Begel Mac: that's bad
+Begel Mac: what's this last button on the left panel?
+Begel Mac: it's blank?
+Begel Mac: your file menu is completely bogus
+
+errors are getting printed to stdout
+
+http://developer.apple.com/samplecode/OSXAdapter/OSXAdapter.html
+
+should rescale font on guesstextnodes to fit inside width/height bounds
+-> have to draw a box around?
+
+get weights to mean something to jung
+-> option 1, push variable (e.g. weight) into userdatum (only do it once, but if data changes you lose) 
+-> option 2, reroute queries for userdatum to __getattr_/__setattr__ (lots of DB queries)
+
+collapse/uncollapse nodes...  
+
+have a "manager" object that takes a new node name and a list of
+nodes.  Listed nodes get deleted and all edges from them removed (keep
+track of these).
+
+foo.scratch* = whatever
+(save data as scratch data, don't commit to DB)
+
+foo.shape = whatever
+- maybe have shape mapper
+shape = some number, some number maps to Shape object
+
+demo to show pie charts as nodes
+
+hulls don't update when nodes are removed/added
+
+3d shadowbox on nodes
+
+fix multiedge vis
+
+copy edges
+
+rename nodes, redirect edges
+  - assume new name is non-existent in namespace
+  - delete original name in namespace
+  - low level call(s) in dbserver
+  - hidden call in Node?
+
+Different shaped hulls, maybe extend standard ones so they cover the
+area a little better.
+

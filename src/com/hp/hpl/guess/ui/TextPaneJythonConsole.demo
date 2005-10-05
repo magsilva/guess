@@ -1,0 +1,1162 @@
+package com.hp.hpl.guess.ui;
+
+import org.python.core.*;
+
+import org.python.util.PythonInterpreter;
+
+import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.Writer;
+
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.StringTokenizer;
+import java.util.Vector;
+
+import javax.swing.*;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Element;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.Keymap;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+
+
+/**
+ * <p>The text pane that implement short-cut and general behaviour from a bash
+ * interpreter.</p>
+ *
+ *
+ * <blockquote>
+ * <p>Copyright (C) 2003, 2004 Javier Iglesias.</p>
+ *
+ * <p>This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.</p>
+ *
+ * <p>This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.</p>
+ *
+ * <p>You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA</p>
+ * </blockquote>
+ *
+ * @author javier iglesias &lt;javier.iglesias@alawa.ch&gt;
+ * @version $Id$
+ */
+public class TextPaneJythonConsole extends JScrollPane implements Dockable {
+
+    public TextPaneJythonConsole(PythonInterpreter jython) {
+	super();
+	setViewportView(new InternalTextPane(jython));
+    }
+
+    class InternalTextPane extends JTextPane {
+
+	public static final String REVISION = "1.0";
+	private static final String COMMAND_STYLE = "command";
+	private static final String PROMPT_STYLE = "prompt";
+	private static final String ANSWER_STYLE = "answer";
+	private static final String ERROR_STYLE = "error";
+	private PythonInterpreter jython;
+	private ConsoleDocument document;
+	private int currentItem;
+	private Vector history;
+	
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public InternalTextPane(PythonInterpreter jython) {
+	    try {
+		this.jython = jython;
+		jython = prepareInterpreter();
+		history = prepareHistory();
+		document = prepareDocument();
+		setStyledDocument(document);
+		prepareKeymap(getKeymap());
+		document.insertString(0, getEnvironment("PS1"),
+				      getStyle(PROMPT_STYLE));
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private Vector prepareHistory() {
+	    Vector answer = new Vector();
+	    answer.add(""); // top sentinelle
+	    answer.add(""); // bottom sentinelle
+	    currentItem = 0;
+
+	    return answer;
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private PythonInterpreter prepareInterpreter() {
+	    jython.exec("ENV = {}");
+	    setEnvironment("PS1", ">>> ");
+	    setEnvironment("PS2", "... ");
+	    setEnvironment("PATH_SEPARATOR", System.getProperty("path.separator"));
+	    setEnvironment("COLS", "80");
+
+	    return jython;
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public String getEnvironment(String key) {
+	    try {
+		return jython.eval("ENV['" + key + "']").toString();
+	    } catch (Exception e) {
+		return "";
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public void setEnvironment(String key, String value) {
+	    jython.exec(new StringBuffer("ENV['").append(key).append("'] = '")
+			.append(value).append("'")
+			.toString());
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private ConsoleDocument prepareDocument() {
+	    ConsoleDocument answer = new ConsoleDocument();
+	    return answer;
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private void prepareKeymap(Keymap map) {
+	    // special characters
+	    // replace actions that move caret
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+				      new PreviousHistoryItemAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+				      new NextHistoryItemAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
+				      new MoveLeftAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
+				      new MoveRightAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
+				      new TabulationAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_A,
+							     KeyEvent.CTRL_MASK), new MoveStartAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_B,
+							     KeyEvent.CTRL_MASK), new MoveLeftAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_E,
+							     KeyEvent.CTRL_MASK), new MoveEndAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F,
+							     KeyEvent.CTRL_MASK), new MoveRightAction());
+
+	    // replace CTRL+... shortcut actions
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_C,
+							     KeyEvent.CTRL_MASK), new CancelAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_D,
+							     KeyEvent.CTRL_MASK), new DeleteAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_K,
+							     KeyEvent.CTRL_MASK), new KillAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_L,
+							     KeyEvent.CTRL_MASK), new ClearAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_N,
+							     KeyEvent.CTRL_MASK), new NextHistoryItemAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_P,
+							     KeyEvent.CTRL_MASK), new PreviousHistoryItemAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_R,
+							     KeyEvent.CTRL_MASK), new SearchHistoryItemAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_T,
+							     KeyEvent.CTRL_MASK), new SwapAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_U,
+							     KeyEvent.CTRL_MASK), new YankAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_W,
+							     KeyEvent.CTRL_MASK), new YankWordAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_Y,
+							     KeyEvent.CTRL_MASK), new PasteAction());
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public void move(int offset) {
+	    if (document.isOffsetOnCommandLine(offset)) {
+		setCaretPosition(offset);
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public void moveStart() {
+	    move(document.getCommandLineStartOffset());
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public void moveEnd() {
+	    move(document.getCommandLineEndOffset());
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public void moveLeft() {
+	    move(getCaretPosition() - 1);
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	public void moveRight() {
+	    move(getCaretPosition() + 1);
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class ConsoleDocument extends DefaultStyledDocument {
+	    private String yank = "";
+	    private int multilining = 0; // level of multilining
+	    private StringBuffer multiline;
+	    private boolean CLEARING = false;
+	    private Hashtable styles;
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public ConsoleDocument() {
+		initializeStyles();
+		try {
+		} catch (Exception e) {
+		    ;
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected void initializeStyles() {
+		Style def = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);
+
+		def = addStyle(null, def);
+		//StyleConstants.setFontFamily(def, "Monospaced");
+
+		Style style = addStyle(PROMPT_STYLE, def);
+		StyleConstants.setBold(style, true);
+		StyleConstants.setFontSize(style, 20);
+
+		style = addStyle(COMMAND_STYLE, def);
+		StyleConstants.setBold(style, true);
+		StyleConstants.setFontSize(style, 20);
+
+		style = addStyle(ANSWER_STYLE, def);
+		StyleConstants.setForeground(style, Color.darkGray);
+		StyleConstants.setFontSize(style, 20);
+
+		style = addStyle(ERROR_STYLE, def);
+		StyleConstants.setForeground(style, Color.red);
+		StyleConstants.setFontSize(style, 20);
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected void addHistoryItem(String command) {
+		if ((command.indexOf('\n') == -1) && // FIXME : find a way to include multiline commands in history
+                    !history.get(history.size() - 2).equals(command)) {
+		    history.insertElementAt(command, history.size() - 1);
+		}
+
+		currentItem = history.size() - 1;
+	    }
+
+	    //static {
+		
+	    //}
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void selectPreviousHistoryItem() {
+		currentItem = Math.max(1, --currentItem);
+		setCommandLine((String) history.get(currentItem));
+	    }
+
+	    String[] foo = new String[]{"gemLayout()","binPackLayout()","removeDisconnected()","g.nodes.color=red","ss(1)","g.nodes.color=blue","g.edges.color=red","removeDisconnected()","gemLayout()","binPackLayout()","ss(2)","ls(1)","morph(2,4000)"};
+	    int location = 0;
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void selectNextHistoryItem() {
+		currentItem = Math.min(history.size() - 1, ++currentItem);
+		String test = (String) history.get(currentItem);
+		if ((test == null) || (test.equals(""))) {
+		    if (location < foo.length) {
+			test = foo[location];
+			location++;
+		    }
+		}
+		setCommandLine(test);
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void setCommandLine(String command) {
+		clearCommandLine();
+
+		try {
+		    insertString(getCommandLineStartOffset(), command,
+				 getStyle(COMMAND_STYLE));
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void swapCharacters() {
+		int start = getCommandLineStartOffset(getCaretPosition());
+		int current = getCaretPosition();
+		int end = getLength();
+
+		try {
+		    // don't swap if at head of line
+		    if (current == start) {
+			return;
+		    }
+
+		    String swap = getText(current - 1, 1);
+		    remove(current - 1, 1);
+
+		    if (current == end) {
+			// swap to last characters if at end of line
+			superInsertString(getLength() - 1, swap,
+					  getStyle(COMMAND_STYLE));
+			move(getLength());
+		    } else {
+			// swap the two previous characters if in the middle of a string
+			superInsertString(current, swap, getStyle(COMMAND_STYLE));
+			move(current + 1);
+		    }
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void yankWord() {
+		try {
+		    int end = getCaretPosition();
+		    int start = getWordStartOffset(end);
+		    yank = getText(start, end - start);
+		    remove(start, end - start);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void yankCommandLine() {
+		try {
+		    int start = getCommandLineStartOffset(getCaretPosition());
+		    int end = getCaretPosition();
+		    yank = getText(start, end - start);
+		    remove(start, end - start);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void killCommandLine() {
+		try {
+		    int start = getCaretPosition();
+		    int end = getCommandLineEndOffset();
+		    yank = getText(start, end - start);
+		    remove(start, end - start);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void completeCommandLine() {
+		try {
+		    int start = getCommandLineStartOffset();
+		    int end = getCaretPosition();
+		    String command = getText(start, end - start);
+
+		    // is it a request for completion ?
+		    if (command.trim().startsWith("./")) {
+			FilenameFilter filter = new CompletionFilenameFilter(command.substring(command.indexOf(
+													       "./") + 2));
+			StringTokenizer tokens = new StringTokenizer(getEnvironment(
+										    "PATH"), getEnvironment("PATH_SEPARATOR"));
+			Vector candidates = new Vector();
+			int longestCandidate = -1;
+
+			// find all
+			if (tokens.countTokens() > 0) {
+			    yank = command;
+
+			    while (tokens.hasMoreElements()) {
+				try {
+				    File dir = new File(tokens.nextToken());
+
+				    if (dir.isDirectory()) {
+					String[] files = dir.list(filter);
+
+					for (int index = 0; index < files.length;
+					     index++) {
+					    candidates.addElement(files[index]);
+
+					    if (files[index].length() > longestCandidate) {
+						longestCandidate = files[index].length();
+					    }
+					}
+				    }
+				} catch (Exception e) {
+				    ;
+				}
+			    }
+
+			    if (candidates.size() == 0) {
+				// sorry : nothing to complete...
+				return;
+			    } else if (candidates.size() == 1) {
+				// complete the command line
+				yankCommandLine();
+				insertString(getCaretPosition(),
+					     command.substring(0, command.indexOf("./") + 2),
+					     getStyle(COMMAND_STYLE));
+				insertString(getCaretPosition(),
+					     (String) candidates.elementAt(0),
+					     getStyle(COMMAND_STYLE));
+			    } else {
+				// there are several possible completions, list them
+				superInsertString(getCaretPosition(), "\n",
+						  getStyle(COMMAND_STYLE));
+
+				Iterator list = candidates.iterator();
+				StringBuffer line = new StringBuffer();
+				String each = null;
+				longestCandidate += 2;
+
+				int columns = 1;
+
+				try {
+				    columns = Integer.parseInt(getEnvironment(
+									      "COLS"));
+				} catch (Exception e) {
+				    ;
+				}
+
+				// print all scripts in columns
+				while (list.hasNext()) {
+				    each = (String) list.next();
+
+				    if (((line.length() + each.length()) > columns) &&
+                                        (line.length() > 0)) {
+					superInsertString(getLength(),
+							  line.append("\n").toString(),
+							  getStyle(ANSWER_STYLE));
+					line = new StringBuffer();
+				    }
+
+				    line.append(each);
+
+				    for (int count = longestCandidate -
+					     each.length(); count > 0; count--) {
+					line.append(" ");
+				    }
+				}
+
+				if (line.length() > 0) {
+				    superInsertString(getLength(),
+						      line.append("\n").toString(),
+						      getStyle(ANSWER_STYLE));
+				}
+
+				// reprint the prompt and command line
+				superInsertString(getLength(),
+						  (multiline != null) ? getEnvironment("PS2")
+						  : getEnvironment("PS1"),
+						  getStyle(PROMPT_STYLE));
+				superInsertString(getLength(), yank,
+						  getStyle(COMMAND_STYLE));
+			    }
+			}
+		    } else {
+			insertString(getCaretPosition(), "\t",
+				     getStyle(COMMAND_STYLE));
+		    }
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     */
+	    public void cancel() {
+		try {
+		    multilining = 0;
+		    multiline = null;
+
+		    superInsertString(getLength(), "\n", getStyle(COMMAND_STYLE));
+		    superInsertString(getLength(), getEnvironment("PS1"),
+				      getStyle(PROMPT_STYLE));
+		    moveEnd();
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void delete() {
+		try {
+		    remove(getCaretPosition(), 1);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void clear() {
+		try {
+		    clearCommandLine();
+		    CLEARING = true;
+		    replace(0, getLength(),
+			    (multiline != null) ? getEnvironment("PS2")
+			    : getEnvironment("PS1"),
+			    getStyle(PROMPT_STYLE));
+		    CLEARING = false;
+		    pasteBuffer();
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void clearCommandLine() {
+		int start = getCommandLineStartOffset();
+		int end = getCommandLineEndOffset();
+
+		try {
+		    yank = getText(start, end - start);
+		    remove(start, end - start);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void pasteBuffer() {
+		try {
+		    insertString(getCaretPosition(), yank, getStyle(COMMAND_STYLE));
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    private boolean isOffsetOnCommandLine(int offset) {
+		int start = getCommandLineStartOffset();
+
+		return ((offset >= start) && (offset <= getLength()));
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected int getCommandLineEndOffset() {
+		return getCommandLineEndOffset(getLength()) - 1;
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected int getCommandLineEndOffset(int offset) {
+		return getParagraphElement(offset).getEndOffset();
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected int getCommandLineStartOffset() {
+		return getCommandLineStartOffset(getLength());
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected int getCommandLineStartOffset(int offset) {
+		return getParagraphElement(offset).getStartOffset() +
+		    getEnvironment("PS1").length();
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    protected int getWordStartOffset(int offset)
+		throws BadLocationException {
+		int start = getCommandLineStartOffset(offset);
+		String text = getText(start, offset - start).trim();
+
+		return start + Math.max(0, text.lastIndexOf(" ") + 1);
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    private int getOffsetOnCommandLine(int offset) {
+		if (!isOffsetOnCommandLine(offset)) {
+		    offset = getLength();
+		    move(offset);
+		}
+
+		return offset;
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void insertString(int offset, String text, AttributeSet a)
+		throws BadLocationException {
+		// only insertions on the last line are allowed
+		offset = getOffsetOnCommandLine(offset);
+
+		// is it a command to execute ?
+		int end;
+
+		if ((end = text.indexOf('\n')) > -1) {
+		    moveEnd();
+		    superInsertString(getCommandLineEndOffset(), "\n",
+				      getStyle(COMMAND_STYLE));
+
+		    // delimit the command to execute
+		    int start = getCommandLineStartOffset(offset);
+		    int length = getCommandLineEndOffset() - start - 1; // "-1" to get ride of final '\n'
+		    String command = getText(start, length);
+
+		    // this is a request for external file execution
+		    if (command.trim().startsWith("./")) {
+			String name = command.trim();
+			name = name.substring(name.indexOf("./") + 2);
+
+			String path = null;
+
+			// find the script in the path
+			StringTokenizer tokens = new StringTokenizer(getEnvironment(
+										    "PATH"), getEnvironment("PATH_SEPARATOR"));
+			FilenameFilter filter = new CompletionFilenameFilter(name);
+
+			// search the path for the script
+			while ((path == null) && tokens.hasMoreElements()) {
+			    try {
+				File dir = new File(tokens.nextToken());
+
+				if (dir.isDirectory()) {
+				    String[] files = dir.list(filter);
+
+				    for (int index = 0; index < files.length;
+					 index++) {
+					if (files[index].equals(name)) {
+					    // got it !
+					    path = new File(dir, name).getPath();
+
+					    break;
+					}
+				    }
+				}
+			    } catch (Exception e) {
+				;
+			    }
+			}
+
+			// if the script wasn't found, just put its name
+			if (path == null) {
+			    path = name;
+			}
+
+			// keep the original beginning of the command
+			String original = command.substring(0, command.indexOf("./"));
+
+			// redefine the command to be python interpretable
+			command = new StringBuffer(original).append("execfile('")
+			    .append(path)
+			    .append("')").toString();
+		    }
+
+		    // this is a multiline command start
+		    if (command.trim().endsWith(":")) {
+			multilining++;
+
+			if (multiline == null) {
+			    multiline = new StringBuffer(command).append('\n');
+			} else {
+			    // 'else' statements fall here
+			    if ((command.indexOf("else") > -1) ||
+                                (command.indexOf("elif") > -1) ||
+                                (command.indexOf("except") > -1) ||
+                                (command.indexOf("finally") > -1)) {
+				multilining--;
+			    }
+
+			    multiline.append(command).append('\n');
+			}
+
+			superInsertString(getLength(), getEnvironment("PS2"),
+					  getStyle(PROMPT_STYLE));
+
+			return;
+		    }
+
+		    // this expression is part of a multiline command
+		    if (multilining > 0) {
+			multiline.append(command).append("\n");
+
+			// check if a level has been closed
+			if (command.trim().equals("pass") ||
+                            !command.startsWith("\t") ||
+                            (command.length() == 0)) {
+			    multilining--;
+
+			    // are there more line to read ?
+			    if (multilining > 0) {
+				superInsertString(getLength(),
+						  getEnvironment("PS2"), getStyle(PROMPT_STYLE));
+
+				return;
+			    }
+
+			    // retrieve the complete command
+			    command = multiline.toString();
+			    multiline = null;
+			} else {
+			    superInsertString(getLength(), getEnvironment("PS2"),
+					      getStyle(PROMPT_STYLE));
+
+			    return;
+			}
+		    }
+
+		    // let Jython execute the command if necessary
+		    if (command.trim().length() > 0) {
+			String value;
+			Style style;
+
+			try {
+			    if (command.equals("quit")) {
+				com.hp.hpl.guess.Guess.shutdown();
+			    }
+			    // keep command in history
+			    addHistoryItem(command);
+
+			    // do command execution
+			    DocumentWriter buffer = 
+				new DocumentWriter(this,
+						   getStyle(ANSWER_STYLE));
+			    jython.setOut(buffer);
+			    try {
+				Object oval = jython.eval(command);
+				
+				jython.set("_", oval);
+				
+				if (oval instanceof PyFunction) {
+				    jython.set("_", 
+					       jython.eval("apply(_, ())"));
+				}
+				
+				jython.exec("if _ != None: print _");
+				
+			    } catch(PySyntaxError e)
+				{
+				    try
+					{
+					    jython.exec(command);
+					}
+				    catch(Throwable e2)
+					{
+					    e2.printStackTrace();
+					}
+				    
+				}
+			    //System.out.println("xx:" + command);
+			    //jython.exec(command);
+			    buffer.close();
+			} catch (Exception e) {
+			    superInsertString(getLength(), e.toString(),
+					      getStyle(ERROR_STYLE));
+			}
+		    }
+
+		    // append the prompt
+		    superInsertString(getLength(), getEnvironment("PS1"),
+				      getStyle(PROMPT_STYLE));
+		} else {
+		    // nothing special : simply write data down
+		    superInsertString(offset, text, getStyle(COMMAND_STYLE));
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    private void superInsertString(int offset, String text, AttributeSet a)
+		throws BadLocationException {
+		super.insertString(offset, text, a);
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void remove(int offset, int length) throws BadLocationException {
+		// refuse to remove anything that is not on the latest line
+		if (isOffsetOnCommandLine(offset) || CLEARING) {
+		    super.remove(offset, length);
+		}
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class DocumentWriter extends Writer {
+	    private ConsoleDocument doc = null;
+	    private Style style = null;
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public DocumentWriter(ConsoleDocument doc, Style style) {
+		this.doc = doc;
+		this.style = style;
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void write(char[] cbuf, int off, int len) {
+		//System.out.println(new String(cbuf,off,len));
+		write(cbuf, off, len);
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void write(String text) {
+		try {
+		    doc.superInsertString(doc.getLength(), text, style);
+		    //   System.out.println(text);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void flush() {
+		//System.out.println("flush");
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void close() {
+		//System.out.println("close");
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class SearchHistoryItemAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		// FIXME: implement that
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class PreviousHistoryItemAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.selectPreviousHistoryItem();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class NextHistoryItemAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.selectNextHistoryItem();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class MoveStartAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		moveStart();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class MoveEndAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		moveEnd();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class MoveLeftAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		moveLeft();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class MoveRightAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		moveRight();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class ClearAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.clear();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class SwapAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.swapCharacters();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class YankWordAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.yankWord();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class YankAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.yankCommandLine();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class KillAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.killCommandLine();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class PasteAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.pasteBuffer();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class TabulationAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.completeCommandLine();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class CancelAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.cancel();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class DeleteAction extends AbstractAction {
+	    public void actionPerformed(ActionEvent ae) {
+		document.delete();
+	    }
+	}
+
+	/**
+	 *
+	 * @since 1.0
+	 */
+	private class CompletionFilenameFilter extends Object
+	    implements FilenameFilter {
+	    private String begin = "";
+
+	    public CompletionFilenameFilter(String begin) {
+		this.begin = begin;
+	    }
+
+	    public boolean accept(File dir, String name) {
+		return name.toLowerCase().endsWith(".py") &&
+		    name.startsWith(begin);
+	    }
+	}
+    }
+    
+    public int getDirectionPreference() {
+	return(MainUIWindow.HORIZONTAL_DOCK);
+    }
+
+    public String getTitle() {
+	return("Interpreter");
+    }
+
+    public void opening(boolean state) {
+    }
+
+    public void attaching(boolean state) {
+    }
+
+    private GuessJFrame myParent = null;
+
+    public GuessJFrame getWindow() {
+	return(myParent);
+    }
+
+    public void setWindow(GuessJFrame gjf) {
+	myParent = gjf;
+    }
+
+}
