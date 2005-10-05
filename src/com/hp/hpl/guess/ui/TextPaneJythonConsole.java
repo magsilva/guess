@@ -802,8 +802,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	     * @since 1.0
 	     */
 	    protected void addHistoryItem(String command) {
-		if(true)
-		    return;
+		//if(true)
+		//    return;
 
 		if ((command.indexOf('\n') == -1) && // FIXME : find a way to include multiline commands in history
                     !history.get(history.size() - 2).equals(command)) {
