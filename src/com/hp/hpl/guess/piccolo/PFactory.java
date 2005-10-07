@@ -149,6 +149,7 @@ public class PFactory extends VisFactory implements UIListener {
 				    int style, 
 				    Node n) {
 
+	//System.out.println("foo");
 	if ((style <= 100) && (rep.getStyle() == style)) {
 	    return(rep);
 	}
@@ -156,9 +157,17 @@ public class PFactory extends VisFactory implements UIListener {
 	boolean vis = ((PNode)rep).getVisible();
 
 	String image = "";
-	Color newCol = Colors.getColor(rep.get("color").toString(),
-				       Color.blue);
+	Object tCol = rep.get("color");
+	if (tCol == null) {
+	    System.out.println(n.__getattr__("color"));
+	}
 	
+	Color newCol = Color.blue;
+	if (tCol != null) {
+	    newCol = Colors.getColor(tCol.toString(),
+				     Color.blue);
+	}
+
 	if (style == IMAGE) {
 	    // we're going to want to get the image
 	    image = (String)n.__getattr__("image");
