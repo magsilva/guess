@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
+
+<installation version="1.0">
+
+    <!-- 
+        The info section.
+        The meaning of the tags should be natural ...
+    -->
+    <info>
+        <appname>GUESS</appname>
+        <appversion>1.0</appversion>
+        <authors>
+            <author name="Eytan Adar" email="eytanadar@yahoo.com"/>
+        </authors>
+        <url>http://www.graphexploration.org/</url>
+    </info>
+    
+    <!-- 
+        The gui preferences indication.
+        Sets the installer window to 640x480. It will not be able to change the size.
+    -->
+    <guiprefs width="640" height="480" resizable="no"/>
+    
+    <!-- 
+        The locale section.
+        Asks here to include the English and French langpacks.
+    -->
+    <locale>
+        <langpack iso3="eng"/>
+    </locale>
+    
+    <!-- 
+        The resources section.
+        The ids must be these ones if you want to use the LicencePanel and/or the InfoPanel.
+    -->
+    <resources>
+        <res id="LicencePanel.licence" src="licenses/license.gpl"/>
+    </resources>
+    
+    <!-- 
+        The panels section.
+        We indicate here which panels we want to use. The order will be respected.
+    -->
+    <panels>
+        <panel classname="HelloPanel"/>
+        <panel classname="LicencePanel"/>
+        <panel classname="TargetPanel"/> 
+        <panel classname="PacksPanel"/>
+        <panel classname="InstallPanel"/>
+        <panel classname="FinishPanel"/>
+    </panels>
+    
+    <!-- 
+        The packs section.
+        We specify here our packs.
+    -->
+    <packs>
+        <pack name="Base" required="yes">
+            <description>The GUESS Application</description>
+	    <fileset dir="lib" targetdir="$INSTALL_PATH/lib">
+	        <exclude name="lib/**/semantic.cache"/>
+	    </fileset>
+           <fileset dir="demo" targetdir="$INSTALL_PATH/demo"/>
+           <fileset dir="Tools" targetdir="$INSTALL_PATH/Tools"/>
+	   <fileset dir="scripts" targetdir="$INSTALL_PATH/scripts"/>
+	   <fileset dir="src/Lib" targetdir="$INSTALL_PATH/src/Lib"/>
+           <fileset dir="." includes="guess.bat,guessallgui.bat,nohost.gdf,test.html,test2.html,jython.bat,jythonc.bat,test.xml,README.TXT,sample.gdf,manual/manual.pdf,guess-src.jar,licenses/**" targetdir="$INSTALL_PATH"/>
+        </pack>
+        <pack name="Src" required="no">
+            <description>The Source Files</description>
+            <fileset dir="src" targetdir="$INSTALL_PATH/src">
+	        <exclude name="src/**/semantic.cache"/>
+	    </fileset>
+        </pack>
+     </packs>
+    
+</installation>

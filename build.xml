@@ -53,6 +53,8 @@
               <filter token="version" value="${guess.version}"/>
 	      <copy file="src/com/hp/hpl/guess/Version.tmpl" tofile="src/com/hp/hpl/guess/Version.java"  filtering="true">
 	      </copy>
+	      <copy file="install.tmpl" tofile="install.xml"  filtering="true">
+	      </copy>
     </target>
 
     <target name="init">
