@@ -2,6 +2,7 @@
 
 <project name="jython" default="jar" basedir=".">
 
+<taskdef name="izpack" classpath="compile-lib/standalone-compiler.jar" classname="com.izforge.izpack.ant.IzPackTask"/>
     <!--
       This propery should be specified in the ant.property file
       property name="javaccHome2" value="/opt/javacc2.0/bin/lib"
@@ -283,6 +284,13 @@
 	   <zipfileset dir="src/Lib" prefix="guess/src/Lib"/>
            <zipfileset dir="." includes="guess.bat,guessallgui.bat,nohost.gdf,test.html,test2.html,jython.bat,jythonc.bat,test.xml,README.TXT,sample.gdf,manual/manual.pdf,guess-src.jar,licenses/**" prefix="guess/"/>
 	 </zip>
+    </target>
+
+    <target name="izpack" depends="jar">
+       <izpack input="install.xml"
+              output="guess-install.jar"
+              installerType="standard"
+              basedir="."/>
     </target>
 
     <target name="makezip2" depends="jar">

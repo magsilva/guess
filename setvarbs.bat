@@ -1,4 +1,4 @@
-set PATH=%PATH%;C:\java\ant\bin;c:\cygwin\bin
+set PATH=%PATH%;C:\java\ant\bin;c:\cygwin\bin;c:\java\izpack\bin
 set ANT_HOME=C:\java\ant
 set JAVA_HOME=c:\jdk
 set JIKESPATH=c:\jdk\bin
