@@ -54,8 +54,8 @@
               <filter token="version" value="${guess.version}"/>
 	      <copy file="src/com/hp/hpl/guess/Version.tmpl" tofile="src/com/hp/hpl/guess/Version.java"  filtering="true">
 	      </copy>
-	      <copy file="install.tmpl" tofile="install.xml"  filtering="true">
-	      </copy>
+	      <copy file="compile-lib/install.tmpl" tofile="compile-lib/install.xml"  filtering="true"/>
+	      <copy file="compile-lib/config.blank" tofile="compile-lib/config.txt"  filtering="true"/>
     </target>
 
     <target name="init">
@@ -287,14 +287,14 @@
     </target>
 
     <target name="izpack" depends="jar">
-       <izpack input="install.xml"
+       <izpack input="compile-lib/install.xml"
               output="guess-install.jar"
               installerType="standard"
               basedir="."/>
     </target>
 
     <target name="makeexe" depends="izpack">
-	<exec executable="makeexe.bat"/>
+	<exec executable="compile-lib/makeexe.bat"/>
     </target>
 
     <target name="makezip2" depends="jar">
