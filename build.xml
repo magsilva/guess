@@ -293,6 +293,10 @@
               basedir="."/>
     </target>
 
+    <target name="makeexe" depends="izpack">
+	<exec executable="makeexe.bat"/>
+    </target>
+
     <target name="makezip2" depends="jar">
         <zip destfile="guess.zip">
            <zipfileset dir="lib" prefix="guess/lib"/>
