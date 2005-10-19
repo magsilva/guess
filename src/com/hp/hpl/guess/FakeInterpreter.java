@@ -6,6 +6,7 @@ import org.python.core.Py;
 import java.io.*;
 import java.util.Properties;
 import com.hp.hpl.guess.util.GuessPyStringMap;
+import com.hp.hpl.guess.ui.ExceptionWindow;
 
 public class FakeInterpreter implements InterpreterAbstraction {
 
@@ -74,8 +75,8 @@ public class FakeInterpreter implements InterpreterAbstraction {
     public void setImmutable(String name, Object value, boolean overwrite) {
 	if (!overwrite) {
 	    if (gpsm.contains(name)) {
-		System.out.println(name + " already defined in namespace\n");
-		return;
+		throw(Py.NameError("Immutable variable " + name + 
+				   " already defined in namespace"));
 	    }
 	} 
 	try {
@@ -83,15 +84,15 @@ public class FakeInterpreter implements InterpreterAbstraction {
 	    gpsm.__setitem__(name.intern(), Py.java2py(value));
 	    gpsm.setImmutable(name);
 	} catch (Exception ex) {
-	    System.out.println(ex);
+	    ExceptionWindow.getExceptionWindow(ex);
 	}
     }
 
     public void setImmutable(String name, PyObject value, boolean overwrite) {
 	if (!overwrite) {
 	    if (gpsm.contains(name)) {
-		System.out.println(name + " already defined in namespace\n");
-		return;
+		throw(Py.NameError("Immutable variable " + name + 
+				   " already defined in namespace"));
 	    }
 	} 
 	try {
@@ -99,7 +100,7 @@ public class FakeInterpreter implements InterpreterAbstraction {
 	    gpsm.__setitem__(name.intern(), Py.java2py(value));
 	    gpsm.setImmutable(name);
 	} catch (Exception ex) {
-	    System.out.println(ex);
+	    ExceptionWindow.getExceptionWindow(ex);
 	}
     }
 

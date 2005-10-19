@@ -264,6 +264,7 @@
             <fileset dir="cachedir/packages" includes="guess.pkc"/>
         </copy>
         <jar jarfile="guess.jar"
+	     manifest="manifest.txt"
              basedir="${outputDir}"
              includes="**/*.class,**/ucnhash.dat,**/*.properties,**/*.png,**/*.gif,**/*.py,**/*.ico,guess.pkc" />
 	<copy file="guess.jar" tofile="lib/guess.jar" />

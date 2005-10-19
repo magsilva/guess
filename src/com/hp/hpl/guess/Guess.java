@@ -240,7 +240,7 @@ public class Guess
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
-	longopts[2] = new LongOpt("allgui", LongOpt.NO_ARGUMENT, null, 'a'); 
+	longopts[2] = new LongOpt("console", LongOpt.NO_ARGUMENT, null, 'c'); 
 	longopts[3] = new LongOpt("persistent", 
 				  LongOpt.REQUIRED_ARGUMENT, null, 'o'); 
 	longopts[4] = new LongOpt("gplfree", LongOpt.NO_ARGUMENT, null, 'f'); 
@@ -251,11 +251,11 @@ public class Guess
 	longopts[8] = new LongOpt("fontsize", 
 				  LongOpt.REQUIRED_ARGUMENT, null, 's'); 
 
-	Getopt go = new Getopt("Guess", argv, ":ptavmofnms", longopts);
+	Getopt go = new Getopt("Guess", argv, ":ptcvmofnms", longopts);
 	go.setOpterr(false);
 	int c;
 
-	boolean guiMode = false;
+	boolean guiMode = true;
 
 	int uiMode = VisFactory.PICCOLO;
 
@@ -274,8 +274,8 @@ public class Guess
 		    case 'v':
 			uiMode = VisFactory.NOVIS;
 			break;
-		    case 'a':
-			guiMode = true;
+		    case 'c':
+			guiMode = false;
 			break;
 		    case 'n':
 			nowarn = true;
@@ -322,6 +322,12 @@ public class Guess
 			System.exit(0);
 		    }
 	    }
+	
+	if (guiMode) {
+	    initHandles();
+	}
+
+	System.out.println("GUESS Version: " + Version.MAJOR_VERSION + " (" + Version.MINOR_VERSION + ")");
 
 	setCacheDir();
 
@@ -392,7 +398,7 @@ public class Guess
 		    database.replace('\\','/')+
 		    "\")";
 	    } else {
-		System.out.println("using database: " + database);
+		//System.out.println("using database: " + database);
 		StorageFactory.useDBServer(database);
 	    }
 	}
@@ -492,7 +498,7 @@ public class Guess
 		String fileName = 
 		    chooser.getSelectedFile().getAbsolutePath();
 		fileName = fileName.substring(0,fileName.length()-11);
-		System.out.println("using database: " + fileName);
+		//System.out.println("using database: " + fileName);
 		StorageFactory.useDBServer(fileName);
 		return(true);
 	    }
@@ -556,7 +562,7 @@ public class Guess
 		    }
 		    return(true);
 		} else {
- 		    System.out.println("using in memory database");
+ 		    //System.out.println("using in memory database");
 		    if ((fileExtension.equalsIgnoreCase("dl"))) {
 			// added for Patrick
  			StorageFactory.useDBServer();
@@ -640,7 +646,7 @@ public class Guess
 		    }		
 		}
 	    } if (n == 1) {
-		System.out.println("using in memory database");
+		//System.out.println("using in memory database");
 		StorageFactory.useDBServer();
 		StorageFactory.createEmpty();
 		return(true);
@@ -708,11 +714,34 @@ public class Guess
 	initRest(uiMode,guiMode,textMode);
     }
 
+    public static BufferedReader outHandle = null;
+
+    public static BufferedReader errHandle = null;
+
+    public static void initHandles() throws Exception {
+	if (outHandle == null) {
+	    PipedInputStream pis = new PipedInputStream();
+	    PipedOutputStream pos = new PipedOutputStream(pis);
+	    System.setOut(new PrintStream(pos));
+	    outHandle = new BufferedReader(new InputStreamReader(pis)); 
+	}
+	if (errHandle == null) {
+	    PipedInputStream pis = new PipedInputStream();
+	    PipedOutputStream pos = new PipedOutputStream(pis);
+	    System.setErr(new PrintStream(pos));
+	    errHandle = new BufferedReader(new InputStreamReader(pis)); 
+	}
+    }
+    
     public static void initUI(int uiMode, boolean guiMode, boolean textMode) 
 	throws Exception {
 	if ((textMode) && (guiMode)) {
 	    guiMode = true;
 	    textMode = false;
+	}
+
+	if (guiMode) {
+	    initHandles();
 	}
 
 	//System.out.println("before");

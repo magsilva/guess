@@ -37,8 +37,8 @@ public class RealInterpreter extends PythonInterpreter
     public void setImmutable(String name, Object value, boolean overwrite) {
 	if (!overwrite) {
 	    if (gpsm.contains(name)) {
-		System.out.println(name + " already defined in namespace\n");
-		return;
+		throw(Py.NameError("Immutable variable " + name + 
+				   " already defined in namespace"));
 	    }
 	} 
 	try {
@@ -46,7 +46,7 @@ public class RealInterpreter extends PythonInterpreter
 	    super.set(name,value);
 	    gpsm.setImmutable(name);
 	} catch (Exception ex) {
-	    System.out.println(ex);
+	    ExceptionWindow.getExceptionWindow(ex);
 	} catch (NoClassDefFoundError ncdfe) {
 	    // this probably means we didn't have javax.media installed
 	    // just ignore it
@@ -60,8 +60,8 @@ public class RealInterpreter extends PythonInterpreter
     public void setImmutable(String name, PyObject value, boolean overwrite) {
 	if (!overwrite) {
 	    if (gpsm.contains(name)) {
-		System.out.println(name + " already defined in namespace\n");
-		return;
+		throw(Py.NameError("Immutable variable " + name + 
+				   " already defined in namespace"));
 	    }
 	}
 	gpsm.removeImmutable(name);

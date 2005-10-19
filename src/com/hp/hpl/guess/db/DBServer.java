@@ -1736,7 +1736,7 @@ public class DBServer implements StorageListener {
 		inNodeDef = true;
 		String def = line.substring(8);
 		try {
-		    System.out.println("Found node definitions: " + def);
+//		    System.out.println("Found node definitions: " + def);
 		    processNodeDef(db,def);
 
 		    // let's deposit a fake graph node in so we 
@@ -1773,7 +1773,7 @@ public class DBServer implements StorageListener {
 		    inEdgeDef = true;
 		    inNodeDef = false;
 		    String def = line.substring(8);
-		    System.out.println("Found edge definitions: " + def);
+//		    System.out.println("Found edge definitions: " + def);
 		    processEdgeDef(db,def);
 		    
 		    // lets do a little test

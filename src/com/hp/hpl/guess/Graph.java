@@ -1125,7 +1125,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 				    if ((System.currentTimeMillis() -
 					 curTime) > 30000) {
 					StatusBar.setStatus("Ran " + incCounter + " loops");
-					System.out.println("Ran " + incCounter + " loops");
+					//System.out.println("Ran " + incCounter + " loops");
 					curTime = System.currentTimeMillis();
 				    }
 				}

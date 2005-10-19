@@ -6,6 +6,7 @@ import com.hp.hpl.guess.storage.StorageListener;
 import com.hp.hpl.guess.storage.StorageFactory;
 import com.hp.hpl.guess.ui.Interesting;
 import com.hp.hpl.guess.ui.EditorPopup;
+import com.hp.hpl.guess.ui.ExceptionWindow;
 
 public final class Field implements Comparable, Interesting {
 
@@ -59,8 +60,7 @@ public final class Field implements Comparable, Interesting {
 
     public void setDefault(Object o) {
 	if ((o == null) && (nn)) {
-	    System.out.println("Unable to set default to null for this field");
-	    return;
+	    throw(Py.AttributeError("Unable to set default to null for this field"));
 	}
 	this.defval = o;
     }
@@ -98,7 +98,7 @@ public final class Field implements Comparable, Interesting {
     public Field(Graph graph, String name, int type, int sqlType)
     {
 	this(graph, name, type, sqlType, null);
-	System.out.println("Call to deprecated Field constructor.");
+	System.err.println("Call to deprecated Field constructor.");
     }
     
     public ComparisonQuery __eq__(Object value)

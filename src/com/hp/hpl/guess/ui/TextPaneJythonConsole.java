@@ -22,6 +22,7 @@ import com.hp.hpl.guess.GraphElement;
 import com.hp.hpl.guess.Field;
 import java.awt.Dimension;
 
+import com.hp.hpl.guess.Guess;
 
 /**
  * <p>The text pane that implement short-cut and general behaviour from a bash
@@ -1242,6 +1243,31 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	     */
 	    public void insertString(int offset, String text, AttributeSet a)
 		throws BadLocationException {
+
+		if (Guess.outHandle != null) {
+		    try {
+			while(Guess.outHandle.ready()) {
+			    superInsertString(getLength(), 
+					      Guess.outHandle.readLine()+"\n",
+					      getStyle(ANSWER_STYLE));
+			}
+		    } catch (Exception ex) {
+			ExceptionWindow.getExceptionWindow(ex);
+		    }
+		}
+
+		if (Guess.errHandle != null) {
+		    try {
+			while(Guess.errHandle.ready()) {
+			    superInsertString(getLength(), 
+					      Guess.errHandle.readLine()+"\n",
+					      getStyle(ERROR_STYLE));
+			}
+		    } catch (Exception ex) {
+			ExceptionWindow.getExceptionWindow(ex);
+		    }
+		}
+
 		// only insertions on the last line are allowed
 		offset = getOffsetOnCommandLine(offset);
 
