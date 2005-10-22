@@ -1237,13 +1237,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		return offset;
 	    }
 
-	    /**
-	     *
-	     * @since 1.0
-	     */
-	    public void insertString(int offset, String text, AttributeSet a)
-		throws BadLocationException {
 
+	    private void printOutErr() {
 		if (Guess.outHandle != null) {
 		    try {
 			while(Guess.outHandle.ready()) {
@@ -1267,6 +1262,16 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			ExceptionWindow.getExceptionWindow(ex);
 		    }
 		}
+	    }
+
+	    /**
+	     *
+	     * @since 1.0
+	     */
+	    public void insertString(int offset, String text, AttributeSet a)
+		throws BadLocationException {
+
+		printOutErr();
 
 		// only insertions on the last line are allowed
 		offset = getOffsetOnCommandLine(offset);
@@ -1360,6 +1365,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			superInsertString(getLength(), getEnvironment("PS2"),
 					  getStyle(PROMPT_STYLE));
 
+			printOutErr();
 			return;
 		    }
 
@@ -1378,7 +1384,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    if (multilining > 0) {
 				superInsertString(getLength(),
 						  getEnvironment("PS2"), getStyle(PROMPT_STYLE));
-
+				printOutErr();
 				return;
 			    }
 
@@ -1389,6 +1395,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    superInsertString(getLength(), getEnvironment("PS2"),
 					      getStyle(PROMPT_STYLE));
 
+			    printOutErr();
 			    return;
 			}
 		    }
@@ -1514,6 +1521,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 				   command.length());
 		}
 		Tracker.getRecentNodes().clear();
+		printOutErr();
 	    }
 
 	    /**
