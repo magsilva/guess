@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+<html><head><title>GUESS: The Graph Exploration System </title>
+
+<style type="text/css">
+	@import "guess.css";
+
+</style>
+</head><body>
+<div id="banner"><H1><A HREF="index.html"><IMG SRC="logobar.jpg" border=0></A></H1></div>
+
+<div id="centercontent">
+<P>
+</P>
+<div id="bolded">
+About GUESS
+</div>
+<P>
+GUESS is an exploratory data analysis and visualization tools for
+graphs and networks.  The tool contains a domain-specific embedded
+language called Gython (an extension of Python, or more specifically
+Jython) which supports the operators and syntactic sugar necessary for
+working on graph structures in an intuitive manner.  An interactive
+interpreter binds the text that you type in the interpreter to the
+objects being visualized for more useful integration.  GUESS is also
+composed of a visualization front end that supports the export of
+static images and dynamic movies.
+<P>
+<CENTER>
+<IMG SRC="guess.jpg">
+</CENTER>
+<P>
+Because GUESS is Jython/Java based you can also construct your own
+applications and applets without much coding.  GUESS is distributed as
+GPL and makes use of a number of great <A HREF="#thanks">open source packages</A> and
+contributions.  Feel free to explore the website and download the
+application or read on for more details.
+</P>
+<P>
+GUESS was developed and is maintained by <A
+HREF="http://www.cond.org">Eytan Adar</A> (originally at
+Hewlett-Packard).  The previous version of the system, <A
+HREF="http://www.hpl.hp.com/research/idl/projects/graphs/zoom.html">Zoomgraph</A>,
+is still available for download at the HP website.
+</P>
+<div id="bolded">
+GUESS Features
+</div>
+<P>
+GUESS is a database driven system that allows nodes and edges to
+include attributes beyond basic display features (we support
+continuous, categorical, and binary attributes).  The Gython language
+gives you access to these properties without typing in database
+queries, For example:
+</P>
+<UL>
+<LI>
+Color all people in the HR department blue:<BR>
+<I>(dept == 'HR').color = blue</i> 
+</LI><LI>
+Find all communication edges between HR and Finance and color them red:<BR>
+<I>((dept == 'HR')-(dept == 'finance')).color = red</i>
+</LI><LI>
+Or hide all edges corresponding to two-hybrid protein interactions:<BR>
+<I>(interaction == 'two-hybrid').visible = false</I> 
+</LI><LI>
+Change the width of all edges with a load > 3: <BR>
+<I>(load > 3).width = 4</I> 
+</LI>
+</UL>
+<P>
+The GUESS visualization component is a zoomable interface to large graphs allowing for the visualization of graphs and networks on an infinite plane with infinite (smooth) zoom. Try the applet to get a sense of this.  The (recommended) interface is based on Piccolo, but you can also swap the interface with others systems (initial support for Prefuse and TouchGraph).
+</P><P>
+GUESS supports dynamic and time sensitive data and allows you to animate graph states (see the movie pages for an example). Complete cinematographic control over nodes, edges, and the camera for more powerful dynamic graph visualization.
+</P><P>
+Using GUESS you can import standard formats (Pajek, GML) and export a wide variety of image types (GIF,PNG,EPS,PDF,JPG,SVG...)
+</P><P>
+By making use of <A HREF="http://jung.sourceforge.net">JUNG</A>, as well as other systems, we support various layout algorithms and graph analysis commands (including some unique to GUESS).
+</P><P>
+For those interested in more extended statistical support, GUESS also talks to R.
+</P>
+<A NAME="thanks">
+<div id="bolded">
+Thanks
+</div>
+<P>
+I am very grateful for the support I received from Bernardo Huberman
+and others at HP Labs where I originally worked on GUESS.  In
+particular: David Feinberg was instrumental in the initial coding and
+Joshua Tyler who wrote the very first version of Zoomgraph.
+</P>
+<P>
+The amount of great code out in the open source community is amazing.  Full credits are distributed with the source, but in particular I want to point to:
+<UL>
+<LI><A HREF="http://www.jython.org/">Jython</A> (all I can say is wow!)</LI>
+<LI><A HREF="http://www.cs.umd.edu/hcil/piccolo/">Piccolo</A> (an amazing visualization tool from UMD)</LI>
+<LI><A HREF="http://jung.sourceforge.net/">JUNG</A> (thanks Joshua)</LI>
+<LI><A HREF="http://hsqldb.sourceforge.net/">HSQLDB</A> (great embeddable SQL server)</LI>
+<LI><A HREF="http://stats.math.uni-augsburg.de/Rserve/">RServe</A> (thanks Simon)</LI>
+</UL>
+</div>
+
+<div id="leftcontent">
+<UL>
+<LI><A HREF="download.html">Download</A></LI>
+<UL>
+<LI><A HREF="download.html#source">Source</A></LI>
+</UL>
+<LI><A HREF="look.html">Take a look</A></LI>
+<UL>
+<LI><A HREF="look.html#applets">Applets</A></LI>
+<LI><A HREF="screenshots.html">Screenshots</A></LI>
+<LI><A HREF="look.html#movies">Movies</A></LI>
+</UL>
+<LI><A HREF="documentation.html">Documentation</A></LI>
+<LI>Mailing lists</LI>
+<UL>
+<LI><A HREF="http://groups-beta.google.com/group/guess-announce/">Announce</A></LI>
+<LI><A HREF="http://groups-beta.google.com/group/guess-discuss/">Discuss</A></LI>
+</UL>
+<LI><A HREF="index.html#thanks">Thanks</A></LI>
+</UL>
+</div>
+
+<div id="rightcontent">
+<P>
+GUESS News
+</P>
+<P><B>10/25/05</B><BR>Welcome to the new GUESS website.  The previous version (including the Zoomgaph pages) is still available <A HREF="http://www.hpl.hp.com/research/idl/projects/graphs/">here</A>.</P>
+<P><B>4/2/05</B><BR>Two mailing lists created for GUESS, <A HREF="http://groups-beta.google.com/group/guess-announce/">guess-announce</A> and <A HREF="http://groups-beta.google.com/group/guess-discuss/">guess-discuss</A></P>
+<P><B>4/1/05</B><BR> A signed applet is now available which will let you try out the language features without installing the application. <A HREF="guess/signedtest.html">Click here.</A></P>
+<P><B>3/23/05</B><BR>Lada Adamic's and Natalie Glance's <A HREF="http://www.hpl.hp.com/research/idl/papers/politicalblogs/">paper on political blogging</A> include a demo using GUESS <A HREF="http://www.hpl.hp.com/personal/Lada_Adamic/demos/politicalblogdemo.html">here</A>.</P>
+<P>
+</div>
+<div id="banner"><H1><IMG SRC="basebar.jpg"></H1></div>
+</body>
+</html>

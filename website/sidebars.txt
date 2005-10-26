@@ -1,0 +1,35 @@
+<div id="leftcontent">
+<UL>
+<LI><A HREF="download.html">Download</A></LI>
+<UL>
+<LI><A HREF="download.html#source">Source</A></LI>
+</UL>
+<LI><A HREF="look.html">Take a look</A></LI>
+<UL>
+<LI><A HREF="look.html#applets">Applets</A></LI>
+<LI><A HREF="screenshots.html">Screenshots</A></LI>
+<LI><A HREF="look.html#movies">Movies</A></LI>
+</UL>
+<LI><A HREF="documentation.html">Documentation</A></LI>
+<LI>Mailing lists</LI>
+<UL>
+<LI><A HREF="http://groups-beta.google.com/group/guess-announce/">Announce</A></LI>
+<LI><A HREF="http://groups-beta.google.com/group/guess-discuss/">Discuss</A></LI>
+</UL>
+<LI><A HREF="index.html#thanks">Thanks</A></LI>
+</UL>
+</div>
+
+<div id="rightcontent">
+<P>
+GUESS News
+</P>
+<P><B>10/25/05</B><BR>Welcome to the new GUESS website.  The previous version (including the Zoomgaph pages) is still available <A HREF="http://www.hpl.hp.com/research/idl/projects/graphs/">here</A>.</P>
+<P><B>4/2/05</B><BR>Two mailing lists created for GUESS, <A HREF="http://groups-beta.google.com/group/guess-announce/">guess-announce</A> and <A HREF="http://groups-beta.google.com/group/guess-discuss/">guess-discuss</A></P>
+<P><B>4/1/05</B><BR> A signed applet is now available which will let you try out the language features without installing the application. <A HREF="guess/signedtest.html">Click here.</A></P>
+<P><B>3/23/05</B><BR>Lada Adamic's and Natalie Glance's <A HREF="http://www.hpl.hp.com/research/idl/papers/politicalblogs/">paper on political blogging</A> include a demo using GUESS <A HREF="http://www.hpl.hp.com/personal/Lada_Adamic/demos/politicalblogdemo.html">here</A>.</P>
+<P>
+</div>
+<div id="banner"><H1><IMG SRC="basebar.jpg"></H1></div>
+</body>
+</html>

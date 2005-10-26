@@ -1,0 +1,101 @@
+
+	body {
+		margin:10px 10px 0px 10px;
+		padding:0px;
+		background:#000;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+	
+	#leftcontent {
+		position: absolute;
+		left:10px;
+		top:100px;
+		width:200px;
+		background:#000;
+		border-right:1px solid #FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+
+	#centercontent {
+		background:#000;
+   		margin-left: 199px;
+   		margin-right:199px;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		voice-family: "\"}\"";
+		voice-family: inherit;
+   		margin-left: 201px;
+   		margin-right:201px;
+		}
+	html>body #centercontent {
+   		margin-left: 201px;
+   		margin-right:201px;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+
+	#rightcontent {
+		position: absolute;
+		right:10px;
+		top:100px;
+		width:200px;
+		background:#000;
+		border-left:1px solid #FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+	
+	#banner {
+		background:#000;
+		height:40px;
+		voice-family: "\"}\"";
+		voice-family: inherit;
+		height:39px;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+	html>body #banner {
+		height:39px;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+		
+	p,h1,pre {
+	        padding-left:10px;
+		padding-right:10px;
+		color:#FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-size:13px;
+		}
+
+	#bolded {
+	        margin:0px 10px 10px 10px;
+	        color: #000;
+		background: #ADD8E6;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-weight: bold;
+        }
+	
+	h1 {
+		font-size:14px;
+		padding-top:10px;
+		color:#fff;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		}
+		
+	#banner h1 {
+		font-size:14px;
+		padding:0px 0px 0px 50px;
+		margin:0px;
+		right:100px;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		} 
+        A:LINK, A:VISITED {
+	        color:#fff;
+                text-decoration: underline;
+               }
+        A:HOVER {
+	        color:#FAFAD2;
+                text-decoration: underline;
+               }
+        LI {
+		padding-left: 10px;
+		color:#FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-size: 13px;
+       }
