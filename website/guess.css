@@ -10,7 +10,7 @@
 		position: absolute;
 		left:10px;
 		top:100px;
-		width:200px;
+		width:150px;
 		background:#000;
 		border-right:1px solid #FFF;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
@@ -18,17 +18,16 @@
 
 	#centercontent {
 		background:#000;
-   		margin-left: 199px;
-   		margin-right:199px;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		voice-family: "\"}\"";
 		voice-family: inherit;
-   		margin-left: 201px;
-   		margin-right:201px;
+   		margin-left: 151px;
+   		margin-right:151px;
 		}
+
 	html>body #centercontent {
-   		margin-left: 201px;
-   		margin-right:201px;
+   		margin-left: 151px;
+   		margin-right:151px;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		}
 
@@ -36,11 +35,21 @@
 		position: absolute;
 		right:10px;
 		top:100px;
-		width:200px;
-		background:#000;
-		border-left:1px solid #FFF;
+		width:150px;
+		background:#171717;
+		border-left:1px solid #7F7F7F;
+		border-bottom:1px solid #7F7F7F;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		}
+
+	#rightcontent p {
+	        padding-left:10px;
+		padding-right:10px;
+		padding-top:5px;
+		color:#FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-size:10px;
+        }
 	
 	#banner {
 		background:#000;
@@ -52,6 +61,7 @@
 		}
 	html>body #banner {
 		height:39px;
+		padding-bottom:45px;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		}
 		
@@ -66,7 +76,7 @@
 	#bolded {
 	        margin:0px 10px 10px 10px;
 	        color: #000;
-		background: #ADD8E6;
+		background: #FFFFCC;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		font-weight: bold;
         }
@@ -85,10 +95,12 @@
 		right:100px;
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		} 
+
         A:LINK, A:VISITED {
 	        color:#fff;
                 text-decoration: underline;
                }
+
         A:HOVER {
 	        color:#FAFAD2;
                 text-decoration: underline;
@@ -99,3 +111,27 @@
 		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
 		font-size: 13px;
        }
+
+       #leftcontent LI {
+		padding-left: 10px;
+		color:#FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-size: 10px;
+       }
+
+	#menu1 {
+	        color: #FFF;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-weight: bold;
+		padding-top: 10px;
+		font-size: 13px;
+        }
+
+	#menu2 {
+	        color: #FFF;
+		padding-left: 20px;
+		padding-top: 10px;
+		font-family : Verdana, Tahoma, Arial, Helvetica, sans-serif;
+		font-weight: bold;
+		font-size: 13px;
+        }
