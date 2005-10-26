@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+<html><head><title>GUESS: The Graph Exploration System </title>
+
+<style type="text/css">
+	@import "guess.css";
+
+</style>
+</head><body>
+<div id="banner"><H1><A HREF="index.html"><IMG SRC="logobar.jpg" border=0></A></H1></div>
+
+<div id="centercontent">
+<P>
+</P>
+<A HAME="applets">
+<div id="bolded">
+Test Applet
+</div>
+<P>You may need to refresh to get the applet to pop up (and make sure you have pop up blockers disabled).<BR> Tested on Java plug-in version 1.4+</B><BR><BR>You can try to work through the <A HREF="manual.html#_Toc116465163" TARGET=_tutorial>tutorial</A> to get a sense of the language.</P>
+<P>
+This graph has ~400 nodes and ~700 edges.  Each node has a property "dept" (department) property associated with it and each edge has a "freq" property (frequency of communication).<P>Some commands to try:</P>
+<UL>
+<LI><i>center(v5)</i> zoom in to node v5
+<LI><i>center(v401-v177)</I> center on the edge between v401 and v177
+<LI><I>center() </i> center on everything
+<LI><I>gemLayout() </i> gem layout 
+<LI><I>binPackLayout() </i> packing layout
+<LI><I>(dept == 'dept1').color = red </i> color every node in dept1 red
+<LI><I>colorize(dept)</i> color every department a different color
+<LI><I>colorize(freq,red,blue)</i> color each edge by frequency of communication from red to blue
+<LI><I>g.nodes.style = 4 </i> change the node style for all nodes
+<LI><I>((dept == 'dept20')-(dept == 'dept1')).color = black</i> Make edges between department 1 and 20 black.
+</UL>
+<APPLET archive="http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/guess.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/colt.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/commons-collections-3.0.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/freehep-all.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/hsqldb.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/jung-1.5.2.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/piccolo.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/piccolox.jar,http://www.hpl.hp.com/research/idl/projects/graphs/guess/signed/looks-1.2.2.jar" code="com.hp.hpl.guess.GuessSignedApplet.class" width=3 height=3></APPLET>
+</div>
