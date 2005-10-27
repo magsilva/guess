@@ -9,17 +9,19 @@
 # example3driver()
 
 # import stuff from jfreechart (see www.jfree.org)
+import java
+import javax.swing
+import com
+import time
+import org
+import org.jfree
+
 from org.jfree.chart import *
 from org.jfree.chart.axis import *
 from org.jfree.chart.plot import *
 from org.jfree.data.time import *
 from org.jfree.data.xy import *
 from org.jfree.ui import *
-
-import java
-import javax.swing
-import com
-import time
 
 # this is our toolbar
 
