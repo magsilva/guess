@@ -10,6 +10,7 @@
 <DIV ID="menu1">Mailing lists</DIV>
 <DIV ID="menu2">&raquo; <A HREF="http://groups-beta.google.com/group/guess-announce/">Announce</A></DIV>
 <DIV ID="menu2">&raquo; <A HREF="http://groups-beta.google.com/group/guess-discuss/">Discuss</A></DIV>
+<DIV ID="menu1"><A HREF="http://sourceforge.net/projects/guess/">SourceForge</A></DIV>
 <DIV ID="menu1"><A HREF="index.html#thanks">Thanks</A></DIV>
 <IMG SRC="logobleft.jpg" BORDER=0>
 </div>
