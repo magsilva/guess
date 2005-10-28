@@ -1,3 +1,3 @@
 Main-Class: com.hp.hpl.guess.Guess
-Class-Path: lib\piccolo.jar lib\piccolox.jar lib\jung.jar lib\commons-collections.jar lib\hsqldb.jar lib\freehep-all.jar lib\colt.jar lib\prefuse.jar lib\prefusex.jar lib\TGGraphLayout.jar lib\looks.jar lib\jfreechart.jar lib\jcommon.jar lib\forms.jar lib\mascoptLib.jar lib\jide-components.jar lib\jide-common.jar
+Class-Path: jide-common.jar piccolo.jar piccolox.jar jung.jar commons-collections.jar hsqldb.jar freehep-all.jar colt.jar prefuse.jar prefusex.jar TGGraphLayout.jar looks.jar jfreechart.jar jcommon.jar forms.jar mascoptLib.jar jide-components.jar 
 
