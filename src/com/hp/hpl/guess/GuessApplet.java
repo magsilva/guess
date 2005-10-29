@@ -34,8 +34,8 @@ public class GuessApplet extends Applet
 	    //System.out.println("tb: " + toolbar);
 	    if ((toolbar != null) && (!toolbar.equals(""))) {
 		Class tb = Class.forName(toolbar);
-		Constructor tcon = tb.getConstructor(null);
-		Object o = tcon.newInstance(null);
+		Constructor tcon = tb.getConstructor((Class[])null);
+		Object o = tcon.newInstance((Object[])null);
 		//System.out.println(o.getClass());
 		//Guess.getMainUIWindow().dock((DockableAdapter)o);
 	    }

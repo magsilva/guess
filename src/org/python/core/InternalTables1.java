@@ -124,38 +124,38 @@ public class InternalTables1 extends InternalTables {
     protected short iterType;
     protected Object cur;
 
-    private Enumeration enum;
+    private Enumeration enum1;
     private Hashtable enumTable;
 
     public void _beginCanonical() {
         beginStable(JCSTABLE);
-        enum = ((TableProvid1)classes).keys();
+        enum1 = ((TableProvid1)classes).keys();
         enumTable = (TableProvid1)classes;
         iterType = JCLASS;
     }
 
     public void _beginLazyCanonical() {
-        enum = ((TableProvid1)lazyClasses).keys();
+        enum1 = ((TableProvid1)lazyClasses).keys();
         enumTable = (TableProvid1)lazyClasses;
         iterType = LAZY_JCLASS;
     }
 
     public void _beginOverAdapterClasses() {
-        enum = ((TableProvid1)adapterClasses).keys();
+        enum1 = ((TableProvid1)adapterClasses).keys();
         enumTable = (TableProvid1)adapterClasses;
         iterType = ADAPTER_CLASS;
 
     }
 
     public void _beginOverAdapters() {
-        enum = adapters.keys();
+        enum1 = adapters.keys();
         enumTable = adapters;
         iterType = ADAPTER;
     }
 
     public Object _next() {
-        if(enum.hasMoreElements()) {
-            cur = enum.nextElement();
+        if(enum1.hasMoreElements()) {
+            cur = enum1.nextElement();
             switch(iterType) {
             case JCLASS:
                 return (PyJavaClass)classes.get(cur);
@@ -169,7 +169,7 @@ public class InternalTables1 extends InternalTables {
             }
         }
         cur = null;
-        enum = null;
+        enum1 = null;
         endStable();
         return null;
     }

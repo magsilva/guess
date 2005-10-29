@@ -91,7 +91,7 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 
     public int compareTo(Object object)
     {
-	return name.compareTo(((Node)object).__getattr__("name"));
+	return name.compareTo(((Node)object).__getattr__("name").toString());
     }
 
     public PySequence __anye__(PySequence sequence)
