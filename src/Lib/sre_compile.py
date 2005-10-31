@@ -12,7 +12,7 @@ import _sre
 
 from sre_constants import *
 
-assert _sre.MAGIC == MAGIC, "SRE module mismatch"
+#assert _sre.MAGIC == MAGIC, "SRE module mismatch"
 
 MAXCODE = 65535
 
