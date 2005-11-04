@@ -1083,7 +1083,7 @@ public class DBServer implements StorageListener {
 	    st = conn.createStatement();
 	    rs = st.executeQuery("SELECT name,label,x,y,visible,"+
 				 "color,fixed,style,width,height,"+
-				 "labelvisible,image from nodes"); 
+				 "labelvisible,labelcolor,image from nodes"); 
 	    
 	    Hashtable map = new Hashtable();
 	    while(rs.next()) {
@@ -1091,6 +1091,7 @@ public class DBServer implements StorageListener {
 		double x = rs.getDouble("x");
 		double y = rs.getDouble("y");
 		String color = rs.getString("color");
+		String labelcolor = rs.getString("labelcolor");
 		boolean vis = rs.getBoolean("visible");
 		String label = rs.getString("label");
 		boolean labelvis = rs.getBoolean("labelvisible");
@@ -1146,13 +1147,14 @@ public class DBServer implements StorageListener {
 	    //int max = 4;
 	    st = conn.createStatement(); 
 	    rs = st.executeQuery("SELECT __EDGEID,node1,node2,visible,color,"+
-				 "width,weight,directed,label,labelvisible"+
-				 " from edges");
+				 "width,weight,directed,label,labelvisible,"+
+				 "labelcolor from edges");
 	    while(rs.next()) {
 		String src = rs.getString("node1");
 		String dest = rs.getString("node2");
 		boolean vis = rs.getBoolean("visible");
 		String color = rs.getString("color");
+		String labelcolor = rs.getString("labelcolor");
 		double width = rs.getDouble("width");
 		boolean directed = rs.getBoolean("directed");
 		double weight = rs.getDouble("weight");
@@ -1228,6 +1230,10 @@ public class DBServer implements StorageListener {
 		e.__setattr__("weight",new Double(weight));
 		e.__setattr__("visible",new Boolean(vis));
 		e.__setattr__("color",color);
+
+		if (labelcolor != null)
+		    e.__setattr__("labelcolor",labelcolor);
+
 		e.__setattr__("labelvisible",new Boolean(labelvis));
 
 		//e = g.getEdgeByID(new Integer(id));
@@ -1339,6 +1345,7 @@ public class DBServer implements StorageListener {
 	nodedefs.put("y","Y DOUBLE DEFAULT 500");
 	nodedefs.put("visible","VISIBLE BOOLEAN DEFAULT true");
 	nodedefs.put("color","COLOR VARCHAR(32) DEFAULT 'blue'");
+	nodedefs.put("labelcolor","LABELCOLOR VARCHAR(32) DEFAULT NULL");
 	nodedefs.put("fixed","FIXED BOOLEAN DEFAULT false");
 	nodedefs.put("style","STYLE TINYINT DEFAULT 1");
 	nodedefs.put("width","WIDTH DOUBLE DEFAULT 10");
@@ -1352,6 +1359,7 @@ public class DBServer implements StorageListener {
 
     static {
 	edgedefs.put("color","COLOR VARCHAR(32) DEFAULT 'green'");
+	edgedefs.put("labelcolor","LABELCOLOR VARCHAR(32) DEFAULT NULL");
 	edgedefs.put("visible","VISIBLE BOOLEAN DEFAULT true");
 	edgedefs.put("__edgeid","__EDGEID INT IDENTITY PRIMARY KEY");
 	edgedefs.put("width","width DOUBLE DEFAULT 2");
@@ -1410,6 +1418,9 @@ public class DBServer implements StorageListener {
 	db.alter("color",
 	      "ALTER TABLE nodes"+
 	      " ADD COLUMN color VARCHAR(32) default 'blue'");
+	db.alter("labelcolor",
+	      "ALTER TABLE nodes"+
+	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
 	db.alter("fixed",
 	      "ALTER TABLE nodes"+
 	      " ADD COLUMN fixed BOOLEAN default false");
@@ -1456,6 +1467,9 @@ public class DBServer implements StorageListener {
 	db.alter("color",
 	      "ALTER TABLE nodes_def"+
 	      " ADD COLUMN color VARCHAR(32) default 'blue'");
+	db.alter("labelcolor",
+	      "ALTER TABLE nodes_def"+
+	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
 	db.alter("fixed",
 	      "ALTER TABLE nodes_def"+
 	      " ADD COLUMN fixed BOOLEAN default false");
@@ -1501,6 +1515,9 @@ public class DBServer implements StorageListener {
 	db.alter("color",
 	      "ALTER TABLE edges"+
 	      " ADD COLUMN color VARCHAR(32) default 'green'");
+	db.alter("labelcolor",
+	      "ALTER TABLE edges"+
+	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
 	db.alter("width",
 	      "ALTER TABLE edges"+
 	      " ADD COLUMN width DOUBLE default 2");
@@ -1533,6 +1550,9 @@ public class DBServer implements StorageListener {
 	db.alter("color",
 	      "ALTER TABLE edges_def"+
 	      " ADD COLUMN color VARCHAR(32) default 'green'");
+	db.alter("labelcolor",
+	      "ALTER TABLE edges_def"+
+	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
 	db.alter("width",
 	      "ALTER TABLE edges_def"+
 	      " ADD COLUMN width DOUBLE default 2");

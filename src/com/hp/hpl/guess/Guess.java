@@ -718,7 +718,15 @@ public class Guess
 
     public static BufferedReader errHandle = null;
 
+    public static boolean handleOver = false;//true;
+
     public static void initHandles() throws Exception {
+
+	// override stderr/stdout handles to force them to console
+
+	if (handleOver)
+	    return;
+
 	if (outHandle == null) {
 	    PipedInputStream pis = new PipedInputStream();
 	    PipedOutputStream pos = new PipedOutputStream(pis);

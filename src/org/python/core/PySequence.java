@@ -601,6 +601,46 @@ abstract public class PySequence extends PyObject
         return super.__tojava__(c);
     }
 
+
+    public PyObject __findattr__(String name) {
+	PyObject o = super.__findattr__(name);
+	if (o != null)
+	    return(o);
+
+ 	PyList other = new PyList();
+ 	for (int i = 0 ; i < __len__() ; i++) {
+ 	    try {
+		o = get(i);
+		if (o instanceof PyString) {
+		    other.append(new PyNone());
+		} else {
+		    other.append(get(i).__getattr__(name));
+		}
+ 	    } catch (Exception ex) {
+ 		other.append(new PyNone());
+ 	    }
+ 	}
+
+ 	return(other);
+    }
+
+    public PySequence unroll() {
+	PyList other = new PyList();
+	unroll(other);
+	return(other);
+    }
+
+    protected void unroll(PyList other) {
+	for (int i = 0 ; i < __len__() ; i++) {
+	    PyObject o = get(i);
+	    if ((o instanceof PySequence) && !(o instanceof PyString))  {
+		((PySequence)o).unroll(other);
+	    } else {
+		other.append(o);
+	    }
+	}
+    }
+
     public void __setattr__(String name, PyObject value)
 	{
 		//System.out.println("PySequence.__setattr__(" + name + ", " + value + ")");

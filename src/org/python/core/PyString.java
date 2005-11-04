@@ -2,6 +2,7 @@
 package org.python.core;
 
 import java.io.Serializable;
+import com.hp.hpl.guess.util.intervals.Tracker;
 
 
 class StringFuncs extends PyBuiltinFunctionSet
@@ -319,6 +320,9 @@ public class PyString extends PySequence implements ClassDictInit
     }
 
     public PyString __str__() {
+	//System.out.println("testing " + this.toString());
+	//Tracker.incrementLocation(__len__());
+	//Thread.dumpStack();
         return this;
     }
 
@@ -747,7 +751,10 @@ public class PyString extends PySequence implements ClassDictInit
         return new PyString(new String(new_chars));
     }
 
+    protected int inMerge = 0;
+
     public PyObject __add__(PyObject generic_other) {
+	//	System.out.println(this + " + " + generic_other);
         if (generic_other instanceof PyString) {
             PyString other = (PyString)generic_other;
             return new PyString(string.concat(other.string));

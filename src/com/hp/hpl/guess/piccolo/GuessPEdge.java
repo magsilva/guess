@@ -26,6 +26,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	return(owner);
     }
 
+    private Color labelColor = null;
+
     public void set(String field, Object o) {
 
 	try {
@@ -49,7 +51,14 @@ public class GuessPEdge extends PPath implements EdgeListener {
 		setLabel((String)o);
 	    } else if (field.equals("labelvisible")) {
 		setLabelVisible(((Boolean)o).booleanValue());
-	    } 
+	    } else if (field.equals("labelcolor")) {
+		if (o instanceof Color) {
+		    labelColor = (Color)o;
+		} else {
+		    labelColor = 
+			(Colors.getColor((String)o,(Color)getColor()));
+		}
+	    }
 	} catch (Exception e) {
 	    //e.printStackTrace();
 	    throw new Error("Problem with setting rep attribute: " + field + 
@@ -62,6 +71,10 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	    if (field.equals("width")) {
 		return(new Double(getLineWidth())); 
 	    } else if (field.equals("color")) {
+		return(Colors.toString((Color)getColor()));
+	    } else if (field.equals("labelcolor")) {
+		if (labelColor != null)
+		    return(Colors.toString(labelColor));
 		return(Colors.toString((Color)getColor()));
 	    } else if (field.equals("visible")) {
 		return(new Boolean(getVisible()));
@@ -576,8 +589,13 @@ public class GuessPEdge extends PPath implements EdgeListener {
 			   float labelY,
 			   Font font) { 
 
+	Color cur = g.getColor();
+	if (labelColor != null)
+	    g.setColor(labelColor);
+
 	if (multiLineLabel == null) {
 	    g.drawString(label,(float)labelX,(float)labelY);
+	    g.setColor(cur);
 	    return;
 	}
 	
@@ -594,6 +612,7 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	for (i=0, height=labelY; i<num_lines; i++, height+=fontHeight) { 
 	    g.drawString(multiLineLabel[i], labelX, height); 
 	} 
+	g.setColor(cur);
     }
 
 

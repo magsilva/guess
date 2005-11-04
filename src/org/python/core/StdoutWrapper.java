@@ -97,6 +97,7 @@ public class StdoutWrapper extends OutputStream
     }
 
     public void print(PyObject o, boolean space, boolean newline) {
+	//System.out.println("foo");
         PyString string = o.__str__();
         PyObject obj = myFile();
 
