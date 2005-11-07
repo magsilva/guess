@@ -321,7 +321,7 @@ public class PyString extends PySequence implements ClassDictInit
 
     public PyString __str__() {
 	//System.out.println("testing " + this.toString());
-	//Tracker.incrementLocation(__len__());
+	Tracker.incrementLocation(__len__());
 	//Thread.dumpStack();
         return this;
     }
