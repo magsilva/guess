@@ -1033,16 +1033,6 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	layout(lay,Integer.MAX_VALUE);
     }
 
-    private boolean sync = false;
-
-    /**
-     * should layouts run in their own threads?
-     * @pyexport
-     */
-    public void setSynchronous(boolean state) {
-	this.sync = state;
-    }
-
     private boolean centerAfter = true;
 
     /**
@@ -1172,7 +1162,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		    }
 		}
 	    });
-	if (!sync) {
+	if (!Guess.getSynchronous()) {
 	    thrd.start();
 	} else {
 	    thrd.run();
@@ -1768,11 +1758,11 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     public void makeFromGML(String filename) {
 	GraphMLReader gmr = new GraphMLReader(this,filename);
 	boolean tmp = centerAfter;
-	boolean tmp2 = sync;
-	sync = true;
+	boolean tmp2 = Guess.getSynchronous();
+	Guess.setSynchronous(true);
 	centerAfter = false;
 	randomLayout();
-	sync = tmp2;
+	Guess.setSynchronous(tmp2);
 	centerAfter = tmp;
     }
 

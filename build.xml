@@ -69,7 +69,8 @@
         <property name="certAlias" value="eytancert" />
         <property name="keyPass" value="Password" />
         <property name="storePass" value="Password" />
-
+	<mkdir dir="cachedir"/>
+	<mkdir dir="cachedir\packages"/>
 
 
         <available property="java2collection.present"

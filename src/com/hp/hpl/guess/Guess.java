@@ -718,7 +718,7 @@ public class Guess
 
     public static BufferedReader errHandle = null;
 
-    public static boolean handleOver = false;//true;
+    public static boolean handleOver = false;
 
     public static void initHandles() throws Exception {
 
@@ -741,6 +741,24 @@ public class Guess
 	}
     }
     
+    private static boolean sync = false;
+
+    /**
+     * should layouts run in their own threads?
+     * @pyexport
+     */
+    public static void setSynchronous(boolean state) {
+	sync = state;
+    }
+
+    /**
+     * thread management
+     * @pyexport
+     */
+    public static boolean getSynchronous() {
+	return(sync);
+    }
+
     public static void initUI(int uiMode, boolean guiMode, boolean textMode) 
 	throws Exception {
 	if ((textMode) && (guiMode)) {

@@ -547,14 +547,56 @@ public class GFrame extends PCanvas implements FrameListener {
 	
 	//System.out.println("1: " + getBounds());
 
-	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
-		public void run() { 
-		    PTransformActivity pta = 
-			getGCamera().animateViewToCenterBounds(r2d,
-							       true,
-							       tm);
-		} 
-	    }); 
+	if (Guess.getSynchronous()) {
+	    try {
+		
+		PTransformActivity pta = 
+		    getGCamera().animateViewToCenterBounds(r2d,
+							   true,
+							   tm);
+		
+		SimpDelegate sd = new SimpDelegate();
+		pta.setDelegate(sd);
+		while(sd.running()) {
+		    try {
+			Thread.sleep(100);
+		    } catch (Exception inte) {
+		    }
+		}
+	    } catch (Exception ex) {
+		ExceptionWindow.getExceptionWindow(ex);
+	    }
+	} else {
+	    javax.swing.SwingUtilities.invokeLater(new Runnable() { 
+		    public void run() { 
+			PTransformActivity pta = 
+			    getGCamera().animateViewToCenterBounds(r2d,
+								   true,
+								   tm);
+		    } 
+		}); 
+	}
+    }
+
+    class SimpDelegate implements PActivity.PActivityDelegate {
+	
+	private boolean runn = true;
+	
+	public boolean running() {
+	    return(runn);
+	}
+	
+	public void activityFinished(PActivity activity) {
+	    runn = false;
+	}
+	
+	public void activityStarted(PActivity activity) {
+	    runn = true;
+	}
+            
+	public void activityStepped(PActivity activity) {
+	    runn = true;
+	}
     }
 
     public void setBackgroundImage(String filename) {
