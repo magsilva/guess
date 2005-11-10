@@ -14,6 +14,7 @@ import java.sql.*;
 import java.util.*;
 
 import edu.uci.ics.jung.algorithms.shortestpath.*;
+
 import edu.uci.ics.jung.graph.impl.*;
 
 import edu.umd.cs.piccolo.*;
@@ -681,13 +682,14 @@ public class Node extends SparseVertex implements Comparable, GraphElement
     public java.util.List unweightedShortestPath(Node dest)
     {
 	ShortestPath alg = new UnweightedShortestPath((Graph)getGraph());
-	return alg.getPath(this, dest);
+	return ShortestPathUtils.getPath(alg, this, dest);
     }
     
     public java.util.List dijkstraShortestPath(Node dest)
     {
-	ShortestPath alg = new DijkstraShortestPath((Graph)getGraph(), (Graph)getGraph());
-	return alg.getPath(this, dest);
+	ShortestPath alg = 
+	    new DijkstraShortestPath((Graph)getGraph(), (Graph)getGraph());
+	return ShortestPathUtils.getPath(alg, this, dest);
     }
     
     private NodeSchema getSchema()
