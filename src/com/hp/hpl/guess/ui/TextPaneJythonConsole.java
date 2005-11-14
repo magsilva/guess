@@ -752,6 +752,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		} catch (Exception e) {
 		    ;
 		}
+		Tracker.setDocument(this);
 	    }
 
 	    /**

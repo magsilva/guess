@@ -5,6 +5,7 @@ import java.util.Iterator;
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.ui.*;
 import org.python.core.*;
+import javax.swing.text.DefaultStyledDocument;
 
 public abstract class Tracker {
 
@@ -13,6 +14,17 @@ public abstract class Tracker {
     private static int location = 0;
 
     public static boolean enabled = true;
+
+    private static DefaultStyledDocument doc = null;
+    
+    public static void setDocument(DefaultStyledDocument d) {
+	doc = d;
+    }
+
+    public static void moveToDocEnd() {
+	if (doc != null)
+	    setLocation(doc.getLength());
+    }
 
     public EditorPopup getMenu(Object o) {
 	if (o instanceof PyInstance) {

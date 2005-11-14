@@ -131,18 +131,22 @@ public class StdoutWrapper extends OutputStream
             obj.__setattr__("softspace", space ? Py.One : Py.Zero);
         }
 
+	//System.out.println(Tracker.getLocation());
 	if (o instanceof PyCompositeString) {
 	    Vector v = ((PyCompositeString)o).getLocations();
 	    Collections.sort(v);
+	    int whereTo = Tracker.getLocation();
 	    int lineloc = Tracker.getLocation() - string.__len__();
-	    System.out.println(lineloc);
+	    //System.out.println(lineloc);
 	    for (int i = 0 ; i < v.size() ; i++) {
 		PyCompositeString.Location loci = 
 		    (PyCompositeString.Location)v.elementAt(i);
 		Tracker.setLocation(lineloc+loci.start);
-		Tracker.addNode(loci.length,loci.po);
+		Tracker.addNode(loci.length-1,loci.po);
 	    }
+	    Tracker.setLocation(whereTo);
 	}
+	//Tracker.moveToDocEnd();
     }
 
 
@@ -152,6 +156,7 @@ public class StdoutWrapper extends OutputStream
 
     public void println(String s) {
         print(new PyString(s), false, true);
+	//Tracker.incrementLocation(4);
     }
 
     public void print(PyObject o) {
@@ -164,6 +169,7 @@ public class StdoutWrapper extends OutputStream
 
     public void println(PyObject o) {
         print(o, false, true);
+	//Tracker.incrementLocation(4);
     }
 
     public void println() {
@@ -179,5 +185,6 @@ public class StdoutWrapper extends OutputStream
             obj.invoke("write", Py.Newline);
             obj.__setattr__("softspace", Py.Zero);
         }
+	//Tracker.incrementLocation(4);
     }
 }
