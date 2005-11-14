@@ -36,7 +36,7 @@ public class PyInstance extends PyObject
     }
 
     public boolean isTypeOfInterest() {
-	return(typeOfInterest);
+	return(typeOfInterest||edgeType||nodeType);
     }
 
     /* Override serialization behavior */

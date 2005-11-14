@@ -179,6 +179,11 @@ public class PyJavaInstance
 	return new PyString(toRet);
     }
 
+    public PyString __str2__() {
+	return new PyString(javaProxy.toString());
+    }
+
+
     public String toString() {
 	return(javaProxy.toString());
     }

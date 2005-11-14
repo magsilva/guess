@@ -231,7 +231,7 @@ class StringFuncs extends PyBuiltinFunctionSet
  */
 public class PyString extends PySequence implements ClassDictInit
 {
-    private String string;
+    protected String string;
     private transient int cached_hashcode=0;
     private transient boolean interned=false;
 
@@ -755,10 +755,26 @@ public class PyString extends PySequence implements ClassDictInit
 
     public PyObject __add__(PyObject generic_other) {
 	//	System.out.println(this + " + " + generic_other);
-        if (generic_other instanceof PyString) {
+	if (generic_other instanceof PyCompositeString) {
+	    ((PyCompositeString)generic_other).shift(string.length());
+            PyString other = (PyString)generic_other;
+	    return(new PyCompositeString(string.concat(other.string),
+					 (PyCompositeString)generic_other));
+	} else if (generic_other instanceof PyString) {
             PyString other = (PyString)generic_other;
             return new PyString(string.concat(other.string));
-        }
+        } else if (generic_other instanceof PyInstance) {
+	    if (((PyInstance)generic_other).isTypeOfInterest()) {
+		String othr = generic_other.__str2__().string;
+		PyCompositeString.Location loc = 
+		    new PyCompositeString.Location(string.length(),
+						   othr.length(),
+						   generic_other);
+		return(new PyCompositeString(string.concat(othr),loc));
+	    } else {
+		return null;
+	    }
+	}
         else return null;
     }
 

@@ -150,6 +150,10 @@ public class PyObject implements java.io.Serializable {
         return __repr__();
     }
 
+    public PyString __str2__() {
+	return __str__();
+    }
+
     /**
      * Equivalent to the standard Python __hash__ method.  This method can
      * not be overridden.  Instead, you should override the standard Java

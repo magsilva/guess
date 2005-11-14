@@ -3,6 +3,8 @@ package org.python.core;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.*;
+import com.hp.hpl.guess.util.intervals.Tracker;
 
 public class StdoutWrapper extends OutputStream
 {
@@ -97,12 +99,13 @@ public class StdoutWrapper extends OutputStream
     }
 
     public void print(PyObject o, boolean space, boolean newline) {
+	//System.out.println(o.getClass());
 	//System.out.println("foo");
         PyString string = o.__str__();
         PyObject obj = myFile();
 
         if (obj instanceof PyFile) {
-            PyFile file = (PyFile)obj;
+	    PyFile file = (PyFile)obj;
             String s = string.toString();
             if (newline)
                 s = s+"\n";
@@ -127,6 +130,19 @@ public class StdoutWrapper extends OutputStream
                 space = false;
             obj.__setattr__("softspace", space ? Py.One : Py.Zero);
         }
+
+	if (o instanceof PyCompositeString) {
+	    Vector v = ((PyCompositeString)o).getLocations();
+	    Collections.sort(v);
+	    int lineloc = Tracker.getLocation() - string.__len__();
+	    System.out.println(lineloc);
+	    for (int i = 0 ; i < v.size() ; i++) {
+		PyCompositeString.Location loci = 
+		    (PyCompositeString.Location)v.elementAt(i);
+		Tracker.setLocation(lineloc+loci.start);
+		Tracker.addNode(loci.length,loci.po);
+	    }
+	}
     }
 
 
