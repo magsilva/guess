@@ -236,7 +236,7 @@ public class Guess
 	} catch (Exception lnfe) { 
 	}
 	
-	LongOpt[] longopts = new LongOpt[9];
+	LongOpt[] longopts = new LongOpt[10];
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
@@ -250,6 +250,7 @@ public class Guess
 				  LongOpt.NO_ARGUMENT, null, 'm'); 
 	longopts[8] = new LongOpt("fontsize", 
 				  LongOpt.REQUIRED_ARGUMENT, null, 's'); 
+	longopts[0] = new LongOpt("jung", LongOpt.NO_ARGUMENT, null, 'j');
 
 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnms", longopts);
 	go.setOpterr(false);
@@ -267,6 +268,9 @@ public class Guess
 		    {
 		    case 'p':
 			uiMode = VisFactory.PREFUSE;
+			break;
+		    case 'j':
+			uiMode = VisFactory.JUNG;
 			break;
 		    case 't':
 			uiMode = VisFactory.TOUCHGRAPH;
@@ -718,8 +722,8 @@ public class Guess
 
     public static BufferedReader errHandle = null;
 
-    //    public static boolean handleOver = true;//false;
-    public static boolean handleOver = false;
+        public static boolean handleOver = true;//false;
+    //public static boolean handleOver = false;
 
     public static void initHandles() throws Exception {
 

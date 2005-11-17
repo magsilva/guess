@@ -2,6 +2,7 @@ package com.hp.hpl.guess.ui;
 
 import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.prefuse.*;
+import com.hp.hpl.guess.jung.*;
 import com.hp.hpl.guess.tg.*;
 import com.hp.hpl.guess.*;
 import java.awt.Color;
@@ -22,7 +23,8 @@ public abstract class VisFactory {
     public static final int PREFUSE = 2;
     public static final int TOUCHGRAPH = 3;
     public static final int NOVIS = 4;
-    
+    public static final int JUNG = 5;
+
     private static int uiMode = PICCOLO;
     
     public static final int RECTANGLE = 1;
@@ -55,6 +57,8 @@ public abstract class VisFactory {
 	    singleton = new TGFactory();
 	} else if (type == PREFUSE) {
 	    singleton = new PrefuseFactory();
+	} else if (type == JUNG) {
+	    singleton = new JungVisFactory();
 	} else {
 	    singleton = new DumbFactory();
 	}
