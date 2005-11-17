@@ -4,20 +4,16 @@ import edu.uci.ics.jung.visualization.*;
 import com.hp.hpl.guess.ui.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import javax.swing.JScrollPane;
+import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
 
-public class JungVisFrame extends VisualizationViewer 
+public class JungVisFrame extends GraphZoomScrollPane
     implements FrameListener {
-
-    public JungVisFrame(Layout layout, Renderer renderer) {
-	super(layout,renderer);
+    
+    public JungVisFrame(VisualizationViewer v) {
+	super(v);
     }
-
-    public JungVisFrame(Layout layout, 
-			Renderer renderer, 
-			Dimension preferredSize) {
-	super(layout,renderer,preferredSize);
-    }
-
+    
     public void center() {
     }
     

@@ -14,13 +14,15 @@ public class JungVisFactory extends VisFactory {
 
     private SparseGraph g = new SparseGraph();
 
+    protected VisualizationViewer vv = null;
+    
     public JungVisFactory() {
 	init();
     }
 
     public void runNow() {
 	if (curFrame != null)
-	    curFrame.restart();
+	    vv.restart();
     }
 
     private JungVisNode lastCreated = null;
@@ -35,7 +37,8 @@ public class JungVisFactory extends VisFactory {
         pr.setEdgeShapeFunction(new EdgeShape.Line());
 	pr.setEdgeStrokeFunction(new ConstantEdgeStrokeFunction((float)1.0));
 
-	curFrame = new JungVisFrame(l,pr);
+	vv = new VisualizationViewer(l,pr);
+	curFrame = new JungVisFrame(vv);
 	return(curFrame);
     }
 
