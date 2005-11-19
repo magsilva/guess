@@ -28,6 +28,7 @@ import edu.uci.ics.jung.visualization.contrib.*;
 import edu.uci.ics.jung.random.generators.*;
 import edu.uci.ics.jung.graph.ArchetypeGraph;
 import edu.uci.ics.jung.visualization.Coordinates;
+import com.hp.hpl.guess.pajek.*;
 
 import org.python.core.*;
 import org.python.util.*;
@@ -1764,6 +1765,13 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	randomLayout();
 	Guess.setSynchronous(tmp2);
 	centerAfter = tmp;
+    }
+
+    /**
+     * @pyexport
+     */
+    public void makeFromPajek(String filename) {
+	GuessPajekReader.readFile(this,filename);
     }
 
     /**

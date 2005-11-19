@@ -192,7 +192,8 @@ public abstract class Colors {
     
     public static Color getColor(String name, Color def) {
 	if (name == null) {
-	    System.out.println("illegal color");
+	    //System.out.println("illegal color: " + name);
+	    //Thread.dumpStack();
 	    return(def);
 	}
 	name = name.toLowerCase();
@@ -202,7 +203,7 @@ public abstract class Colors {
 	    //System.out.println(st.countTokens();
 	   
 	    if ((st.countTokens() < 3) || (st.countTokens() > 4)){
-		System.out.println("illegal color");
+		//System.out.println("illegal color");
 		nc = def;
 	    } else {
 		try {

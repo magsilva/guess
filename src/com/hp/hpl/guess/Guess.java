@@ -389,6 +389,17 @@ public class Guess
 		doLater = "g.makeFromGML(\""+
 		    database.replace('\\','/')+
 		    "\")";
+	    } else if (fileExtension.equalsIgnoreCase("net")) {
+		if (persistent != null) {
+		    StorageFactory.useDBServer(persistent);
+		} else {
+		    StorageFactory.useDBServer();
+		}
+		StorageFactory.createEmpty();
+		
+		doLater = "g.makeFromPajek(\""+
+		    database.replace('\\','/')+
+		    "\")";
 	    } else if (fileExtension.equalsIgnoreCase("dl")) {
 		// added for Patrick
 		if (persistent != null) {
@@ -558,6 +569,15 @@ public class Guess
 			doLater = "g.makeFromGML(\""+
 			    fileName.replace('\\','/')+
 			    "\")";
+		    } else if (fileExtension.equalsIgnoreCase("net")) {
+			StorageFactory.useDBServer(directory + 
+						   sep + 
+						   dbName);
+			StorageFactory.createEmpty();
+			
+			doLater = "g.makeFromPajek(\""+
+			    fileName.replace('\\','/')+
+			    "\")";
 		    } else {
 			StorageFactory.useDBServer(directory + 
 						   sep + 
@@ -582,6 +602,14 @@ public class Guess
  			StorageFactory.createEmpty();
 
  			doLater = "g.makeFromGML(\""+
+ 			    fileName.replace('\\','/')+
+ 			    "\")";
+ 		    } else if (fileExtension.equalsIgnoreCase("net")) {
+
+ 			StorageFactory.useDBServer();
+ 			StorageFactory.createEmpty();
+
+ 			doLater = "g.makeFromPajek(\""+
  			    fileName.replace('\\','/')+
  			    "\")";
  		    } else { 
