@@ -75,6 +75,7 @@ foreach $java (@java) {
     $doc = "";
     $indoc = 0;
     while(<INFILE>) {
+	$_ =~ s/\cM//gio;
 	if ($_ =~ /^\s*\/\*\*/) {
 	    $indoc = 1;
 	} elsif ($_ =~ /^\s*\*\//) {

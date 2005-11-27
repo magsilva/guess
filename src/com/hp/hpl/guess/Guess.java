@@ -750,8 +750,8 @@ public class Guess
 
     public static BufferedReader errHandle = null;
 
-        public static boolean handleOver = true;//false;
-    //public static boolean handleOver = false;
+    //public static boolean handleOver = true;//false;
+    public static boolean handleOver = false;
 
     public static void initHandles() throws Exception {
 
