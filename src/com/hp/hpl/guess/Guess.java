@@ -236,7 +236,7 @@ public class Guess
 	} catch (Exception lnfe) { 
 	}
 	
-	LongOpt[] longopts = new LongOpt[10];
+	LongOpt[] longopts = new LongOpt[11];
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
@@ -250,9 +250,11 @@ public class Guess
 				  LongOpt.NO_ARGUMENT, null, 'm'); 
 	longopts[8] = new LongOpt("fontsize", 
 				  LongOpt.REQUIRED_ARGUMENT, null, 's'); 
-	longopts[0] = new LongOpt("jung", LongOpt.NO_ARGUMENT, null, 'j');
+	longopts[9] = new LongOpt("jung", LongOpt.NO_ARGUMENT, null, 'j');
+	longopts[10] = new LongOpt("consolelog", 
+				  LongOpt.NO_ARGUMENT, null, 'l');
 
-	Getopt go = new Getopt("Guess", argv, ":ptcvmofnms", longopts);
+	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
 	go.setOpterr(false);
 	int c;
 
@@ -315,11 +317,15 @@ public class Guess
 			System.out.println("allowing multiple edges");
 			multiEdge = true;
 			break;
+		    case 'l':
+			System.out.println("STDOUT/STDERR logged to console");
+			handleOver = true;
+			break;
 		    case ':':
-			System.out.println(":");
+			System.out.print("unknown option: " + (char)c + "\n");
 			break;
 		    case '?':
-			System.out.println("?");
+			System.out.print("unknown option: " + (char)c + "\n");
 			break;
 		    default:
 			System.out.print("unknown option: " + (char)c + "\n");
@@ -327,10 +333,7 @@ public class Guess
 		    }
 	    }
 	
-	if (guiMode) {
-	    initHandles();
-	}
-
+	
 	System.out.println("GUESS Version: " + Version.MAJOR_VERSION + " (" + Version.MINOR_VERSION + ")");
 
 	setCacheDir();
@@ -799,10 +802,6 @@ public class Guess
 	    textMode = false;
 	}
 
-	if (guiMode) {
-	    initHandles();
-	}
-
 	//System.out.println("before");
 
 	final InterpreterAbstraction interp = getInterpreter();
@@ -861,6 +860,10 @@ public class Guess
 
     public static void initRest(int uiMode, boolean guiMode, boolean textMode) 
 	throws Exception {
+
+	if (guiMode) {
+	    initHandles();
+	}
 
 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
 	final InterpreterAbstraction interp = getInterpreter();
