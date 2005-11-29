@@ -54,12 +54,12 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     /**
      * schema for nodes and edges
      */
-    private NodeSchema nodeSchema;
+    protected NodeSchema nodeSchemaInt;
 
     /**
      * schema for nodes and edges
      */
-    private EdgeSchema edgeSchema;
+    protected EdgeSchema edgeSchemaInt;
 
     /**
      * the display
@@ -152,8 +152,8 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	this.display = display;
 	this.interp = interp;
 	
-	nodeSchema = new NodeSchema(this);
-	edgeSchema = new EdgeSchema(this);
+	nodeSchemaInt = new NodeSchema(this);
+	edgeSchemaInt = new EdgeSchema(this);
     }
     
     /**
@@ -194,7 +194,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	addNode(node);
 	
 	//fill in default values for this node.
-	Iterator fields = nodeSchema.fields();
+	Iterator fields = nodeSchemaInt.fields();
 	while (fields.hasNext())
 	    {
 		Field field = (Field)fields.next();
@@ -229,7 +229,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    StorageFactory.getSL().addEdge(e);
 	    addEdgeNoCheck(e);
 	    //fill in default values for this edge.
-	    Iterator fields = edgeSchema.fields();
+	    Iterator fields = edgeSchemaInt.fields();
 	    while (fields.hasNext())
 		{
 		    Field field = (Field)fields.next();
@@ -297,7 +297,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	addEdgeNoCheck(edge);
 	
 	//fill in default values for this edge.
-	Iterator fields = edgeSchema.fields();
+	Iterator fields = edgeSchemaInt.fields();
 	while (fields.hasNext())
 	    {
 		Field field = (Field)fields.next();
@@ -338,7 +338,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	addEdgeNoCheck(edge);
 	
 	//fill in default values for this edge.
-	Iterator fields = edgeSchema.fields();
+	Iterator fields = edgeSchemaInt.fields();
 	while (fields.hasNext())
 	    {
 		Field field = (Field)fields.next();
@@ -1298,10 +1298,10 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     public void computeAbstractRanker(AbstractRanker centrality,
 				      String guessKey) {
 	//first, add node and edge fields for betweenness if necessary.
-	if (edgeSchema.getField(guessKey) == null)
+	if (edgeSchemaInt.getField(guessKey) == null)
 	    addEdgeField(guessKey, Types.DOUBLE, new Double(0.0));
 
-	if (nodeSchema.getField(guessKey) == null)
+	if (nodeSchemaInt.getField(guessKey) == null)
 	    addNodeField(guessKey, Types.DOUBLE, new Double(0.0));
 	
 	
@@ -1333,64 +1333,64 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     
     public void computeBetweennessCentrality()
     {
-	Field f1 = nodeSchema.getField("betweenness");
-	Field f2 = edgeSchema.getField("betweenness");
+	Field f1 = nodeSchemaInt.getField("betweenness");
+	Field f2 = edgeSchemaInt.getField("betweenness");
 	if ((f1 == null) || (f2 == null) || 
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    BetweennessCentrality centrality = new BetweennessCentrality(this);
 	    computeAbstractRanker(centrality,"betweenness");
-	    nodeSchema.getField("betweenness").update();
-	    edgeSchema.getField("betweenness").update();
+	    nodeSchemaInt.getField("betweenness").update();
+	    edgeSchemaInt.getField("betweenness").update();
 	}
     }
     
     
     public void computePageRank(double bias)
     {
-	Field f1 = nodeSchema.getField("pagerank");
-	Field f2 = edgeSchema.getField("pagerank");
+	Field f1 = nodeSchemaInt.getField("pagerank");
+	Field f2 = edgeSchemaInt.getField("pagerank");
 	if ((f1 == null) || (f2 == null) || 
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    DirectedGraph tempGraph = DirectionTransformer.toDirected(this);
 	    PageRank centrality = new PageRank(tempGraph,bias);
 	    computeAbstractRanker(centrality,"pagerank");
-	    nodeSchema.getField("pagerank").update();
-	    edgeSchema.getField("pagerank").update();
+	    nodeSchemaInt.getField("pagerank").update();
+	    edgeSchemaInt.getField("pagerank").update();
 	}
     }
 
     public void computeDegreeDistributionRank() {
-	Field f1 = nodeSchema.getField("degrank");
-	Field f2 = edgeSchema.getField("degrank");
+	Field f1 = nodeSchemaInt.getField("degrank");
+	Field f2 = edgeSchemaInt.getField("degrank");
 	if ((f1 == null) || (f2 == null) || 
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    DegreeDistributionRanker centrality = 
 		new DegreeDistributionRanker(this);
 	    computeAbstractRanker(centrality,"degrank");
-	    nodeSchema.getField("degrank").update();
-	    edgeSchema.getField("degrank").update();
+	    nodeSchemaInt.getField("degrank").update();
+	    edgeSchemaInt.getField("degrank").update();
 	}
     }
 
     public void computeHITS() {
-	Field f1 = nodeSchema.getField("hits");
-	Field f2 = edgeSchema.getField("hits");
+	Field f1 = nodeSchemaInt.getField("hits");
+	Field f2 = edgeSchemaInt.getField("hits");
 	if ((f1 == null) || (f2 == null) || 
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    HITS centrality = new HITS(this);
 	    computeAbstractRanker(centrality,"hits");
-	    nodeSchema.getField("hits").update();
-	    edgeSchema.getField("hits").update();
+	    nodeSchemaInt.getField("hits").update();
+	    edgeSchemaInt.getField("hits").update();
 	}
     }
 
     public void computeRandomWalkBetweenness() {
-	Field f1 = nodeSchema.getField("rwbetweenness");
-	Field f2 = edgeSchema.getField("rwbetweenness");
+	Field f1 = nodeSchemaInt.getField("rwbetweenness");
+	Field f2 = edgeSchemaInt.getField("rwbetweenness");
 	if ((f1 == null) || (f2 == null) || 
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
@@ -1399,15 +1399,15 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    RandomWalkBetweenness centrality = 
 		new RandomWalkBetweenness(tempGraph);
 	    computeAbstractRanker(centrality,"rwbetweenness");
-	    nodeSchema.getField("rwbetweenness").update();
-	    edgeSchema.getField("rwbetweenness").update();
+	    nodeSchemaInt.getField("rwbetweenness").update();
+	    edgeSchemaInt.getField("rwbetweenness").update();
 	}
     }
 
     public void computeDegrees() {
-	Field in = nodeSchema.getField("indegree");
-	Field out = nodeSchema.getField("outdegree");
-	Field deg = nodeSchema.getField("totaldegree");
+	Field in = nodeSchemaInt.getField("indegree");
+	Field out = nodeSchemaInt.getField("outdegree");
+	Field deg = nodeSchemaInt.getField("totaldegree");
 	if ((in == null) ||
 	    (out == null) ||
 	    (deg == null) ||
@@ -1415,13 +1415,13 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    (out.needsUpdate(this)) ||
 	    (deg.needsUpdate(this))) {
 	    
-	    if (nodeSchema.getField("indegree") == null)
+	    if (nodeSchemaInt.getField("indegree") == null)
 		addNodeField("indegree", Types.INTEGER, new Integer(0));
 	    
-	    if (nodeSchema.getField("outdegree") == null)
+	    if (nodeSchemaInt.getField("outdegree") == null)
 		addNodeField("outdegree", Types.INTEGER, new Integer(0));
 
-	    if (nodeSchema.getField("totaldegree") == null)
+	    if (nodeSchemaInt.getField("totaldegree") == null)
 		addNodeField("totaldegree", Types.INTEGER, new Integer(0));
 
 	    Iterator nodes = getNodes().iterator();
@@ -1441,7 +1441,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     {
 	Field field = new Field(this, fieldName, Field.NODE, 
 				sqlType, defaultValue);
-	nodeSchema.addFieldToSL(field);
+	nodeSchemaInt.addFieldToSL(field);
 	
 	interp.setImmutable(fieldName, field);
     }
@@ -1454,7 +1454,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     {
 	Field field = new Field(this, fieldName, Field.EDGE,
 				sqlType, defaultValue);
-	edgeSchema.addFieldToSL(field);
+	edgeSchemaInt.addFieldToSL(field);
 	
 	PyObject f = (PyObject)interp.get(fieldName);
 	if (f == null) {
@@ -1479,7 +1479,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
     public NodeSchema getNodeSchema()
     {
-	return nodeSchema;
+	return nodeSchemaInt;
     }
 
     /**
@@ -1487,7 +1487,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
     public EdgeSchema getEdgeSchema()
     {
-	return edgeSchema;
+	return edgeSchemaInt;
     }
 
     /**
