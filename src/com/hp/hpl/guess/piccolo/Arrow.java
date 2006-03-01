@@ -3,6 +3,7 @@ package com.hp.hpl.guess.piccolo;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.HashMap;
+import com.hp.hpl.guess.ui.VisFactory;
 
 /**
  * This pluggable utility paints either a "classic" or a "sleek" filled arrow 
@@ -13,23 +14,45 @@ import java.util.HashMap;
  * Note that the arrow simply uses the color currently set in the graphics context.
  * 
  * @author Jon Froehlich
+ * @pyobj Arrow
+ * @pyimport from com.hp.hpl.guess.piccolo import Arrow
  */
 public class Arrow {
 
     public static final int CLASSIC = 1;
     public static final int SLEEK   = 2;
     
-    protected static int m_arrowLength = 4;
-    protected static int m_arrowWidth  = 10;
+    protected static int m_arrowLength = -1;
+    protected static int m_arrowWidth  = -1;
        
+    /**
+     * @pyexport
+     */
+    public static void overrideArrowLength(int length) {
+	m_arrowLength = length;
+	VisFactory.getFactory().getDisplay().repaint();
+    }
+
+    /**
+     * @pyexport
+     */
+    public static void overrideArrowWidth(int width) {
+	m_arrowWidth = width;
+	VisFactory.getFactory().getDisplay().repaint();
+    }
+
     public static void drawArrow(Graphics2D g2d, 
 				 Point2D point1, 
 				 Point2D point2,
 				 int type,
 				 double width) {
 	
-	int m_arrowWidth = (int)Math.max(10,(width * 4));
-	int m_arrowLength = (int)Math.max(4,(width * 2));
+	int m_arrowWidth = Arrow.m_arrowWidth;
+	if (m_arrowWidth < 0) 
+	    m_arrowWidth = (int)Math.max(10,(width * 4));
+	int m_arrowLength = Arrow.m_arrowLength;
+	if (m_arrowLength < 0) 
+	    m_arrowLength = (int)Math.max(4,(width * 2));		
 
 	// get angle of line from 0 - 360
 	double thetaRadians = 

@@ -97,6 +97,7 @@ public class RealInterpreter extends PythonInterpreter
 
     public void logCommand(String s) {
 	if ((log != null) && 
+	    (!s.startsWith("ENV[")) &&
 	    (!s.startsWith("if _ != None:")) &&
 	    (!s.equals("print _")) &&
 	    (s.indexOf("interp.stoplog") < 0) &&

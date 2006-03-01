@@ -261,7 +261,7 @@ public class GMenuBar extends JMenuBar {
     }
 
     public void logToggle() {
-	if (logItem.isSelected()) {
+	if (logItem.isSelected() == false) {
 	    Guess.getInterpreter().stoplog();
 	    logItem.setSelected(false);
 	    StatusBar.setStatus("Logging stopped...");
@@ -278,17 +278,25 @@ public class GMenuBar extends JMenuBar {
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showOpenDialog(null);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-		if (chooser.getSelectedFile().exists()) {
+		SunFileFilter filter = 
+		    new SunFileFilter();
+		File f = chooser.getSelectedFile();
+		String fileExtension = filter.getExtension(f);
+		String fileName = f.getAbsolutePath();
+		if (fileExtension == null) {
+		    fileName = fileName + ".py";
+		    f = new File(fileName);
+		}		
+		if (f.exists()) {
 		    int yn = 
 			JOptionPane.showConfirmDialog(null, 
-						      "File exists, overwrite?","Exists",
+						      "File " + fileName + " exists, overwrite?","Exists",
 						      JOptionPane.YES_NO_OPTION);
 		    if (yn == JOptionPane.NO_OPTION) {
 			return;
 		    }
 		}
-		String fileName = 
-		    chooser.getSelectedFile().getAbsolutePath();
+
 		Guess.getInterpreter().log(fileName);
 		prevLog = new File(fileName);
 		logItem.setSelected(true);
