@@ -14,6 +14,8 @@ public class GuessJFrame extends JFrame {
 
     private JMenuBar jm = new JMenuBar();
 
+    private Dockable dockable = null;
+
     public GuessJFrame() {
 	super();
 	initMenus();
@@ -26,6 +28,7 @@ public class GuessJFrame extends JFrame {
 	d.setWindow(this);
 	JMenu fileMenu = new JMenu("Window");
 	JMenuItem jmi = new JMenuItem("Dock");
+	this.dockable = d;
 	final Dockable dc = d;
 
 	jmi.addActionListener(new ActionListener() {
@@ -77,8 +80,8 @@ public class GuessJFrame extends JFrame {
 	validate();
  	addWindowListener(new WindowAdapter(){
 		public void windowClosing(WindowEvent e) {
-		    if(getContentPane() instanceof Dockable){
-			((Dockable)getContentPane()).opening(false);
+		    if (dockable != null) {
+			dockable.opening(false);
 		    }
 		}
 	    });

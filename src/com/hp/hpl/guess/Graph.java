@@ -1068,7 +1068,6 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 
 		    GoneIn30 g30 = null;
 		    try {
-
 			layout.initialize(new Dimension(1000, 1000));
 			if (layout.isIncremental()) {
 			    int incCounter = 0;
@@ -1122,10 +1121,13 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 				}
 			    }
 			} else {
-				layout.advancePositions();
+			    //System.out.println("doing layout...");
+			    layout.advancePositions();
+			    //System.out.println("done layout...");
 			}
-			
+			//System.out.println("doing update...");
 			update();
+			//System.out.println("done update...");
 		    } catch (Exception e) {
 			ExceptionWindow.getExceptionWindow(e);
 		    }
@@ -1134,6 +1136,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		    }
 		    StatusBar.runProgressBar(false);
 		    interp.freeze(false);
+		    //System.out.println("returning...");
 		}
 
 		public void update() {
@@ -1164,8 +1167,10 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		}
 	    });
 	if (!Guess.getSynchronous()) {
+	    //System.out.println("asynchro");
 	    thrd.start();
 	} else {
+	    //System.out.println("synchro");
 	    thrd.run();
 	}
     }
