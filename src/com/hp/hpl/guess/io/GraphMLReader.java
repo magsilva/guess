@@ -104,10 +104,14 @@ public class GraphMLReader extends DefaultHandler {
         } else if (qName.equals("key")) {
 	    createKey(curAttrs);
 	} else if (qName.equals("default")) {
+	    curString = curString.trim();
 	    curAttrs.put("default",curString);
+	    //System.out.println("reset\n");
 	    curString = "";
 	} else if (qName.equals("data")) {
+	    curString = curString.trim();
 	    curAttrs.put(dataName,curString);
+	    //System.out.println("reset\n");
 	    curString = "";
 	    dataName = "";
 	}
@@ -205,6 +209,7 @@ public class GraphMLReader extends DefaultHandler {
 	if (def == null) {
 	    return(null);
 	}
+	//	def = def.trim();
 	try {
 	    if ((attrType == Types.BIT) ||
 		(attrType == Types.BOOLEAN)) {
@@ -236,8 +241,8 @@ public class GraphMLReader extends DefaultHandler {
     }
 
     public void characters(char[] ch, int start, int length) {
-	curString = new String(ch,start,length);
-	//System.out.println("characters: " + curString);
+	curString = curString + new String(ch,start,length);
+	//System.out.println("charactersa: " + curString);
     }
 
     public void createNode(Map attributeMap) {
