@@ -48,6 +48,7 @@ import com.hp.hpl.guess.Guess;
  * USA</p> </blockquote>
  *
  * @author javier iglesias &lt;javier.iglesias@alawa.ch&gt;
+ * @author Eytan Adar, serious revisions for GUESS
  * @version $Id: TextPaneJythonConsole.java,v 1.17 2005/07/07 02:01:49
  * eytan Exp $
  */
@@ -548,11 +549,11 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			toRet.append("</html>");
 			return(toRet.toString());
 			//return(null);
-		    } else if (value instanceof Throwable) {
-			final Writer result = new StringWriter();
-			final PrintWriter printWriter = new PrintWriter( result );
-			((Throwable)value).printStackTrace( printWriter );
-			return("<HTML><PRE>"+result.toString()+"</PRE></HTML>");
+			//} //else if (value instanceof Throwable) {
+		    //final Writer result = new StringWriter();
+		    //final PrintWriter printWriter = new PrintWriter( result );
+		    //((Throwable)value).printStackTrace( printWriter );
+			//return("<HTML><PRE>"+result.toString()+"</PRE></HTML>");
 		    } else if (value instanceof PyFunctionWrapper) {
 			StatusBar.setStatus("Function: " + 
 					    ((PyFunctionWrapper)value).name);

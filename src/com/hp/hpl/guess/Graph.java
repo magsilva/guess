@@ -1315,15 +1315,20 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	
 	String key = centrality.getRankScoreKey();
 	
+	System.out.println("calculating... " + guessKey);
 	Iterator nodes = getNodes().iterator();
 	while (nodes.hasNext())
 	    {
-		Node node = (Node)nodes.next();
-		double value = 
-		    ((MutableDouble)node.getUserDatum(key)).doubleValue();
-		node.__setattr__(guessKey, new Double(value));
-		
-		//System.out.println("Alg has computed a value of: " + value);
+		try {
+		    Node node = (Node)nodes.next();
+		    //System.out.println(key);
+		    //System.out.println((MutableDouble)node.getUserDatum(key));
+		    double value = 
+			((MutableDouble)node.getUserDatum(key)).doubleValue();
+		    node.__setattr__(guessKey, new Double(value));
+		} catch (Throwable t) {
+		    // t.printStackTrace();
+		}
 	    }
 	
 	Iterator edges = getEdges().iterator();
