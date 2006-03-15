@@ -12,6 +12,7 @@ import java.awt.geom.*;
 import edu.umd.cs.piccolo.activities.*;
 import java.util.*;
 
+import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.piccolo.GFrame;
@@ -59,6 +60,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
 			(Colors.getColor((String)o,(Color)getColor()));
 		}
 	    }
+	    if (Guess.getMTF()) 
+		moveToFront();
 	} catch (Exception e) {
 	    //e.printStackTrace();
 	    throw new Error("Problem with setting rep attribute: " + field + 

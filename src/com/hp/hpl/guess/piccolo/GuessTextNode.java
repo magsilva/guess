@@ -12,6 +12,7 @@ import java.awt.geom.*;
 import java.util.*;
 import edu.umd.cs.piccolo.activities.*;
 
+import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
 import com.hp.hpl.guess.piccolo.GFrame;
@@ -340,6 +341,8 @@ public class GuessTextNode extends PText implements GuessPNode {
 	    } else if (field.equals("visible")) {
 		setVisible(((Boolean)o).booleanValue());
 	    }
+	    if (Guess.getMTF()) 
+		moveToFront();
 	} catch (Exception e) {
 	    ExceptionWindow.getExceptionWindow(e);
 	    throw new Error("Problem with setting rep attribute: " + 

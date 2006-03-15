@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.freehep;
 
 import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.Guess;
 
 import org.freehep.util.export.*;
 import java.awt.*;
@@ -45,8 +46,10 @@ public class HEPDialog extends JOptionPane
     private static final String rootKey = HEPDialog.class.getName();
     private static final String SAVE_AS_TYPE = rootKey +".SaveAsType";
     private static final String SAVE_AS_FILE = rootKey +".SaveAsFile";
+    private static ExportFileType epsEFT = null;
+    private static ExportFileType psEFT = null;
 
-   private static Vector list = new Vector();
+    private static Vector list = new Vector();
 
     static {
        addAllExportFileTypes();
@@ -87,8 +90,10 @@ public class HEPDialog extends JOptionPane
        addExportFileType(new CGMExportFileType());
        addExportFileType(new EMFExportFileType());
        addExportFileType(new PDFExportFileType());
-       addExportFileType(new EPSExportFileType());
-       addExportFileType(new PSExportFileType());
+       epsEFT = new EPSExportFileType();
+       addExportFileType(epsEFT);
+       psEFT = new PSExportFileType();
+       addExportFileType(psEFT);
        addExportFileType(new SVGExportFileType());
        addExportFileType(new SWFExportFileType());
        addExportFileType(new GIFExportFileType());
@@ -218,7 +223,8 @@ public class HEPDialog extends JOptionPane
 
       try
       {
-         baseDir = System.getProperty("user.home");
+	  if (baseDir == null)
+	      baseDir = System.getProperty("user.home");
       }
       catch (SecurityException x) { trusted = false; }
 
@@ -249,10 +255,12 @@ public class HEPDialog extends JOptionPane
     public void showHEPDialog(Component parent, 
 			      String title, 
 			      GFrame target, 
-			      String defFile)
+			      String defFile,
+			      Component t2)
     {
 	this.gframe = target;
 	this.component = null;
+	this.epsComponent = t2;
 	originalSize = target.getFullImageSize();
 	scale.setEnabled(true);
 	showHEPDialog(parent,
@@ -338,16 +346,16 @@ public class HEPDialog extends JOptionPane
 			  currentType().hasOptionPanel());
       if (trusted)
       {
-         String saveFile = props.getProperty(SAVE_AS_FILE);
-         if (saveFile != null) {
-            baseDir = new File(saveFile).getParent();
-            defFile = saveFile;
-         } else {
-            defFile = baseDir+File.separator+defFile;
-         }
-         File f = new File(defFile);
-         if (currentType() != null) f = currentType().adjustFilename(f, props);
-         file.setText(f.toString());
+	  //String saveFile = props.getProperty(SAVE_AS_FILE);
+	  //if (saveFile != null) {
+	  //baseDir = new File(saveFile).getParent();
+	  //defFile = saveFile;
+	  //} else {
+	  defFile = baseDir+File.separator+defFile;
+	  //}
+	  File f = new File(defFile);
+	  if (currentType() != null) f = currentType().adjustFilename(f, props);
+	  file.setText(f.toString());
       }
       else
       {
@@ -389,12 +397,23 @@ public class HEPDialog extends JOptionPane
     protected boolean writeFile(Component component, 
 				ExportFileType t) throws IOException
     {
+	Dimension orig = null;
 	if ((component == null) && (gframe != null)) {
 	    try {
 		scaling = Double.parseDouble(scale.getText());
 	    } catch (Exception ex) {
 	    }
-	    component = new IComp(gframe.getFullImage(scaling));
+	    if ((currentType() == epsEFT) || 
+		(currentType() == psEFT)) {
+		gframe.center(new Integer(1),0);
+		component = gframe;
+		try {
+		    Thread.sleep(1000);
+		} catch (Exception ex) {
+		}
+	    } else {
+		component = new IComp(gframe.getFullImage(scaling));
+	    }
 	}
 	
 	File f = new File(file.getText());
@@ -408,6 +427,7 @@ public class HEPDialog extends JOptionPane
 	t.exportToFile(f,component,this,props,creator);
 	props.put(SAVE_AS_FILE,file.getText());
 	props.put(SAVE_AS_TYPE,currentType().getFileFilter().getDescription());
+	baseDir = f.getParent();
 	return true;
     }
 
@@ -435,11 +455,12 @@ public class HEPDialog extends JOptionPane
     private JTextField file = null;
     private JComboBox type = null;
     private Component component = null;
+    private Component epsComponent = null;
     private GFrame gframe = null;
     private static double scaling = 1;
     private boolean trusted = true;
     private Properties props = new Properties();
-    private String baseDir = null;
+    private static String baseDir = null;
     private JTextField scale = null;
     private JLabel imageSize = null;
 

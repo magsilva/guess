@@ -319,7 +319,7 @@ public class Guess
 			break;
 		    case 'l':
 			System.out.println("STDOUT/STDERR logged to console");
-			handleOver = true;
+			handleOver = false;
 			break;
 		    case ':':
 			System.out.print("unknown option: " + (char)c + "\n");
@@ -753,8 +753,7 @@ public class Guess
 
     public static BufferedReader errHandle = null;
 
-    //public static boolean handleOver = true;//false;
-    public static boolean handleOver = false;
+    public static boolean handleOver = true;
 
     public static void initHandles() throws Exception {
 
@@ -793,6 +792,25 @@ public class Guess
      */
     public static boolean getSynchronous() {
 	return(sync);
+    }
+
+    private static boolean mtf = false;
+
+    /**
+     * should objects in the visualization be moved to the front
+     * when they change
+     * @pyexport
+     */
+    public static void setMTF(boolean state) {
+	mtf = state;
+    }
+
+    /**
+     * Are objects being moved to the front when they change
+     * @pyexport
+     */
+    public static boolean getMTF() {
+	return(mtf);
     }
 
     public static void initUI(int uiMode, boolean guiMode, boolean textMode) 

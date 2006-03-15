@@ -536,12 +536,17 @@ public class GFrame extends PCanvas implements FrameListener {
 	miny -= 10;
 	maxx += 10;
 	maxy += 10;
-	final Rectangle2D r2d = new Rectangle2D.Double(minx,
-						       miny,
-						       maxx-minx,
-						       maxy-miny);
 	
 	//frame.getGCamera().addChild(labelText);
+	Rectangle2D r2d = new Rectangle2D.Double(minx,
+						 miny,
+						 maxx-minx,
+						 maxy-miny);
+	center(r2d,t);
+    }
+    
+    public void center(Rectangle2D r2, long t) {
+	final Rectangle2D r2d = r2;
 
 	final long tm = t;
 	
@@ -697,6 +702,32 @@ public class GFrame extends PCanvas implements FrameListener {
 	return(getFullImage(fis,Math.min(scaleX,scaleY)));
     }
     
+    public Dimension getFullImageDimensions() {
+	return(getFullImageDimensions(1));
+    }
+
+    public Dimension getFullImageDimensions(double scale) {
+	double minX = Double.MAX_VALUE;
+	double minY = Double.MAX_VALUE;
+	double maxW = Double.MIN_VALUE;
+	double maxH = Double.MIN_VALUE;
+	for (int i = 0 ; i < getGCamera().getLayerCount() ; i++) {
+	    PLayer l = getGCamera().getLayer(i);
+	    PBounds pb = l.getFullBounds();
+	    if (pb.getX() < minX) 
+		minX = pb.getX();
+	    if (pb.getY() < minY)
+		minY = pb.getY();
+	    if (pb.getWidth() > maxW)
+		maxW = pb.getWidth();
+	    if (pb.getHeight() > maxH)
+		maxH = pb.getHeight();
+	}
+	maxW = maxW * scale;
+	maxH = maxH * scale;
+	return(new Dimension((int)maxW,(int)maxH));
+    }
+
     public Rectangle2D getFullImageSize() {
 	double minX = Double.MAX_VALUE;
 	double minY = Double.MAX_VALUE;

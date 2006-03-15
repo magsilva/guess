@@ -29,6 +29,8 @@ public class GMenuBar extends JMenuBar {
 
     JCheckBoxMenuItem logItem = new JCheckBoxMenuItem("Log...");
 
+    HEPDialog hd = new HEPDialog(null);
+
     public String getInputFromUser(Object question, String title,
 				   Object def) {
 	// doesn't make use of title at present
@@ -91,16 +93,15 @@ public class GMenuBar extends JMenuBar {
 			Guess.shutdown();
 		    } else if (event.getActionCommand().equals("Export Image...")) {
 			if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
-			    HEPDialog hd = new HEPDialog(null);
-			    hd.showHEPDialog(null,"Export File",
+			    hd.showHEPDialog(null,"Export Image",
 					     (GFrame)VisFactory.getFactory().getDisplay(),
-					     "output.jpg");
+					     "output.jpg",
+					     (Component)VisFactory.getFactory().getDisplay());
 			} else {
 			    StatusBar.setErrorStatus("This method is only supported in piccolo mode right now");
 			}
 		    } else if (event.getActionCommand().equals("Export Screenshot...")) {
-			HEPDialog hd = new HEPDialog(null);
-			hd.showHEPDialog(null,"Export File",
+			hd.showHEPDialog(null,"Export Screenshot",
 					 (Component)VisFactory.getFactory().getDisplay(),
 					 "output.jpg");
 		    } else if (event.getActionCommand().equals("Run Script...")) {

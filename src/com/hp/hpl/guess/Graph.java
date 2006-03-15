@@ -18,6 +18,7 @@ import edu.uci.ics.jung.algorithms.cluster.*;
 import edu.uci.ics.jung.algorithms.importance.*;
 import edu.uci.ics.jung.algorithms.transformation.*;
 import edu.uci.ics.jung.graph.ArchetypeEdge;
+import edu.uci.ics.jung.graph.ArchetypeVertex;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.decorators.*;
@@ -1299,9 +1300,11 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      * based on guessKey
      * @param centrality the ranker
      * @param guessKey the place to put the results
+     * @param 
      */
     public void computeAbstractRanker(AbstractRanker centrality,
-				      String guessKey) {
+				      String guessKey,
+				      ArchetypeGraph ag) {
 	//first, add node and edge fields for betweenness if necessary.
 	if (edgeSchemaInt.getField(guessKey) == null)
 	    addEdgeField(guessKey, Types.DOUBLE, new Double(0.0));
@@ -1309,35 +1312,41 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	if (nodeSchemaInt.getField(guessKey) == null)
 	    addNodeField(guessKey, Types.DOUBLE, new Double(0.0));
 	
-	
+	//System.out.println(guessKey);
 	centrality.setRemoveRankScoresOnFinalize(false);
 	centrality.evaluate();
-	
+	//centrality.printRankings(false,false);
+
 	String key = centrality.getRankScoreKey();
 	
-	System.out.println("calculating... " + guessKey);
-	Iterator nodes = getNodes().iterator();
+	//System.out.println("calculating... " + guessKey);
+	Iterator nodes = ag.getVertices().iterator();
 	while (nodes.hasNext())
 	    {
 		try {
-		    Node node = (Node)nodes.next();
-		    //System.out.println(key);
-		    //System.out.println((MutableDouble)node.getUserDatum(key));
+		    ArchetypeVertex node = (ArchetypeVertex)nodes.next();
 		    double value = 
 			((MutableDouble)node.getUserDatum(key)).doubleValue();
-		    node.__setattr__(guessKey, new Double(value));
-		} catch (Throwable t) {
+		    Node node2 = (Node)node.getEqualVertex(this);
+		    node2.__setattr__(guessKey, new Double(value));
+		} catch (NullPointerException t) {
+		    // System.out.println(""+t);
 		    // t.printStackTrace();
 		}
 	    }
 	
-	Iterator edges = getEdges().iterator();
+	Iterator edges = ag.getEdges().iterator();
 	while (edges.hasNext())
 	    {
-		Edge edge = (Edge)edges.next();
-		double value = 
-		    ((MutableDouble)edge.getUserDatum(key)).doubleValue();
-		edge.__setattr__(guessKey, new Double(value));
+		try {
+		    ArchetypeEdge edge = (ArchetypeEdge)edges.next();
+		    double value = 
+			((MutableDouble)edge.getUserDatum(key)).doubleValue();
+		    Edge edge2 = (Edge)edge.getEqualEdge(this);
+		    edge2.__setattr__(guessKey, new Double(value));
+		} catch (NullPointerException t) {
+		    //System.out.println(""+t);
+		}
 	    }	
     }
     
@@ -1349,7 +1358,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    BetweennessCentrality centrality = new BetweennessCentrality(this);
-	    computeAbstractRanker(centrality,"betweenness");
+	    computeAbstractRanker(centrality,"betweenness",this);
 	    nodeSchemaInt.getField("betweenness").update();
 	    edgeSchemaInt.getField("betweenness").update();
 	}
@@ -1365,7 +1374,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    (f2.needsUpdate(this))) {
 	    DirectedGraph tempGraph = DirectionTransformer.toDirected(this);
 	    PageRank centrality = new PageRank(tempGraph,bias);
-	    computeAbstractRanker(centrality,"pagerank");
+	    computeAbstractRanker(centrality,"pagerank",tempGraph);
 	    nodeSchemaInt.getField("pagerank").update();
 	    edgeSchemaInt.getField("pagerank").update();
 	}
@@ -1379,7 +1388,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    (f2.needsUpdate(this))) {
 	    DegreeDistributionRanker centrality = 
 		new DegreeDistributionRanker(this);
-	    computeAbstractRanker(centrality,"degrank");
+	    computeAbstractRanker(centrality,"degrank",this);
 	    nodeSchemaInt.getField("degrank").update();
 	    edgeSchemaInt.getField("degrank").update();
 	}
@@ -1392,7 +1401,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    HITS centrality = new HITS(this);
-	    computeAbstractRanker(centrality,"hits");
+	    computeAbstractRanker(centrality,"hits",this);
 	    nodeSchemaInt.getField("hits").update();
 	    edgeSchemaInt.getField("hits").update();
 	}
@@ -1408,7 +1417,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		DirectionTransformer.toUndirected(this);
 	    RandomWalkBetweenness centrality = 
 		new RandomWalkBetweenness(tempGraph);
-	    computeAbstractRanker(centrality,"rwbetweenness");
+	    computeAbstractRanker(centrality,"rwbetweenness",tempGraph);
 	    nodeSchemaInt.getField("rwbetweenness").update();
 	    edgeSchemaInt.getField("rwbetweenness").update();
 	}

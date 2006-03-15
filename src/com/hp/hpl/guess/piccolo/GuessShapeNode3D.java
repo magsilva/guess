@@ -12,6 +12,7 @@ import java.awt.geom.*;
 import java.util.*;
 import edu.umd.cs.piccolo.activities.*;
 
+import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
 import com.hp.hpl.guess.piccolo.GFrame;

@@ -12,6 +12,7 @@ import java.awt.geom.*;
 import java.util.*;
 import edu.umd.cs.piccolo.activities.*;
 
+import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
 import com.hp.hpl.guess.piccolo.GFrame;
@@ -59,6 +60,9 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	} else if (field.equals("visible")) {
 	    setVisible(((Boolean)o).booleanValue());
 	} 
+
+	if (Guess.getMTF()) 
+	    moveToFront();
     
 	/*} catch (Exception e) {
 	    throw new Error("Problem with setting rep attribute: " + 
