@@ -300,6 +300,10 @@
     </target>
 
     <target name="makezip2" depends="jar">
+        <delete>
+            <fileset dir="src/Lib" includes="*.class" />
+            <fileset dir="Tools" includes="*.class" />
+        </delete>
         <zip destfile="guess.zip">
            <zipfileset dir="lib" prefix="guess/lib"/>
 	   <zipfileset dir="scripts" prefix="guess/scripts"/>
