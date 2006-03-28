@@ -29,9 +29,11 @@ class SourceFile:
     def write(self, text, *args):
 	newArgs = []
 	for arg in args:
-	    if hasattr(arg, 'sourceString'):
+	    try:
 		arg = arg.sourceString()
-	    newArgs.append(arg)
+	    except (TypeError):
+		arg = arg
+ 	    newArgs.append(arg)
 
 	if self.startLine:
 	    self.text.append(self.indent*self.indentation)

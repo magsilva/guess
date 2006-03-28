@@ -197,6 +197,7 @@ def doCompile(opts):
                     skip=skiplist,
                     options=opts)
 
+    print opts.args
     for target in opts.args:
         if target.endswith('.py'):
             classname = os.path.splitext(os.path.basename(target))[0]
