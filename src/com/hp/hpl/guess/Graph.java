@@ -79,6 +79,16 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     protected long lastMod = System.currentTimeMillis();
 
     /**
+     * the pagerank bias
+     */
+    protected double pageRankBias = 0.15;
+
+    /**
+     * the edge weight key
+     */
+    protected String edgeWeightKey = null;
+
+    /**
      * get the time of last modification
      */
     public long getLastModTime() {
@@ -1365,7 +1375,57 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     }
     
     
-    public void computePageRank(double bias)
+    /**
+     * @pyexport
+     */
+    public void setPageRankBias(double bias) {
+	pageRankBias = bias;
+	lastMod = System.currentTimeMillis() - 1;
+    }
+
+    /**
+     * @pyexport
+     */
+    public double getPageRankBias() {
+	return(pageRankBias);
+    }
+
+    /**
+     * @pyexport
+     */
+    public void setRankerWeightField(Field f) {
+	if (f.getType() == Field.EDGE) {
+	    if (!f.isNumeric()) {
+		throw new Error(f + " is not a numeric field");
+	    }
+	    edgeWeightKey = "com.hp.hpl.guess.Graph.EdgeWeight";
+	    
+	    Iterator edges = getEdges().iterator();
+	    while (edges.hasNext()) {
+		Edge e = (Edge)edges.next();
+		MutableDouble value = (MutableDouble)e.getUserDatum(edgeWeightKey);
+		Object val = e.__getattr__(f.getName());
+		double weight = 1;
+		if (val instanceof Double) {
+		    weight = ((Double)val).doubleValue();
+		} else {
+		    // we're going to convert this to a string and pull the double value
+		    // probably a hack
+		    weight = Double.parseDouble(val.toString());
+		}
+		if (value == null) {
+		    e.setUserDatum(edgeWeightKey,new MutableDouble(weight),UserData.SHARED);
+		} else {
+		    value.setDoubleValue(weight);
+		}
+	    }
+	    lastMod = System.currentTimeMillis() - 1;
+	} else {
+	    throw new Error(f + " is not an edge field");
+	}
+    }
+
+    public void computePageRank()
     {
 	Field f1 = nodeSchemaInt.getField("pagerank");
 	Field f2 = edgeSchemaInt.getField("pagerank");
@@ -1373,7 +1433,12 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    (f1.needsUpdate(this)) ||
 	    (f2.needsUpdate(this))) {
 	    DirectedGraph tempGraph = DirectionTransformer.toDirected(this);
-	    PageRank centrality = new PageRank(tempGraph,bias);
+	    PageRank centrality = null;
+	    if (edgeWeightKey != null) {
+		centrality = new PageRank(tempGraph,pageRankBias,edgeWeightKey);
+	    } else {
+		centrality = new PageRank(tempGraph,pageRankBias);
+	    }
 	    computeAbstractRanker(centrality,"pagerank",tempGraph);
 	    nodeSchemaInt.getField("pagerank").update();
 	    edgeSchemaInt.getField("pagerank").update();

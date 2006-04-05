@@ -106,7 +106,7 @@ public abstract class Edge extends AbstractSparseEdge implements GraphElement
 	    }
 	else if (fieldName.equals("pagerank"))
 	    {
-		((Graph)getGraph()).computePageRank(0.15);
+		((Graph)getGraph()).computePageRank();
 	    }
 	else if (fieldName.equals("hits"))
 	    {

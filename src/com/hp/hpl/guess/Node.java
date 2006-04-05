@@ -283,8 +283,8 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 		((Graph)getGraph()).computeBetweennessCentrality();
 	    }
 	else if (fieldName.equals("pagerank"))
-	    {
-		((Graph)getGraph()).computePageRank(0.15);
+	    {	
+		((Graph)getGraph()).computePageRank();
 	    }
 	else if (fieldName.equals("hits"))
 	    {
