@@ -108,6 +108,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	private Object currentH = null;
 	private HashSet currentHighlights = new HashSet();
 	private IntervalNode vin = null;
+
+	private boolean demoMode = true;
 	
 	public Object getGuessSelected() {
 	    IntervalNode[] matching =
@@ -805,18 +807,23 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	     * @since 1.0
 	     */
 	    protected void addHistoryItem(String command) {
-		//if(true)
-		//    return;
+
+		if (demoMode) {
+		    System.out.println("...");
+		    return;
+		}
 
 		if ((command.indexOf('\n') == -1) && // FIXME : find a way to include multiline commands in history
                     !history.get(history.size() - 2).equals(command)) {
 		    history.insertElementAt(command, history.size() - 1);
 		}
 
+		
 		currentItem = history.size() - 1;
 	    }
 	
 	    protected void addHistoryFromFile() {
+
 		try {
 		    File f = new File(".guess_history");
 		    if (!f.exists()) {
@@ -829,6 +836,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			if ((command.indexOf('\n') == -1) && // FIXME : find a way to include multiline commands in history
 			    !history.get(history.size() - 2).equals(command)) {
 			    history.insertElementAt(command, history.size() - 1);
+			    
 			}
 			
 			currentItem = history.size() - 1;
@@ -1256,6 +1264,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		if (Guess.errHandle != null) {
 		    try {
 			while(Guess.errHandle.ready()) {
+			    if (demoMode)
+				continue;
 			    superInsertString(getLength(), 
 					      Guess.errHandle.readLine()+"\n",
 					      getStyle(ERROR_STYLE));
@@ -1451,7 +1461,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 					}
 				    catch(Throwable e2)
 					{
-					    if (e2 instanceof PyException) {
+					    if (demoMode) {
+					    } else if (e2 instanceof PyException) {
 						String es = 
 						    ((PyException)e2).userFriendlyString();
 						ExceptionWindow.getExceptionWindow(e2);
@@ -1491,23 +1502,25 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    //jython.exec(command);
 			    buffer.close();
 			} catch (Exception e) {
-			    String es = 
-				e.toString();
-
-			    ExceptionWindow.getExceptionWindow(e);
-
-			    TextPaneIntervalNode tin = 
-				(TextPaneIntervalNode)Tracker.addNode(getLength(),es.length(),e);
-			    if (tin != null) {
-				tin.setStyle(TextPaneIntervalNode.ERROR_STYLE);
+			    if (demoMode) {
+			    } else { 
+				String es = 
+				    e.toString();
+				
+				ExceptionWindow.getExceptionWindow(e);
+				
+				TextPaneIntervalNode tin = 
+				    (TextPaneIntervalNode)Tracker.addNode(getLength(),es.length(),e);
+				if (tin != null) {
+				    tin.setStyle(TextPaneIntervalNode.ERROR_STYLE);
+				}
+				
+				superInsertString(getLength(), 
+						  es+"\n",
+						  getStyle(ERROR_STYLE));
+				
+				StatusBar.setErrorStatus("Use Help->Error Log for more details");
 			    }
-
-			    superInsertString(getLength(), 
-					      es+"\n",
-					      getStyle(ERROR_STYLE));
-
-			    StatusBar.setErrorStatus("Use Help->Error Log for more details");
-			    
 			}
 		    }
 
