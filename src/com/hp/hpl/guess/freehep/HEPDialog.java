@@ -46,10 +46,8 @@ public class HEPDialog extends JOptionPane
     private static final String rootKey = HEPDialog.class.getName();
     private static final String SAVE_AS_TYPE = rootKey +".SaveAsType";
     private static final String SAVE_AS_FILE = rootKey +".SaveAsFile";
-    private static ExportFileType epsEFT = null;
-    private static ExportFileType psEFT = null;
-
     private static Vector list = new Vector();
+    private static HashMap efts = new HashMap();
 
     static {
        addAllExportFileTypes();
@@ -69,9 +67,10 @@ public class HEPDialog extends JOptionPane
    /**
     * Register an export file type.
     */
-   private static void addExportFileType(ExportFileType fileType)
+   private static void addExportFileType(ExportFileType fileType, int tp)
    {
       list.addElement(fileType);
+      efts.put(fileType,new Integer(tp));
    }
 
    private static void addAllExportFileTypes()
@@ -83,25 +82,24 @@ public class HEPDialog extends JOptionPane
        //   ExportFileType type = (ExportFileType)iterator.next();
        //   addExportFileType(type);
        //}
-       addExportFileType(new JPGExportFileType());
-       addExportFileType(new PNGExportFileType());
-       addExportFileType(new PPMExportFileType());
-       addExportFileType(new RawExportFileType());
-       addExportFileType(new CGMExportFileType());
-       addExportFileType(new EMFExportFileType());
-       addExportFileType(new PDFExportFileType());
-       epsEFT = new EPSExportFileType();
-       addExportFileType(epsEFT);
-       psEFT = new PSExportFileType();
-       addExportFileType(psEFT);
-       addExportFileType(new SVGExportFileType());
-       addExportFileType(new SWFExportFileType());
-       addExportFileType(new GIFExportFileType());
-       addExportFileType(new JAVAExportFileType());
-       //addExportFileType(new JPGExportFileType());
+       addExportFileType(new JPGExportFileType(),HEPWriter.JPG);
+       addExportFileType(new PNGExportFileType(),HEPWriter.PNG);
+       addExportFileType(new PPMExportFileType(),HEPWriter.PPM);
+       addExportFileType(new RawExportFileType(),HEPWriter.RAW);
+       addExportFileType(new CGMExportFileType(),HEPWriter.CGM);
+       addExportFileType(new EMFExportFileType(),HEPWriter.EMF);
+       addExportFileType(new PDFExportFileType(),HEPWriter.PDF);
+       addExportFileType(new EPSExportFileType(),HEPWriter.EPS);
+       addExportFileType(new PSExportFileType(),HEPWriter.PS);
+       addExportFileType(new SVGExportFileType(),HEPWriter.SVG);
+       addExportFileType(new SWFExportFileType(),HEPWriter.SWF);
+       addExportFileType(new GIFExportFileType(),HEPWriter.GIF);
+       addExportFileType(new JAVAExportFileType(),HEPWriter.JAVA);
     }
+
    /**
-    * Creates a new instance of ExportDialog with all the standard export filetypes.
+    * Creates a new instance of ExportDialog with all the standard
+    * export filetypes.
     */
    public HEPDialog()
    {
@@ -245,128 +243,73 @@ public class HEPDialog extends JOptionPane
       //if (addAllExportFileTypes) addAllExportFileTypes();
    }
 
-   /**
-    * Show the dialog.
-    * @param parent The parent for the dialog
-    * @param title The title for the dialog
-    * @param target The component to be saved.
-    * @param defFile The default file name to use.
-    */
+    Rectangle2D originalSize = null;
+    
+    boolean fullImage = true;
+
+    /**
+     * Show the dialog.
+     * @param parent The parent for the dialog
+     * @param title The title for the dialog
+     * @param target The component to be saved.
+     * @param defFile The default file name to use.
+     */
     public void showHEPDialog(Component parent, 
 			      String title, 
 			      GFrame target, 
 			      String defFile,
-			      Component t2)
-    {
+			      boolean fullImage) {
 	this.gframe = target;
-	this.component = null;
-	this.epsComponent = t2;
+	this.fullImage = fullImage;
 	originalSize = target.getFullImageSize();
-	scale.setEnabled(true);
-	showHEPDialog(parent,
-		      title,
-		      defFile);
-    }
-    
-    Rectangle2D originalSize = null;
-
-   /**
-    * Show the dialog.
-    * @param parent The parent for the dialog
-    * @param title The title for the dialog
-    * @param target The component to be saved.
-    * @param defFile The default file name to use.
-    */
-    public void showHEPDialog(Component parent, 
-			      String title, 
-			      Component target, 
-			      String defFile)
-    {
-	this.gframe = null;
-	this.component = target;
-	scale.setEnabled(false);
-	originalSize = new Rectangle2D.Double(0,0,target.getWidth(),
-					      target.getHeight());
-	scaling = 1.0;
-	scale.setText("1.0");
-	showHEPDialog(parent,
-		      title,
-		      defFile);
-
-    }
-
-    class IComp extends Canvas {
-	BufferedImage bi = null;
-
-	public IComp(BufferedImage bi) {
-	    this.bi = bi;
-	    setSize(bi.getWidth(),bi.getHeight());
-	    JScrollPane sp = new JScrollPane(this);
-	    JFrame f = new JFrame();
-	    f.getContentPane().add(sp);
-	    f.setSize(20,20);
-	    f.setVisible(true);
-	    f.setVisible(false);
+	if (fullImage) {
+	    scale.setEnabled(true);
+	} else {
+	    scale.setEnabled(false);
 	}
+
+	updateSize();
 	
-	public void paint(Graphics g) {
-	    //((Graphics2D)g).scale(.5,.5);
-	    g.drawImage(bi,0,0,this);
-	}
+	if (list.size() > 0) type.setSelectedIndex(0);
+	String dType = props.getProperty(SAVE_AS_TYPE);
+	if (dType != null)
+	    {
+		for (int i=0; i<list.size(); i++)
+		    {
+			ExportFileType saveAs = (ExportFileType) list.elementAt(i);
+			if (saveAs.getFileFilter().getDescription().equals(dType))
+			    {
+				type.setSelectedItem(saveAs);
+				break;
+			    }
+		    }
+	    }
+	advanced.setEnabled(currentType() != null && 
+			    currentType().hasOptionPanel());
+	if (trusted)
+	    {
+		//String saveFile = props.getProperty(SAVE_AS_FILE);
+		//if (saveFile != null) {
+		//baseDir = new File(saveFile).getParent();
+		//defFile = saveFile;
+		//} else {
+		defFile = baseDir+File.separator+defFile;
+		//}
+		File f = new File(defFile);
+		if (currentType() != null) f = currentType().adjustFilename(f, props);
+		file.setText(f.toString());
+	    }
+	else
+	    {
+		file.setEnabled(false);
+		browse.setEnabled(false);
+	    }
+	
+	JDialog dlg = createDialog(parent,title);
+	dlg.pack();
+	dlg.show();
     }
 
-   /**
-    * Show the dialog.
-    * @param parent The parent for the dialog
-    * @param title The title for the dialog
-    * @param target The component to be saved.
-    * @param defFile The default file name to use.
-    */
-   public void showHEPDialog(Component parent, String title, 
-			     String defFile)
-   {
-
-       updateSize();
-
-      if (list.size() > 0) type.setSelectedIndex(0);
-      String dType = props.getProperty(SAVE_AS_TYPE);
-      if (dType != null)
-      {
-         for (int i=0; i<list.size(); i++)
-         {
-            ExportFileType saveAs = (ExportFileType) list.elementAt(i);
-            if (saveAs.getFileFilter().getDescription().equals(dType))
-            {
-               type.setSelectedItem(saveAs);
-               break;
-            }
-         }
-      }
-      advanced.setEnabled(currentType() != null && 
-			  currentType().hasOptionPanel());
-      if (trusted)
-      {
-	  //String saveFile = props.getProperty(SAVE_AS_FILE);
-	  //if (saveFile != null) {
-	  //baseDir = new File(saveFile).getParent();
-	  //defFile = saveFile;
-	  //} else {
-	  defFile = baseDir+File.separator+defFile;
-	  //}
-	  File f = new File(defFile);
-	  if (currentType() != null) f = currentType().adjustFilename(f, props);
-	  file.setText(f.toString());
-      }
-      else
-      {
-         file.setEnabled(false);
-         browse.setEnabled(false);
-      }
-
-      JDialog dlg = createDialog(parent,title);
-      dlg.pack();
-      dlg.show();
-   }
    private ExportFileType currentType()
    {
       return (ExportFileType) type.getSelectedItem();
@@ -394,28 +337,8 @@ public class HEPDialog extends JOptionPane
     * Override this method to provide special handling (e.g. in a WebStart app)
     * @return true if the file was written, or false to cancel operation
     */
-    protected boolean writeFile(Component component, 
-				ExportFileType t) throws IOException
+    protected boolean writeFile(ExportFileType t) throws IOException
     {
-	Dimension orig = null;
-	if ((component == null) && (gframe != null)) {
-	    try {
-		scaling = Double.parseDouble(scale.getText());
-	    } catch (Exception ex) {
-	    }
-	    if ((currentType() == epsEFT) || 
-		(currentType() == psEFT)) {
-		gframe.center(new Integer(1),0);
-		component = gframe;
-		try {
-		    Thread.sleep(1000);
-		} catch (Exception ex) {
-		}
-	    } else {
-		component = new IComp(gframe.getFullImage(scaling));
-	    }
-	}
-	
 	File f = new File(file.getText());
 	if (f.exists())
 	    {
@@ -424,11 +347,26 @@ public class HEPDialog extends JOptionPane
 						  "Replace existing file?");
 		if (ok != JOptionPane.OK_OPTION) return false;
 	    }
-	t.exportToFile(f,component,this,props,creator);
+
+	if (fullImage) {
+	    gframe.writeFullImage(file.getText(),getEFType(t),scaling,props);
+	} else {
+	    HEPWriter.export(file.getText(),gframe,getEFType(t),props);
+	}
+	//t.exportToFile(f,component,this,props,creator);
 	props.put(SAVE_AS_FILE,file.getText());
 	props.put(SAVE_AS_TYPE,currentType().getFileFilter().getDescription());
 	baseDir = f.getParent();
 	return true;
+    }
+
+    private int getEFType(ExportFileType t) {
+	Integer i = (Integer)efts.get(t);
+	if (i == null) {
+	    return(HEPWriter.PNG);
+	} else {
+	    return(i.intValue());
+	}
     }
 
    public void setValue(Object value)
@@ -437,7 +375,7 @@ public class HEPDialog extends JOptionPane
       {
          try
          {
-            if (!writeFile(component,currentType())) return;
+            if (!writeFile(currentType())) return;
          }
          catch (IOException x)
          {
@@ -454,8 +392,6 @@ public class HEPDialog extends JOptionPane
     private JButton advanced = null;
     private JTextField file = null;
     private JComboBox type = null;
-    private Component component = null;
-    private Component epsComponent = null;
     private GFrame gframe = null;
     private static double scaling = 1;
     private boolean trusted = true;

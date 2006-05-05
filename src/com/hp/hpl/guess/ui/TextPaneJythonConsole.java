@@ -109,7 +109,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	private HashSet currentHighlights = new HashSet();
 	private IntervalNode vin = null;
 
-	private boolean demoMode = true;
+	private boolean demoMode = false;//true;
 	
 	public Object getGuessSelected() {
 	    IntervalNode[] matching =

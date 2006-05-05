@@ -31,6 +31,9 @@ import java.awt.image.*;
 import java.awt.*;
 import java.io.*;
 
+import java.awt.print.*;
+import edu.umd.cs.piccolo.util.PPaintContext;
+
 import org.freehep.graphicsio.ImageGraphics2D;
 
 /**
@@ -998,6 +1001,97 @@ public class GFrame extends PCanvas implements FrameListener {
 	    ExceptionWindow.getExceptionWindow(e);
 	}
     }
+
+    public void writeFullImage(String name, int itype,
+			       Properties props) {
+	writeFullImage(name,itype,null,1,props);
+    }
+
+    public void writeFullImage(String name, int itype, double scale,
+			       Properties props) {
+	writeFullImage(name,itype,null,scale,props);
+    }
+
+    public void writeFullImage(String name, int itype, Rectangle2D fis,
+			       Properties props) {
+	writeFullImage(name,itype,fis,1,props);
+    }
+
+    /**
+     * returns a buffered image scaled to fit some coordinates
+     */
+    public void writeFullImage(String name, int itype,
+			       double maxWidth, 
+			       double maxHeight,
+			       Properties props) {
+	writeFullImage(name,itype,null,maxWidth,maxHeight,props);
+    }
+
+    public void writeFullImage(String name,
+			       int itype,
+			       Rectangle2D fis,
+			       double maxWidth, 
+			       double maxHeight,
+			       Properties props) {
+	if (fis == null)
+	    fis = getFullImageSize();
+
+	double scaleX = maxWidth/fis.getWidth();
+	double scaleY = maxHeight/fis.getHeight();
+	writeFullImage(name,itype,fis,Math.min(scaleX,scaleY),props);
+    }
+    
+    public void writeFullImage(String name, int itype,
+			       Rectangle2D trans, double scale,
+			       Properties props) {
+	//System.out.println("scale: " + scale);
+	if (trans == null) {
+	    trans = getFullImageSize();
+	}
+
+	double minX = trans.getX() * scale;
+	double minY = trans.getY() * scale;
+	double maxW = trans.getWidth() * scale;
+	double maxH = trans.getHeight() * scale;
+	
+	// find the size of the image to create
+	// and the offsets
+
+	if ((maxW <= Double.MIN_VALUE) || 
+	    (maxH <= Double.MIN_VALUE)) {
+	    return;
+	}
+
+	PageFormat pf = new PageFormat();
+	Paper pg = new Paper();
+	pg.setSize(maxW,maxH); // some padding
+	pg.setImageableArea(0,0,maxW,maxH);
+	pf.setPaper(pg);
+	Graphics2D g = HEPWriter.getGraphics2D(name,itype,(int)maxW,(int)maxH);
+
+	//PPaintContext ppc = new PPaintContext(g);
+	//ppc.setRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+
+	if (g instanceof org.freehep.graphics2d.VectorGraphics) {
+	    ((org.freehep.graphics2d.VectorGraphics)g).startExport();
+	}
+	Paint temp = g.getPaint();
+	g.setPaint(getDisplayBackground());
+	g.fill(new Rectangle(0,0,(int)maxW,(int)maxH));
+	g.setPaint(temp);
+	for (int i = 0 ; i < getGCamera().getLayerCount() ; i++) {
+	    PLayer l = getGCamera().getLayer(i);
+	    l.print(g,pf,0);
+	    //if (l instanceof GPLayer) {
+	    //System.out.println("painting layer...");
+	    //((GPLayer)l).paintBackChannel(ppc);
+	    //}
+	}
+	if (g instanceof org.freehep.graphics2d.VectorGraphics) {
+	    ((org.freehep.graphics2d.VectorGraphics)g).endExport();
+	}
+    }
+
 }
 
 

@@ -95,15 +95,14 @@ public class GMenuBar extends JMenuBar {
 			if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
 			    hd.showHEPDialog(null,"Export Image",
 					     (GFrame)VisFactory.getFactory().getDisplay(),
-					     "output.jpg",
-					     (Component)VisFactory.getFactory().getDisplay());
+					     "output.jpg",true);
 			} else {
 			    StatusBar.setErrorStatus("This method is only supported in piccolo mode right now");
 			}
 		    } else if (event.getActionCommand().equals("Export Screenshot...")) {
 			hd.showHEPDialog(null,"Export Screenshot",
-					 (Component)VisFactory.getFactory().getDisplay(),
-					 "output.jpg");
+					 (GFrame)VisFactory.getFactory().getDisplay(),
+					 "output.jpg",false);
 		    } else if (event.getActionCommand().equals("Run Script...")) {
 			runScript();
 		    } else if (event.getActionCommand().equals("Run Script...")) {

@@ -12,6 +12,7 @@ import org.freehep.graphicsio.cgm.CGMGraphics2D;
 import org.freehep.graphicsio.emf.EMFGraphics2D;
 import org.freehep.util.export.ExportDialog;
 import org.freehep.graphicsio.gif.GIFExportFileType;
+import org.freehep.graphics2d.VectorGraphics;
 
 import java.awt.*;
 import java.util.Properties;
@@ -69,141 +70,130 @@ public abstract class HEPWriter {
     public static final int CGM = 11;
     public static final int EMF = 12;
     public static final int PNG = 2;
+    public static final int PPM = 13;
+    public static final int RAW = 14;
+
+
+    public static Graphics2D getGraphics2D(String outputfile,
+					   int type,
+					   int width,
+					   int height) {
+	return(getGraphics2D(outputfile,type,width,height,null));
+    }
+
+    public static Graphics2D getGraphics2D(String outputfile,
+					   int type,
+					   int width,
+					   int height,
+					   Properties props) {
+	Graphics2D toReturn = null;
+
+	try {
+	    if (type == PS) {
+		PSGraphics2D g = new PSGraphics2D(new File(outputfile),
+						  new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == GIF) {
+		GIFGraphics2D g = 
+		    new GIFGraphics2D(new File(outputfile),
+				      new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == JPG) {
+		ImageGraphics2D g = 
+		    new ImageGraphics2D(new File(outputfile),
+					new Dimension(width,height),"jpg");
+		toReturn = g;
+	    } else if (type == PNG) {
+		ImageGraphics2D g = 
+		    new ImageGraphics2D(new File(outputfile),
+					new Dimension(width,height),"png");
+		toReturn = g;
+	    } else if (type == PPM) {
+		ImageGraphics2D g = 
+		    new ImageGraphics2D(new File(outputfile),
+					new Dimension(width,height),"ppm");
+		toReturn = g;
+	    } else if (type == RAW) {
+		ImageGraphics2D g = 
+		    new ImageGraphics2D(new File(outputfile),
+					new Dimension(width,height),"raw");
+		toReturn = g;
+	    } else if (type == JAVA) {
+		JAVAGraphics2D g = 
+		    new JAVAGraphics2D(new File(outputfile),
+				       new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == PDF) {
+		PDFGraphics2D g = 
+		    new PDFGraphics2D(new File(outputfile),
+				      new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == SWF) {
+		SWFGraphics2D g = 
+		    new SWFGraphics2D(new File(outputfile),
+				      new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == SVG) {
+		SVGGraphics2D g = 
+		    new SVGGraphics2D(new File(outputfile),
+				      new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == CGM) {
+		CGMGraphics2D g = 
+		    new CGMGraphics2D(new File(outputfile),
+				      new Dimension(width,height));
+		toReturn = g;
+	    } else if (type == EMF) {
+		EMFGraphics2D g = 
+		    new EMFGraphics2D(new File(outputfile),
+				      new Dimension(width,height));
+		toReturn = g;
+	    }
+
+	    if (toReturn != null) {
+		toReturn.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+					  RenderingHints.VALUE_ANTIALIAS_ON); 
+		if (props != null) {
+		    ((VectorGraphics)toReturn).setProperties(props);
+		}
+	    }
+	} catch (Exception e) {
+	    throw new Error(e.toString());
+	}
+	return(toReturn);
+    }
+
 
     public static void export(String outputfile, 
 			      Component mds,
 			      int type) {
 
-  
+	export(outputfile,mds,type,null);
+    }
+
+    public static void export(String outputfile, 
+			      Component mds,
+			      int type, 
+			      Properties props) {
 	try {
 	    Rectangle b = mds.getBounds();
-	    //ExportFileType epsOut = new EPSExportFileType();
-	
-	    //File file;
-	    //FileOutputStream fos;
+	    VectorGraphics g = 
+		(VectorGraphics)getGraphics2D(outputfile,type,
+					      (int)b.getWidth(),
+					      (int)b.getHeight(),
+					      props);
 
 	    StatusBar.setStatus("Saving image...",true);
-
-	    if (type == PS) {
-		PSGraphics2D g = new PSGraphics2D(new File(outputfile),
-						  new Dimension((int)b.width,
-								(int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-	    
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    } else if (type == GIF) {
-		GIFGraphics2D g = new GIFGraphics2D(new File(outputfile),
-						    new Dimension((int)b.width,
-								  (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-		if (LabNotebook.getNotebook() != null) {
-		    LabNotebook.getNotebook().addImage(outputfile,
-						       (int)b.width,
-						       (int)b.height);
-		}
-	    } else if (type == JPG) {
-		ImageGraphics2D g = 
-		    new ImageGraphics2D(new File(outputfile),
-					new Dimension((int)b.width,
-						      (int)b.height),"jpg");
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-		if (LabNotebook.getNotebook() != null) {
-		    LabNotebook.getNotebook().addImage(outputfile,
-						       (int)b.width,
-						       (int)b.height);
-		}
-	    } else if (type == PNG) {
-		ImageGraphics2D g = 
-		    new ImageGraphics2D(new File(outputfile),
-					new Dimension((int)b.width,
-						      (int)b.height),"png");
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-		if (LabNotebook.getNotebook() != null) {
-		    LabNotebook.getNotebook().addImage(outputfile,
-						       (int)b.width,
-						       (int)b.height);
-		}
-	    } else if (type == JAVA) {
-		JAVAGraphics2D g = new JAVAGraphics2D(new File(outputfile),
-						      new Dimension((int)b.width,
-								    (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    } else if (type == PDF) {
-		PDFGraphics2D g = new PDFGraphics2D(new File(outputfile),
-						    new Dimension((int)b.width,
-								  (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    } else if (type == SWF) {
-		SWFGraphics2D g = new SWFGraphics2D(new File(outputfile),
-						    new Dimension((int)b.width,
-								  (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    } else if (type == SVG) {
-		SVGGraphics2D g = new SVGGraphics2D(new File(outputfile),
-						    new Dimension((int)b.width,
-								  (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    } else if (type == CGM) {
-		CGMGraphics2D g = new CGMGraphics2D(new File(outputfile),
-						    new Dimension((int)b.width,
-								  (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    } else if (type == EMF) {
-		EMFGraphics2D g = new EMFGraphics2D(new File(outputfile),
-						    new Dimension((int)b.width,
-								  (int)b.height));
-		//g.setProperties(properties);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				   RenderingHints.VALUE_ANTIALIAS_ON); 
-		g.startExport();
-		mds.paint(g);
-		g.endExport();
-	    }
-	    StatusBar.setStatus("",false);
+	    g.startExport();
+	    mds.paint(g);
+	    g.endExport();
+		
+	    //if (LabNotebook.getNotebook() != null) {
+	    //    LabNotebook.getNotebook().addImage(outputfile,
+	    //				       (int)b.width,
+	    //				       (int)b.height);
+	    //}
+	    StatusBar.setStatus("Imaged saved...",false);
 	} catch (Exception e) {
 	    throw new Error(e.toString());
 	}
