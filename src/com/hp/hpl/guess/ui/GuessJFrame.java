@@ -70,7 +70,7 @@ public class GuessJFrame extends JFrame {
 			HEPDialog hd = new HEPDialog(null);
 			hd.showHEPDialog(null,"Export File",
 					 getContentPane(),
-					 "output.jpg");
+					 "output.jpg",false);
 		    }
 		}
 	    });

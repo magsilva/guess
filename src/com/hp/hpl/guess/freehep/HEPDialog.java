@@ -247,6 +247,13 @@ public class HEPDialog extends JOptionPane
     
     boolean fullImage = true;
 
+    public void showHEPDialog(Component parent, 
+			      String title, 
+			      Component target, 
+			      String defFile) {
+	showHEPDialog(parent,title,target,defFile,false);
+    }
+
     /**
      * Show the dialog.
      * @param parent The parent for the dialog
@@ -256,12 +263,17 @@ public class HEPDialog extends JOptionPane
      */
     public void showHEPDialog(Component parent, 
 			      String title, 
-			      GFrame target, 
+			      Component target, 
 			      String defFile,
 			      boolean fullImage) {
-	this.gframe = target;
+	if (target instanceof GFrame) {
+	    this.gframe = (GFrame)target;
+	    originalSize = gframe.getFullImageSize();
+	} else {
+	    this.component = target;
+	}
 	this.fullImage = fullImage;
-	originalSize = target.getFullImageSize();
+
 	if (fullImage) {
 	    scale.setEnabled(true);
 	} else {
@@ -310,6 +322,7 @@ public class HEPDialog extends JOptionPane
 	dlg.show();
     }
 
+
    private ExportFileType currentType()
    {
       return (ExportFileType) type.getSelectedItem();
@@ -348,11 +361,16 @@ public class HEPDialog extends JOptionPane
 		if (ok != JOptionPane.OK_OPTION) return false;
 	    }
 
-	if (fullImage) {
-	    gframe.writeFullImage(file.getText(),getEFType(t),scaling,props);
+	if (gframe != null) {
+	    if (fullImage) {
+		gframe.writeFullImage(file.getText(),getEFType(t),scaling,props);
+	    } else {
+		HEPWriter.export(file.getText(),gframe,getEFType(t),props);
+	    }
 	} else {
-	    HEPWriter.export(file.getText(),gframe,getEFType(t),props);
+	    HEPWriter.export(file.getText(),component,getEFType(t),props);
 	}
+
 	//t.exportToFile(f,component,this,props,creator);
 	props.put(SAVE_AS_FILE,file.getText());
 	props.put(SAVE_AS_TYPE,currentType().getFileFilter().getDescription());
@@ -393,6 +411,7 @@ public class HEPDialog extends JOptionPane
     private JTextField file = null;
     private JComboBox type = null;
     private GFrame gframe = null;
+    private Component component = null;
     private static double scaling = 1;
     private boolean trusted = true;
     private Properties props = new Properties();

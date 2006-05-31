@@ -90,7 +90,7 @@ public class Legend extends JPanel implements Dockable {
 			HEPDialog hd = new HEPDialog(null);
 			hd.showHEPDialog(null,"Export File",
 					 myCanvas,
-					 "output.jpg");
+					 "output.jpg",false);
 		    }
 		}
 	    };
