@@ -2525,6 +2525,9 @@ public class DBServer implements StorageListener {
 		    // create it, this is where we put 
 		    // edges that aren't connected to any graph
 		    // we want to be able to recover those back
+		    create = "DELETE FROM edges__deleted where __edgeid = " + 
+			edge.getID();
+		    query(create);
 		    create = "INSERT INTO edges__deleted select * "+
 			"from edges where __edgeid = " + edge.getID() + "";
 		    query(create);
@@ -2537,7 +2540,6 @@ public class DBServer implements StorageListener {
 			  " ADD UNIQUE (__EDGEID)");
 		    tableList.clear();
 		}
-
 		query("DELETE FROM edges WHERE __edgeid = " + edge.getID());
 		unusedEdges.put(new Integer(edge.getID()),edge);
 	    }
@@ -2605,6 +2607,9 @@ public class DBServer implements StorageListener {
 		    // create it, this is where we put 
 		    // nodes that aren't connected to any graph
 		    // we want to be able to recover those back
+		    create = "DELETE FROM nodes__deleted where name = '" + 
+			node.getName() + "'";
+		    query(create);
 		    create = "INSERT INTO nodes__deleted select * "+
 			"from nodes where name = '" + node.getName() + "'";
 		    query(create);
