@@ -1638,7 +1638,12 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	}
 	
 	public int compareTo(Object o) {
-	    return(this.key.compareTo(((SortableGraphElement)o).key));
+	    try {
+		return(this.key.compareTo(((SortableGraphElement)o).key));
+	    } catch (Exception ex) {
+		ExceptionWindow.getExceptionWindow(ex);
+		return(-1);
+	    }
 	}
     }
 
@@ -1703,12 +1708,17 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	return(al);
     }
 
+    private final static String __nullKey = new String("___GUESS_NULL");
+ 
     public Collection groupNodesBy(String field) {
 	Hashtable map = new Hashtable();
 	Iterator it = getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    Object attrib = n.__getattr__(field);
+	    if (attrib == null) {
+		attrib = __nullKey;
+	    }
 	    if (!map.containsKey(attrib)) {
 		map.put(attrib,new SortableHashSet(field,(Comparable)attrib));
 	    }
@@ -1730,6 +1740,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	while(it.hasNext()) {
 	    Edge n = (Edge)it.next();
 	    Object attrib = n.__getattr__(field);
+	    if (attrib == null) {
+		attrib = __nullKey;
+	    }
 	    if (!map.containsKey(attrib)) {
 		map.put(attrib,new SortableHashSet(field,(Comparable)attrib));
 	    }
