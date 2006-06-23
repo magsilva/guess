@@ -58,9 +58,10 @@ public class GraphMLReader extends DefaultHandler {
             // Parse the input
             SAXParser saxParser = factory.newSAXParser();
             saxParser.parse(r,(DefaultHandler)this);
+
 	} catch (Exception e) {
 	    ExceptionWindow.getExceptionWindow(e);
-            throw new Error("Error loading graphml file: " +  e);
+           throw new Error("Error loading graphml file: " +  e);
         }
     }
 
@@ -268,11 +269,12 @@ public class GraphMLReader extends DefaultHandler {
     }
 
     protected void createGraph(Map attributeMap) {
-        String edgeDefaultType =
+	String edgeDefaultType =
 	    (String) attributeMap.remove("edgedefault");
-        if (edgeDefaultType.equalsIgnoreCase("directed")) {
-            directed = true;
-        } 
+	if ((edgeDefaultType != null) && 
+	    (edgeDefaultType.equalsIgnoreCase("directed"))) {
+	    directed = true;
+	} 
     }
 
     public void createEdge(Map attributeMap) {
