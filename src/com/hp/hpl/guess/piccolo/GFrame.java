@@ -521,12 +521,12 @@ public class GFrame extends PCanvas implements FrameListener {
 	}
     }
     
-    private void center(double minx, double miny, double maxx, double maxy) {
+    public void center(double minx, double miny, double maxx, double maxy) {
 	center(minx,miny,maxx,maxy,2000);
     }
 
-    private void center(double minx, double miny, double maxx, 
-			double maxy, long t) {
+    public void center(double minx, double miny, double maxx, 
+		       double maxy, long t) {
 	
 	if ((minx == Double.MAX_VALUE) ||
 	    (maxx == Double.MIN_VALUE) ||
@@ -557,18 +557,22 @@ public class GFrame extends PCanvas implements FrameListener {
 
 	if (Guess.getSynchronous()) {
 	    try {
-		
+		//System.out.println("anim 1");
 		PTransformActivity pta = 
 		    getGCamera().animateViewToCenterBounds(r2d,
 							   true,
 							   tm);
 		
+		if (pta == null) {
+		    return;
+		}
 		SimpDelegate sd = new SimpDelegate();
 		pta.setDelegate(sd);
 		while(sd.running()) {
 		    try {
 			Thread.sleep(100);
 		    } catch (Exception inte) {
+			System.out.println(inte);
 		    }
 		}
 	    } catch (Exception ex) {
@@ -577,6 +581,7 @@ public class GFrame extends PCanvas implements FrameListener {
 	} else {
 	    javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		    public void run() { 
+			//System.out.println("anim 2");
 			PTransformActivity pta = 
 			    getGCamera().animateViewToCenterBounds(r2d,
 								   true,
@@ -588,7 +593,7 @@ public class GFrame extends PCanvas implements FrameListener {
 
     class SimpDelegate implements PActivity.PActivityDelegate {
 	
-	private boolean runn = true;
+	private boolean runn = false;
 	
 	public boolean running() {
 	    return(runn);
@@ -919,6 +924,7 @@ public class GFrame extends PCanvas implements FrameListener {
 
 	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		public void run() { 
+		    //System.out.println("anim 3");
 		    PTransformActivity pta = 
 			getGCamera().animateViewToCenterBounds(r2d,
 							       true,
@@ -960,6 +966,7 @@ public class GFrame extends PCanvas implements FrameListener {
 
 	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		public void run() { 
+		    //System.out.println("anim 4");
 		    PTransformActivity pta = 
 			getGCamera().animateViewToCenterBounds(r2d,
 							       true,

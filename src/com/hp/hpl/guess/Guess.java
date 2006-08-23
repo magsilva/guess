@@ -988,8 +988,6 @@ public class Guess
 
 	} 
 	
-	myFrame.center();
-	
 	if (pythonToExec != null) {
 	    Iterator it = pythonToExec.iterator();
 	    while(it.hasNext()) {
@@ -1006,6 +1004,8 @@ public class Guess
 		}
 	    }
 	}
+
+	myFrame.center();
 
 	//System.out.println(myFrame);
 

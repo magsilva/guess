@@ -1075,8 +1075,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 
 	Thread thrd = new Thread(new Runnable() {
 		public void run() {
+		    //System.out.println("pre freeze");
 		    interp.freeze(true);
-
+		    //System.out.println("post freeze");
 		    GoneIn30 g30 = null;
 		    try {
 			layout.initialize(new Dimension(1000, 1000));
@@ -1143,35 +1144,62 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 			ExceptionWindow.getExceptionWindow(e);
 		    }
 		    if (g30 != null) {
+			//System.out.println("stopping timer...");
 			g30.stopTimer();
 		    }
+		    //	    System.out.println("stopping progress bar...");
 		    StatusBar.runProgressBar(false);
+		    //System.out.println("unfreezing..");
 		    interp.freeze(false);
 		    //System.out.println("returning...");
 		}
 
 		public void update() {
+		    double minX = Double.MAX_VALUE;
+		    double minY = Double.MAX_VALUE;
+		    double maxX = Double.MIN_VALUE;
+		    double maxY = Double.MIN_VALUE;
 		    try {
 			Iterator nodes = getNodes().iterator();
+			//System.out.println("going to iterator...");
 			while (nodes.hasNext())
 			    {
 				Node node = (Node)nodes.next();
+				//System.out.println(node);
 				if (!((Boolean)node.__getattr__("fixed")).booleanValue())
 				    {
 					
+					double x = layout.getX((Node)node);
+					double y = layout.getY((Node)node);
 					node.__setattr__("x", 
-							 new Double(layout.getX((Node)node)));
+							 new Double(x));
 					node.__setattr__("y", 
-							 new Double(layout.getY((Node)node)));
+							 new Double(y));
+					if (x < minX) {
+					    minX = x;
+					}
+					if (y < minY) {
+					    minY = y;
+					}
+					if ((y + node.getHeight()) > maxY) {
+					    maxY = y + node.getHeight();
+					}
+					if ((x + node.getWidth()) > maxX) {
+					    maxX = x + node.getWidth();
+					}
 				    } 
 			    }
 		    } catch (Exception ex) {
 			ExceptionWindow.getExceptionWindow(ex);
 		    }
 		    if (ca) {
+			//System.out.println("trying to center");
 			if (display instanceof GFrame) {
-			    ((GFrame)display).centerFast();
+			    //System.out.println("center fast");\
+			    ((GFrame)display).center(minX,minY,maxX,maxY,500);
+			    //System.out.println("post center fast");
 			} else {
+			    //System.out.println("center");
 			    display.center();
 			}
 		    }
