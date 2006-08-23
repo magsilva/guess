@@ -40,8 +40,6 @@
 	<pathelement path="lib/jcommon.jar"/>
 	<pathelement path="lib/mascoptLib.jar"/>
 	<pathelement path="lib/colt.jar"/>
-	<pathelement path="libstemp/jdbm-1.0.jar"/>
-	<pathelement path="libstemp/jama-1.0.2.jar"/>
 	<pathelement path="c:/program files/jmf2.1.1e/lib/jmf.jar"/>
         <pathelement path="${java.class.path}"/>
         <pathelement location="${build.classes}"/>
