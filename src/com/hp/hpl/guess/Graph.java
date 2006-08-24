@@ -1548,7 +1548,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     /**
      * @pyexport
      */
-    public void addNodeField(String fieldName, int sqlType, 
+    public Field addNodeField(String fieldName, int sqlType, 
 			     Object defaultValue)
     {
 	Field field = new Field(this, fieldName, Field.NODE, 
@@ -1556,12 +1556,13 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	nodeSchemaInt.addFieldToSL(field);
 	
 	interp.setImmutable(fieldName, field);
+	return(field);
     }
 
     /**
      * @pyexport
      */
-    public void addEdgeField(String fieldName, int sqlType, 
+    public Field addEdgeField(String fieldName, int sqlType, 
 			     Object defaultValue)
     {
 	Field field = new Field(this, fieldName, Field.EDGE,
@@ -1584,6 +1585,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		}
 	    }
 	}
+	return(field);
     }
 
     /**
@@ -1890,6 +1892,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	randomLayout();
 	Guess.setSynchronous(tmp2);
 	centerAfter = tmp;
+	if (containsDirected()) {
+	    VisFactory.getFactory().setDirected(true);
+	}
     }
 
     /**
@@ -1897,6 +1902,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
     public void makeFromPajek(String filename) {
 	GuessPajekReader.readFile(this,filename);
+	if (containsDirected()) {
+	    VisFactory.getFactory().setDirected(true);
+	}
     }
 
     /**
@@ -1911,7 +1919,11 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     /**
      * @pyexport
      */
-    public void makeFromGDF(String filename) {
+    public void makeFromGDF(String filename) throws Exception { 
+	GDFReader gmr = new GDFReader(this,filename);
+	if (containsDirected()) {
+	    VisFactory.getFactory().setDirected(true);
+	}
     }
 
     /**

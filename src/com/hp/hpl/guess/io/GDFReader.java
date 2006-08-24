@@ -99,7 +99,7 @@ public class GDFReader {
 		toRet.append(foo[i]);
 	    }
 	    if (Helper.isBadName(subelem[0])) {
-		System.out.println("\n\nWARNING! field name \"" + subelem[0] + "\" may conflict with a restricted word\n\n");
+		System.err.println("\n\nWARNING! field name \"" + subelem[0] + "\" may conflict with a restricted word\n\n");
 	    }
 	    if (i < foo.length - 1) {
 		toRet.append(",");
@@ -108,32 +108,47 @@ public class GDFReader {
 	return(toRet.toString());
     }
 
-    Hashtable defaultNodeTypes  = new Hashtable();
-    Hashtable defaultEdgeTypes  = new Hashtable();
+    private Field[] processNodeDef(Graph g, String s) {
+	return(processDef(g,s,g.getNodeSchema()));
+    }
 
-    private String[] processNodeDefs(Graph g, String s) {
-	NodeSchema ns = g.getNodeSchema();
+    private Field[] processEdgeDef(Graph g, String s) {
+	return(processDef(g,s,g.getEdgeSchema()));
+    }
+
+    private Field[] processDef(Graph g, String s, Schema ns) {
+	//System.out.println(s);
     	String[] foo = s.split(",");
-	String[] toRet = new String[foo.length];
+	Field[] toRet = new Field[foo.length];
 	for (int i = 0 ; i < foo.length ; i++) {
 	    String t = foo[i].trim().toLowerCase();
 	    String[] subelem = t.split(" ");
 	    String attrName = subelem[0];
-	    String attrType = ((Integer)defaultNodeTypes.get(attrName)).intValue();
+	    Field existingF = ns.getField(attrName);
+	    Integer attrType =  null;
+	    if (existingF != null) {
+		// field already exists in the system
+		attrType = new Integer(existingF.getSQLType());
+	    }
+
 	    String def = null;
-	    for (int j = 1 ; subelem.length ; j++) {
+
+	    for (int j = 1 ; j < subelem.length ; j++) {
 		// handle not nulls?
 		if (subelem[j].equals("default")) {
 		    def = subelem[j+1];
 		    j++;
 		    continue;
 		} else {
-		    attrType = subelem[j];
+		    if (attrType == null) {
+			attrType = new Integer(getSQLType(subelem[j]));
+		    }
 		}
 	    }
-	    if (dnt == null) {
+
+	    if (attrType == null) {
 		// trouble, report error
-	    
+		throw new RuntimeException("");
 	    }
 	    Field f = ns.getField(attrName);
 	    if (f != null) {
@@ -141,21 +156,34 @@ public class GDFReader {
 		Object o = convertToType(f.getSQLType(),def);
 		if (o != null)
 		    f.setDefault(o);
+		if (f.getSQLType() != attrType.intValue()) {
+		    String error = attrName + 
+			", current SQL type: " +
+			f.getSQLType() + 
+			"requested type: " + 
+			attrType;
+		    if (ns instanceof NodeSchema) {
+			ExceptionWindow.getExceptionWindow(new Exception("Possible type conflict on: Node."+error));
+		    } else {
+			ExceptionWindow.getExceptionWindow(new Exception("Possible type conflict on: Edge."+error));
+		    }
+		}
 	    } else {
 		//System.out.println(attrType);
-		int t = getSQLType(attrType);
-		g.addNodeField(attrName,t,convertToType(t,def));
+		if (ns instanceof NodeSchema) {
+		    f = g.addNodeField(attrName,attrType.intValue(),
+				       convertToType(attrType.intValue(),def));
+		} else if (ns instanceof EdgeSchema) {
+		    f = g.addEdgeField(attrName,attrType.intValue(),
+				       convertToType(attrType.intValue(),def));
+		}
 	    }
-	    toRet[i] = attrName;
+	    //	    System.out.println(f);
+	    toRet[i] = f;
 	}
 	return(toRet);
     }
 
-
-    public String[] processEdgeDefs(Graph g, String s) {
-	return(null);
-    }
- 
     private Object convertToType(int attrType,String def) {
 	if (def == null) {
 	    return(null);
@@ -191,7 +219,7 @@ public class GDFReader {
 	return(null);
     }
 
-    public GDFReader(Graph g, String file) throws Exception {
+    public GDFReader(Graph g, String file) throws IOException {
 	BufferedReader br = new BufferedReader(new FileReader(file));
 
 	String line = null;
@@ -203,14 +231,17 @@ public class GDFReader {
 	
 	Random rand = new Random();
 	
-	String[] nodeCols = null;
-	String[] edgeCols = null;
+	Field[] nodeCols = null;
+	Field[] edgeCols = null;
 
 	int nNameCol = -1;
 	int eNode1Col = -1;
 	int eNode2Col = -1;
 
 	boolean directed = false;
+	boolean randomLayout = true;
+
+	int lineNum = 0;
 
 	while ((line = br.readLine()) != null) {
 	    line = line.trim();
@@ -223,37 +254,40 @@ public class GDFReader {
 		inNodeDef = true;
 		String def = line.substring(8);
 		nodeCols = processNodeDef(g,def);
+		//System.out.println("node cols length: " + nodeCols.length);
 		for (int i = 0 ; i < nodeCols.length ; i++) {
-		    if (nodeCols[i].equalsIgnoreCase("name")) {
+		    if (nodeCols[i].getName().equalsIgnoreCase("name")) {
 			nNameCol = i;
-			break;
+		    } else if (nodeCols[i].getName().equalsIgnoreCase("x")) {
+			randomLayout = false;
+		    } else if (nodeCols[i].getName().equalsIgnoreCase("y")) {
+			randomLayout = false;
 		    }
 		}
 		if (nNameCol == -1) {
-		    ExceptionWindow.getExceptionWindow("No name column, invalid GDF file");
+		    throw new RuntimeException("No name column, invalid GDF file");
 		}
 	    } else if (line.startsWith("edgedef>")) {
 		inEdgeDef = true;
 		inNodeDef = false;
 		String def = line.substring(8);
-		edgeCols = processEdgeDef(def);
+		edgeCols = processEdgeDef(g,def);
+		//System.out.println("edge cols length: " + nodeCols.length);
 		for (int i = 0 ; i < edgeCols.length ; i++) {
-		    if (edgeCols[i].equalsIgnoreCase("node1")) {
+		    if (edgeCols[i].getName().equalsIgnoreCase("node1")) {
 			eNode1Col = i;
-			break;
-		    } else if (edgeCols[i].equalsIgnoreCase("node2")) {
+		    } else if (edgeCols[i].getName().equalsIgnoreCase("node2")) {
 			eNode2Col = i;
-			break;
-		    } else if (nodeCols[i].equalsIgnoreCase("directed")) {
+		    } else if (nodeCols[i].getName().equalsIgnoreCase("directed")) {
 			directed = true;
 		    }
 
 		}
 		if (eNode1Col == -1) {
-		    ExceptionWindow.getExceptionWindow("No node1 column, invalid GDF file");
+		    throw new RuntimeException("No node1 column, invalid GDF file");
 		}
 		if (eNode2Col == -1) {
-		    ExceptionWindow.getExceptionWindow("No node2 column, invalid GDF file");
+		    throw new RuntimeException("No node2 column, invalid GDF file");
 		}
 	    } else {
 		String[] vals = stringSplit(line);
@@ -263,7 +297,13 @@ public class GDFReader {
 		    for (int i = 0 ; i < vals.length ; i++) {
 			if (i == nNameCol)
 			    continue;
-			n.__setattr__(nodeCols[i],vals[i]);
+			n.__setattr__(nodeCols[i].getName(),
+				      convertToType(nodeCols[i].getSQLType(),
+						    vals[i]));
+		    }
+		    if (randomLayout) {
+			n.__setattr__("x",new Double((rand.nextDouble()*500)));
+			n.__setattr__("y",new Double((rand.nextDouble()*500)));
 		    }
 		} else if (inEdgeDef) {
 		    Node s = g.getNodeByName(vals[eNode1Col]);
@@ -277,22 +317,22 @@ public class GDFReader {
 		    for (int i = 0 ; i < vals.length ; i++) {
 			if ((i == eNode1Col) || (i == eNode2Col))
 			    continue;
-			n.__setattr__(edgeCols[i],vals[i]);
+			e.__setattr__(edgeCols[i].getName(),
+				      convertToType(edgeCols[i].getSQLType(),
+						    vals[i]));
 		    }
 		} else {
-		    System.out.println("Your database definition file may "+
-				       "have a problem in it, not sure what "+
-				       "to do with:\n"+line+ " (line: "+
-				       lineNum+")");
+		    throw new RuntimeException("Your database definition file may "+
+					   "have a problem in it, not sure what "+
+					   "to do with:\n"+line+ " (line: "+
+					   lineNum+")");
 		}
 	    }
 	}
-	System.out.println("\nLoaded " + nodecount + 
-			   " nodes and " + edgecount + " edges");
 	return;	
     }
 
-    private int getSQLType(String s) throws Exception {
+    private int getSQLType(String s) {
 	if (s.equals("array")) {
 	    return(Types.ARRAY);
 	} else if (s.equals("bigint")) {
@@ -333,9 +373,9 @@ public class GDFReader {
 	    return(Types.TIMESTAMP);
 	}  else if (s.equals("tinyint")) {
 	    return(Types.TINYINT);
-	}  else if (s.equals("varchar")) {
+	}  else if (s.startsWith("varchar")) {
 	    return(Types.VARCHAR);
 	}  
-	throw new Exception("Unsuported Type");
+	throw new RuntimeException("Unsuported Type");
     }
 }
