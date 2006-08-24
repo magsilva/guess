@@ -1911,6 +1911,18 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     /**
      * @pyexport
      */
+    public void makeFromGDF(String filename) {
+	StorageListener sl = StorageFactory.getSL();
+	if (sl instanceof DBServer) {
+	    
+	} else {
+	    ExceptionWindow.getExceptionWindow("This requires a real database backend");
+	}
+    }
+
+    /**
+     * @pyexport
+     */
     public void morph(String state, long duration) {
 	if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
 	    Morpher.morph(this,state,duration);
