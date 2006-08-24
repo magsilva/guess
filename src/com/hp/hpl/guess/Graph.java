@@ -1912,12 +1912,6 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      * @pyexport
      */
     public void makeFromGDF(String filename) {
-	StorageListener sl = StorageFactory.getSL();
-	if (sl instanceof DBServer) {
-	    
-	} else {
-	    ExceptionWindow.getExceptionWindow("This requires a real database backend");
-	}
     }
 
     /**

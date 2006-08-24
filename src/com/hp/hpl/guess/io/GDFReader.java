@@ -7,6 +7,7 @@ import org.python.core.*;
 
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.storage.*;
+import com.hp.hpl.guess.db.*;
 import com.hp.hpl.guess.ui.ExceptionWindow;
 import com.hp.hpl.guess.ui.StatusBar;
 import javax.swing.table.AbstractTableModel;
@@ -113,12 +114,12 @@ public class GDFReader {
     private String[] processNodeDefs(Graph g, String s) {
 	NodeSchema ns = g.getNodeSchema();
     	String[] foo = s.split(",");
-	String toRet = new String[foo.length];
+	String[] toRet = new String[foo.length];
 	for (int i = 0 ; i < foo.length ; i++) {
 	    String t = foo[i].trim().toLowerCase();
 	    String[] subelem = t.split(" ");
 	    String attrName = subelem[0];
-	    String attrType = defaultNodeTypes.get(attrName);
+	    String attrType = ((Integer)defaultNodeTypes.get(attrName)).intValue();
 	    String def = null;
 	    for (int j = 1 ; subelem.length ; j++) {
 		// handle not nulls?
