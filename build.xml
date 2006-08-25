@@ -284,7 +284,7 @@
            <zipfileset dir="Tools" prefix="guess/Tools"/>
 	   <zipfileset dir="scripts" prefix="guess/scripts"/>
 	   <zipfileset dir="src/Lib" prefix="guess/src/Lib"/>
-           <zipfileset dir="." includes="guess.bat,guess.sh,guess-console.bat,nohost.gdf,test.html,test2.html,jython.bat,jythonc.bat,test.xml,README.TXT,sample.gdf,manual/manual.pdf,guess-src.jar,licenses/**" prefix="guess/"/>
+           <zipfileset dir="." includes="guess.bat,guess.sh,guess-console.bat,nohost.gdf,test.html,test2.html,jython.bat,jythonc.bat,test.xml,README.TXT,sample.gdf,manual/manual.pdf,manual/MacInstall.pdf,guess-src.jar,licenses/**" prefix="guess/"/>
 	 </zip>
     </target>
 
