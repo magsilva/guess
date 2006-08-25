@@ -184,6 +184,19 @@ public interface StorageListener {
      * adds a new edge to the database and return its ID.
      */
     public int createUndirectedEdge(Node source, Node dest);
+
+    /**
+     * adds a new edge to the database and return its ID.
+     * Forces specific __edgeid
+     */
+    public int createDirectedEdge(Node source, Node dest, int id);
+    
+    /**
+     * adds a new edge to the database and return its ID.
+     * Forces specific __edgeid
+     */
+    public int createUndirectedEdge(Node source, Node dest, int id);
+
     
     //adds the given node to the database.
     public void addNode(Node node);
@@ -259,6 +272,8 @@ public interface StorageListener {
     public boolean containsNode(Node n);
 
     public void addEdge(Edge e);
+
+    public void exportGDF(String filename);
 }
 
 

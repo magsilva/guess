@@ -296,11 +296,33 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
     public DirectedEdge addDirectedEdge(Node source, Node dest)
     {
-	containsDirected = true;
-
 	//get available ID from database
 	int id = StorageFactory.getSL().createDirectedEdge(source, dest);
-	
+	return(addDirectedEdge(source,dest,id));
+    }
+
+    /**
+     * user's API for adding a new directed edge to the graph and database
+     * @param source source node
+     * @param dest destinatin node
+     * @param id override the id creation from the storage factory
+     * @return a new DirectedEdge between source and dest
+     */
+    public DirectedEdge addDirectedEdgeWID(Node source, Node dest, int id) {
+	StorageFactory.getSL().createDirectedEdge(source, dest, id);
+	return(addDirectedEdge(source,dest,id));
+    }
+    
+    /**
+     * user's API for adding a new directed edge to the graph and database
+     * @param source source node
+     * @param dest destinatin node
+     * @param id override the id creation from the storage factory
+     * @return a new DirectedEdge between source and dest
+     */
+    private DirectedEdge addDirectedEdge(Node source, Node dest, int id) {
+	containsDirected = true;
+
 	//create new edge
 	DirectedEdge edge = new DirectedEdge(id, source, dest);
 	
@@ -338,9 +360,24 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
     public UndirectedEdge addUndirectedEdge(Node node1, Node node2)
     {
+	int id = StorageFactory.getSL().createUndirectedEdge(node1, node2);
+	return(addUndirectedEdge(node1,node2,id));
+    }
+
+    /**
+     *
+     */
+    public UndirectedEdge addUndirectedEdgeWID(Node node1, Node node2, int id)
+    {
+	StorageFactory.getSL().createUndirectedEdge(node1, node2, id);
+	return(addUndirectedEdge(node1,node2,id));
+    }
+
+    private UndirectedEdge addUndirectedEdge(Node node1, Node node2, int id)
+    {
 	//System.out.println(node1 + " " + node2 + " created");
 	//get available ID from database
-	int id = StorageFactory.getSL().createUndirectedEdge(node1, node2);
+
 	
 	//create new edge
 	UndirectedEdge edge = new UndirectedEdge(id, node1, node2);
@@ -1919,11 +1956,18 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     /**
      * @pyexport
      */
-    public void makeFromGDF(String filename) throws Exception { 
+    public void makeFromGDF(String filename) throws java.io.IOException { 
 	GDFReader gmr = new GDFReader(this,filename);
 	if (containsDirected()) {
 	    VisFactory.getFactory().setDirected(true);
 	}
+    }
+
+    /**
+     * @pyexport
+     */
+    public void exportGDF(String filename) {
+	StorageFactory.getSL().exportGDF(filename);
     }
 
     /**

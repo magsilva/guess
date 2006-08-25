@@ -2420,6 +2420,36 @@ public class DBServer implements StorageListener {
 	    throw new Error(e.toString());
 	}
     }
+
+    public int createDirectedEdge(Node source, Node dest, int id)
+    {
+	try {
+	    query("INSERT INTO edges(__edgeid,node1,node2,directed) VALUES(" +
+		  id + "," +
+		  "'"+source.getName()+"',"+
+		  "'"+dest.getName()+"',true)");
+	    return id;
+	} catch (Exception e) {
+	    
+	    ExceptionWindow.getExceptionWindow(e);
+	    throw new Error(e.toString());
+	}
+    }
+
+    public int createUndirectedEdge(Node source, Node dest, int id)
+    {
+	try {
+	    query("INSERT INTO edges(__edgeid,node1,node2,directed) VALUES(" +
+		  id + "," +
+		  "'"+source.getName()+"',"+
+		  "'"+dest.getName()+"',false)");
+	    return id;
+	} catch (Exception e) {
+	    
+	    ExceptionWindow.getExceptionWindow(e);
+	    throw new Error(e.toString());
+	}
+    }
     
     public int createUndirectedEdge(Node source, Node dest)
     {
@@ -2644,10 +2674,7 @@ public class DBServer implements StorageListener {
 	return(new SpreadSheetTable(this,false));
     }
 
-    /**
-     * @pyexport exportGDF
-     */
-    public void dumpGDF(String filename) {
+    public void exportGDF(String filename) {
 	try {
 	    PrintStream gdf = 
 		new PrintStream(new BufferedOutputStream(new FileOutputStream(filename)));

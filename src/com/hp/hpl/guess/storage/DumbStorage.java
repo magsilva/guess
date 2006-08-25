@@ -144,6 +144,16 @@ public class DumbStorage implements StorageListener {
 		return -1;
 	}
 
+	public int createDirectedEdge(Node source, Node dest, int id)
+	{
+		return -1;
+	}
+
+	public int createUndirectedEdge(Node source, Node dest, int id)
+	{
+		return -1;
+	}
+
 	public void addNode(Node node)
 	{
 		//ignore
@@ -254,6 +264,9 @@ public class DumbStorage implements StorageListener {
     }
 
     public void addEdge(Edge e) {
+    }
+
+    public void exportGDF(String filename) {
     }
 }
 

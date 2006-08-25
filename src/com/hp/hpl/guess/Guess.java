@@ -636,58 +636,10 @@ public class Guess
      */
     private static boolean emptyChooser() {
 	try {
-	    Object[] options = new Object[]{"Persistent","Memory","Cancel"};
-	    int n = 
-		JOptionPane.showOptionDialog(null,
-					     (Object)"Would you like to generate a persistent store or load into memory?",
-					     "Welcome to GUESS",
-					     JOptionPane.YES_NO_CANCEL_OPTION,
-					     JOptionPane.QUESTION_MESSAGE,
-					     null,
-					     options,
-					     options[0]);		    
-	    if (n == 0) {
-		while(true) {
-		    JFileChooser chooser = 
-			new JFileChooser(new File(".").getCanonicalPath());
-		    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		    chooser.setDialogTitle("Please select a directory");
-		    int returnVal = chooser.showOpenDialog(null);
-		    if(returnVal == JFileChooser.APPROVE_OPTION) {
-			String directory = 
-			    chooser.getSelectedFile().getAbsolutePath();
-			String dbName = JOptionPane.showInputDialog(null,"Please enter a name for your database","");
-			File test = new File(directory + sep +
-					     dbName + ".properties");
-			boolean okToDo = false;
-			if (test.exists()) {
-			    int yn = 
-				JOptionPane.showConfirmDialog(null, "Database exists, overwrite?","Exists",JOptionPane.YES_NO_OPTION);
-			    if (yn == JOptionPane.YES_OPTION) {
-				okToDo = true;
-			    }
-			} else {
-			    okToDo = true;
-			}
-			if (okToDo) {
-			    StorageFactory.useDBServer(directory + 
-						       sep + 
-						       dbName);
-			    StorageFactory.createEmpty();
-			    return(true);
-			}
-		    } else {
-			break;
-		    }		
-		}
-	    } if (n == 1) {
-		//System.out.println("using in memory database");
-		StorageFactory.useDBServer();
-		StorageFactory.createEmpty();
-		return(true);
-	    } else if (n == 2) {
-		return(false);
-	    }
+	    //System.out.println("using in memory database");
+	    StorageFactory.useDBServer();
+	    StorageFactory.createEmpty();
+	    return(true);
 	} catch (Exception e) {
 	    exceptionHandle(e);
 	}

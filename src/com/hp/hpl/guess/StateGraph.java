@@ -1205,7 +1205,7 @@ public class StateGraph extends Graph {
     /**
      *
      */
-    public void addNodeField(String fieldName, int sqlType, 
+    public Field addNodeField(String fieldName, int sqlType, 
 			     Object defaultValue)
     {
 	Field field = new Field(this, fieldName, Field.NODE, 
@@ -1213,12 +1213,13 @@ public class StateGraph extends Graph {
 	nodeSchema.addFieldToSL(field);
 	
 	interp.setImmutable(fieldName, field);
+	return(field);
     }
 
     /**
      *
      */
-    public void addEdgeField(String fieldName, int sqlType, 
+    public Field addEdgeField(String fieldName, int sqlType, 
 			     Object defaultValue)
     {
 	Field field = new Field(this, fieldName, Field.EDGE,
@@ -1226,6 +1227,7 @@ public class StateGraph extends Graph {
 	edgeSchema.addFieldToSL(field);
 	
 	interp.setImmutable(fieldName, field);
+	return(field);
     }
 
     /**

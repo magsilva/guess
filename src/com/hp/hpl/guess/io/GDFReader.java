@@ -237,8 +237,9 @@ public class GDFReader {
 	int nNameCol = -1;
 	int eNode1Col = -1;
 	int eNode2Col = -1;
+	int eIDCol = -1;
+	int eDirCol = -1;
 
-	boolean directed = false;
 	boolean randomLayout = true;
 
 	int lineNum = 0;
@@ -278,8 +279,10 @@ public class GDFReader {
 			eNode1Col = i;
 		    } else if (edgeCols[i].getName().equalsIgnoreCase("node2")) {
 			eNode2Col = i;
-		    } else if (nodeCols[i].getName().equalsIgnoreCase("directed")) {
-			directed = true;
+		    } else if (edgeCols[i].getName().equalsIgnoreCase("directed")) {
+		        eDirCol = i;
+		    } else if (edgeCols[i].getName().equalsIgnoreCase("__edgeid")) {
+			eIDCol = i;
 		    }
 
 		}
@@ -308,14 +311,34 @@ public class GDFReader {
 		} else if (inEdgeDef) {
 		    Node s = g.getNodeByName(vals[eNode1Col]);
 		    Node t = g.getNodeByName(vals[eNode2Col]);
+		    boolean directed = false;
+		    if (eDirCol != -1) {
+			directed = 
+			    ((Boolean)convertToType(edgeCols[eDirCol].getSQLType(),
+						    vals[eDirCol])).booleanValue();
+		    }
 		    Edge e = null;
-		    if (directed) {
-			e = g.addDirectedEdge(s,t);
+		    if (eIDCol == -1) {
+			if (directed) {
+			    e = g.addDirectedEdge(s,t);
+			} else {
+			    e = g.addUndirectedEdge(s,t);
+			}
 		    } else {
-			e = g.addUndirectedEdge(s,t);
+			// we have an existing edgeid that 
+			// overrides everything else
+			int eid = Integer.parseInt(vals[eIDCol]);
+			if (directed) {
+			    e = g.addDirectedEdgeWID(s,t,eid);
+			} else {
+			    e = g.addUndirectedEdgeWID(s,t,eid);
+			}
 		    }
 		    for (int i = 0 ; i < vals.length ; i++) {
-			if ((i == eNode1Col) || (i == eNode2Col))
+			if ((i == eNode1Col) || 
+			    (i == eNode2Col) || 
+			    (i == eIDCol) ||
+			    (i == eDirCol)) 
 			    continue;
 			e.__setattr__(edgeCols[i].getName(),
 				      convertToType(edgeCols[i].getSQLType(),

@@ -15,9 +15,11 @@ import com.jgoodies.looks.*;
 
 public class GMenuBar extends JMenuBar {
 
-    String[ ] fileItems = new String[ ] { "Export Image...",
-					  "Export Screenshot...",
-					  "Run Script..."};
+    String[ ] fileItems = 
+	new String[ ] { "Export Image...",
+			"Export Screenshot...",
+			"Run Script...",
+			"Save GDF..."};
 
     char[ ] fileShortcuts = { 'I','S','R'};
     
@@ -105,21 +107,55 @@ public class GMenuBar extends JMenuBar {
 					 "output.jpg",false);
 		    } else if (event.getActionCommand().equals("Run Script...")) {
 			runScript();
-		    } else if (event.getActionCommand().equals("Run Script...")) {
-			runScript();
+		    } else if (event.getActionCommand().equals("Save GDF...")) {
+			saveGDF();
 		    } else if (event.getActionCommand().equals("Log...")) {
 			logToggle();
 		    }
 		}
 	    };
+
+	ActionListener loadListener = new ActionListener(  ) {
+		public void actionPerformed(ActionEvent event) {
+		    if (event.getActionCommand().equals("GDF")) {
+			loadFromFile("GDF");
+		    } else if (event.getActionCommand().equals("XML/GML")) {
+			loadFromFile("XML");
+		    } else if (event.getActionCommand().equals("Pajek")) {
+			loadFromFile("Pajek");
+		    } 
+		}
+	    };
+
+	JMenu load = new JMenu("Load from file");
+	JMenuItem l1 = new JMenuItem("GDF");
+	l1.addActionListener(loadListener);
+	load.add(l1);
+	l1 = new JMenuItem("XML/GML");
+	l1.addActionListener(loadListener);
+	load.add(l1);
+	l1 = new JMenuItem("Pajek");
+	l1.addActionListener(loadListener);
+	load.add(l1);
+
+	fileMenu.add(load);
+
 	for (int i=0; i < fileItems.length; i++) {
-	    JMenuItem item = new JMenuItem(fileItems[i], fileShortcuts[i]);
+	    JMenuItem item = null;
+	    if (i < fileShortcuts.length) {
+		item = new JMenuItem(fileItems[i], fileShortcuts[i]);
 	    item.setAccelerator(KeyStroke.getKeyStroke(fileShortcuts[i],
-						       Toolkit.getDefaultToolkit(  ).getMenuShortcutKeyMask(  ), false));
+						       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
+
+	    } else {
+		item = new JMenuItem(fileItems[i]);
+	    }
 	    
 	    item.addActionListener(printListener);
 	    fileMenu.add(item);
 	}
+	
+
 
 	// added the log button sep. since we need to 
 	// access it later
@@ -233,9 +269,11 @@ public class GMenuBar extends JMenuBar {
 
     File prevRun = null;
     File prevLog = null;
-    SunFileFilter filter = new SunFileFilter();
-
+    File prevGDF = null;
+    File prevLoad = null;
+    
     public void runScript() {
+	SunFileFilter filter = new SunFileFilter();
 	try {
 	    if (prevRun == null) {
 		prevRun = new File(".");
@@ -260,7 +298,75 @@ public class GMenuBar extends JMenuBar {
 	}
     }
 
+    public void saveGDF() {
+	SunFileFilter filter = new SunFileFilter();
+	try {
+	    if (prevGDF == null) {
+		prevGDF = new File(".");
+	    }
+	    JFileChooser chooser = 
+		new JFileChooser(prevGDF.getCanonicalPath());
+	    filter.addExtension("gdf");
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showOpenDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+		String fileName = 
+		    chooser.getSelectedFile().getAbsolutePath();
+		Guess.getGraph().exportGDF(fileName);
+		prevGDF = new File(fileName);
+	    }
+	} catch (IOException e) {
+	    ExceptionWindow.getExceptionWindow(e);
+	    JOptionPane.showMessageDialog(null,
+					  "Error saving file " + e,
+					  "Error",
+					  JOptionPane.ERROR_MESSAGE);
+	}
+    }
+
+    public void loadFromFile(String type) {
+	SunFileFilter filter = new SunFileFilter();
+	try {
+	    if (prevLoad == null) {
+		prevLoad = new File(".");
+	    }
+	    JFileChooser chooser = 
+		new JFileChooser(prevLoad.getCanonicalPath());
+	    if (type.equals("GDF")) {
+		filter.addExtension("gdf");
+	    } else if (type.equals("XML")) {
+		filter.addExtension("xml");
+		filter.addExtension("gml");
+		filter.addExtension("graphml");
+	    } else if (type.equals("Pajek")) {
+		filter.addExtension("net");
+	    }
+	    chooser.setFileFilter(filter);
+	    int returnVal = chooser.showOpenDialog(null);
+	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+		String fileName = 
+		    chooser.getSelectedFile().getAbsolutePath();
+		if (type.equals("GDF")) {
+		    Guess.getGraph().makeFromGDF(fileName);
+		} else if (type.equals("XML")) {
+		    Guess.getGraph().makeFromGML(fileName);
+		} else if (type.equals("Pajek")) {
+		    Guess.getGraph().makeFromPajek(fileName);
+		}
+		prevLoad = new File(fileName);
+		VisFactory.getFactory().getDisplay().center();
+	    }
+	} catch (IOException e) {
+	    ExceptionWindow.getExceptionWindow(e);
+	    JOptionPane.showMessageDialog(null,
+					  "Error loading file " + e,
+					  "Error",
+					  JOptionPane.ERROR_MESSAGE);
+	}
+    }
+
     public void logToggle() {
+	SunFileFilter filter = new SunFileFilter();
 	if (logItem.isSelected() == false) {
 	    Guess.getInterpreter().stoplog();
 	    logItem.setSelected(false);
@@ -278,8 +384,6 @@ public class GMenuBar extends JMenuBar {
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showOpenDialog(null);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-		SunFileFilter filter = 
-		    new SunFileFilter();
 		File f = chooser.getSelectedFile();
 		String fileExtension = filter.getExtension(f);
 		String fileName = f.getAbsolutePath();
