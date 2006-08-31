@@ -512,7 +512,18 @@ public class GuessPEdge extends PPath implements EdgeListener {
     private void setShapeJiggle(double x1, double y1, 
 				double x2, double y2, 
 				boolean upd) {
-	double s = 1 / ((y2 - y1) / (x2 - x1));
+	
+	double s = 0;
+	if (y2 == y1) {
+	    if (upd) {
+		s = 1 / (1 / (x2 - x1));
+	    } else {
+		s = 1 / (-1 / (x2 - x1));
+	    }
+	} else {
+	    s = 1 / ((y2 - y1) / (x2 - x1));
+	}
+	
 	double x3 = (x1 + x2)/2;
 	double y3 = (y1 + y2)/2;
 	

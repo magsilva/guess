@@ -3,5 +3,5 @@ package com.hp.hpl.guess;
 public abstract class Version {
 	
 	public static String MAJOR_VERSION = "1.0beta";
-	public static String MINOR_VERSION = "20060824-0634";
+	public static String MINOR_VERSION = "20060831-0416";
 }
