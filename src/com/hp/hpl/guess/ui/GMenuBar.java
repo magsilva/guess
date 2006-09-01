@@ -40,14 +40,15 @@ public class GMenuBar extends JMenuBar {
 	return(toRet);
     }
 
+    protected JMenu fileMenu = new JMenu("File");
+    protected JMenu editMenu = new JMenu("Edit");
+    protected JMenu displayMenu = new JMenu("Display");
+    protected JMenu layoutMenu = new JMenu("Layout");
+    protected JMenu helpMenu = new JMenu("Help");
+
     public GMenuBar() {
 	this.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
 	
-	JMenu fileMenu = new JMenu("File");
-	JMenu editMenu = new JMenu("Edit");
-	JMenu displayMenu = new JMenu("Display");
-	JMenu layoutMenu = new JMenu("Layout");
-	JMenu helpMenu = new JMenu("Help");
 
 	ActionListener displayListener = new ActionListener(  ) {
 		public void actionPerformed(ActionEvent event) {

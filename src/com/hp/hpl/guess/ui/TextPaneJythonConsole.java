@@ -413,11 +413,16 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		addMouseMotionListener(test2);
 
 		ToolTipManager.sharedInstance().registerComponent(this);
+		
+		//setMenuOptions();
+
 	    } catch (Exception e) {
 		ExceptionWindow.getExceptionWindow(e);
 	    }
 	}
-	
+
+
+
 	private IntervalNode findBestIN(int pos) {
 	    IntervalNode[] matching =
 		Tracker.searchContains(pos,pos);
@@ -653,6 +658,9 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 				      new NextHistoryItemAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0),
 				      new MoveLeftAction());
+
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
+				      new MoveStartAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0),
 				      new MoveRightAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0),
@@ -756,6 +764,30 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		    ;
 		}
 		Tracker.setDocument(this);
+		setMenuOptions();
+	    }
+
+	    private void setMenuOptions() {
+		JMenu editMenu = 
+		    Guess.getMainUIWindow().getGMenuBar().editMenu;
+		JMenuItem copy = new JMenuItem("Copy from console");
+		JMenuItem paste = new JMenuItem("Paste to console");
+		ActionListener cpListener = new ActionListener(  ) {
+			public void actionPerformed(ActionEvent event) {
+			    if (event.getActionCommand().equals("Copy from console")) {
+				if (getSelectedText() != null) {
+				    yank = getSelectedText();
+				    addToClipboard(yank);
+				}
+			    } else if (event.getActionCommand().equals("Paste to console")) {
+				pasteBuffer();
+			    }  
+			}
+		    };
+		copy.addActionListener(cpListener);
+		paste.addActionListener(cpListener);
+		editMenu.add(copy);
+		editMenu.add(paste);
 	    }
 
 	    /**
@@ -935,6 +967,29 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		}
 	    }
 
+	    private final DataFlavor stringFlavor = DataFlavor.stringFlavor;
+
+	    public void getFromClipboard() {
+		if (clipboard == null) {
+		    try {
+			clipboard = 
+			    Toolkit.getDefaultToolkit().getSystemClipboard();
+		    } catch (Exception ex) {
+			ExceptionWindow.getExceptionWindow(ex);
+		    }
+		}
+		if (clipboard != null) {
+		    try {
+			Transferable tf = clipboard.getContents(this);
+			if (tf.isDataFlavorSupported(stringFlavor)) {
+			    yank = (String)tf.getTransferData(stringFlavor);
+			}
+		    } catch (Exception ex) {
+			ExceptionWindow.getExceptionWindow(ex);
+		    }
+		}
+	    }
+
 	    /**
 	     *
 	     * @since 1.0
@@ -1089,6 +1144,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 						  (multiline != null) ? getEnvironment("PS2")
 						  : getEnvironment("PS1"),
 						  getStyle(PROMPT_STYLE));
+
+				getFromClipboard();
 				superInsertString(getLength(), yank,
 						  getStyle(COMMAND_STYLE));
 			    }
@@ -1173,6 +1230,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	     */
 	    public void pasteBuffer() {
 		try {
+		    getFromClipboard();
 		    insertString(getCaretPosition(), yank, getStyle(COMMAND_STYLE));
 		} catch (Exception e) {
 		    ExceptionWindow.getExceptionWindow(e);
