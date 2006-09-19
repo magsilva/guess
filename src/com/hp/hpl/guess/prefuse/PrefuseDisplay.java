@@ -1,8 +1,74 @@
 package com.hp.hpl.guess.prefuse;
 
-
 import com.hp.hpl.guess.ui.FrameListener;
 import com.hp.hpl.guess.freehep.*;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.geom.Rectangle2D;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import prefuse.Display;
+import prefuse.Visualization;
+import prefuse.action.ActionList;
+import prefuse.action.RepaintAction;
+import prefuse.action.assignment.ColorAction;
+import prefuse.action.filter.GraphDistanceFilter;
+import prefuse.action.layout.graph.ForceDirectedLayout;
+import prefuse.activity.Activity;
+import prefuse.controls.DragControl;
+import prefuse.controls.FocusControl;
+import prefuse.controls.NeighborHighlightControl;
+import prefuse.controls.PanControl;
+import prefuse.controls.WheelZoomControl;
+import prefuse.controls.ZoomControl;
+import prefuse.controls.ZoomToFitControl;
+import prefuse.data.Graph;
+import prefuse.data.Table;
+import prefuse.data.Tuple;
+import prefuse.data.event.TupleSetListener;
+import prefuse.data.io.GraphMLReader;
+import prefuse.data.tuple.TupleSet;
+import prefuse.render.DefaultRendererFactory;
+import prefuse.render.LabelRenderer;
+import prefuse.util.ColorLib;
+import prefuse.util.GraphLib;
+import prefuse.util.GraphicsLib;
+import prefuse.util.display.DisplayLib;
+import prefuse.util.display.ItemBoundsListener;
+import prefuse.util.force.ForceSimulator;
+import prefuse.util.io.IOLib;
+import prefuse.util.ui.JForcePanel;
+import prefuse.util.ui.JValueSlider;
+import prefuse.util.ui.UILib;
+import prefuse.visual.VisualGraph;
+import prefuse.visual.VisualItem;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -21,173 +87,172 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
-import edu.berkeley.guir.prefuse.Display;
-import edu.berkeley.guir.prefuse.EdgeItem;
-import edu.berkeley.guir.prefuse.ItemRegistry;
-import edu.berkeley.guir.prefuse.NodeItem;
-import edu.berkeley.guir.prefuse.VisualItem;
-import edu.berkeley.guir.prefuse.action.RepaintAction;
-import edu.berkeley.guir.prefuse.action.assignment.ColorFunction;
-import edu.berkeley.guir.prefuse.action.filter.GraphFilter;
-import edu.berkeley.guir.prefuse.activity.ActionList;
-import edu.berkeley.guir.prefuse.activity.Activity;
-import edu.berkeley.guir.prefuse.event.ControlAdapter;
-import edu.berkeley.guir.prefuse.graph.Graph;
-import edu.berkeley.guir.prefuse.graph.DefaultGraph;
-import edu.berkeley.guir.prefuse.graph.GraphLib;
-import edu.berkeley.guir.prefuse.render.DefaultEdgeRenderer;
-import edu.berkeley.guir.prefuse.render.DefaultNodeRenderer;
-import edu.berkeley.guir.prefuse.render.DefaultRendererFactory;
-import edu.berkeley.guir.prefuse.render.TextItemRenderer;
-import edu.berkeley.guir.prefusex.controls.DragControl;
-import edu.berkeley.guir.prefusex.controls.FocusControl;
-import edu.berkeley.guir.prefusex.controls.NeighborHighlightControl;
-import edu.berkeley.guir.prefusex.controls.PanControl;
-import edu.berkeley.guir.prefusex.controls.ZoomControl;
-import edu.berkeley.guir.prefusex.force.DragForce;
-import edu.berkeley.guir.prefusex.force.ForcePanel;
-import edu.berkeley.guir.prefusex.force.ForceSimulator;
-import edu.berkeley.guir.prefusex.force.NBodyForce;
-import edu.berkeley.guir.prefusex.force.SpringForce;
-import edu.berkeley.guir.prefusex.layout.ForceDirectedLayout;
+public class PrefuseDisplay extends JPanel implements FrameListener {
 
-/**
- * Application demo of a graph visualization using an interactive
- * force-based layout.
- *
- * @version 1.0
- * @author <a href="http://jheer.org">Jeffrey Heer</a> prefuse(AT)jheer.org
- */
-public class PrefuseDisplay extends Display implements FrameListener {
-
-    private ForcePanel fpanel;
+    private static final String graph = "graph";
+    private static final String nodes = "graph.nodes";
+    private static final String edges = "graph.edges";
+      
+    private Visualization m_vis;
     
-    private ForceSimulator m_fsim;
-    private String         m_textField;
-    private ItemRegistry   m_registry;
-    private Activity       m_actionList;
+    public PrefuseDisplay(Graph m_graph) {
     
-    private Font frameCountFont = new Font("SansSerif", Font.PLAIN, 14);
-
-    protected Graph g = null;
-    public PrefuseDisplay(Graph g, ForceSimulator fsim) {
-        //this(g, fsim, "label");
-    } //
-    
-    //    public PrefuseDisplay(Graph g, ForceSimulator fsim, String textField) {
-    public PrefuseDisplay() {
-        g = (Graph)new DefaultGraph();
+        // create a new, empty visualization for our data
+        m_vis = new Visualization();
         
-        ForceSimulator fsim = new ForceSimulator();
-        fsim.addForce(new NBodyForce(-0.4f, -1f, 0.9f));
-        fsim.addForce(new SpringForce(4E-5f, 75f));
-        fsim.addForce(new DragForce(-0.005f));
-
-	String textField = "label";
-
-        // set up component first
-        m_fsim = fsim;
-        m_textField = textField;
-        m_registry = new ItemRegistry(g);
-        this.setItemRegistry(m_registry);
-        initRenderers();
-        m_actionList = initActionList();
-        setSize(700,700);
-        pan(350,350);
-        this.addControlListener(new NeighborHighlightControl());
-        this.addControlListener(new DragControl(false));
-        this.addControlListener(new FocusControl(0));
-        this.addControlListener(new MouseOverControl());
-        this.addControlListener(new PanControl(false));
-        this.addControlListener(new ZoomControl(false));
-    } //
-    
-    public void runNow() {
-        // now set up application window
-        fpanel = new ForcePanel(m_fsim);
+        // --------------------------------------------------------------------
+        // set up the renderers
         
-	//        frame.addComponentListener(new ComponentAdapter() {
-	//  public void componentResized(ComponentEvent e) {
-	//      Dimension d = frame.getSize();
-	//      Dimension p = fpanel.getSize();
-	//      Insets in = frame.getInsets();
-	//      PrefuseDisplay.this.setSize(d.width-in.left-in.right-p.width,
-	//              d.height-in.top-in.bottom);
-	//  } //
-            
-        // start force simulation
-        m_actionList.runNow();
-    } //
-    
-    private void initRenderers() {
-        TextItemRenderer    nodeRenderer = new TextItemRenderer();
-        nodeRenderer.setRenderType(TextItemRenderer.RENDER_TYPE_FILL);
-        nodeRenderer.setRoundedCorner(8,8);
-        nodeRenderer.setTextAttributeName(m_textField);
-        DefaultNodeRenderer nRenderer = new DefaultNodeRenderer();
-        DefaultEdgeRenderer edgeRenderer = new DefaultEdgeRenderer();    
-        m_registry.setRendererFactory(new DefaultRendererFactory(
-                nodeRenderer, edgeRenderer, null));
-    } //
-    
-    private ActionList initActionList() {
-        ActionList actionList = new ActionList(m_registry,-1,20);
-        actionList.add(new GraphFilter());
-        actionList.add(new ForceDirectedLayout(m_fsim, false, false));
-        actionList.add(new DemoColorFunction());
-        actionList.add(new RepaintAction());
-        return actionList;
-    } //
-    
-   
-    public class DemoColorFunction extends ColorFunction {
-        private Color pastelRed = new Color(255,125,125);
-        private Color pastelOrange = new Color(255,200,125);
-        private Color lightGray = new Color(220,220,255);
-        public Paint getColor(VisualItem item) {
-            if ( item instanceof EdgeItem ) {
-                if ( item.isHighlighted() )
-                    return pastelOrange;
-                else
-                    return Color.LIGHT_GRAY;
-            } else {
-                return Color.BLACK;
+        LabelRenderer tr = new LabelRenderer();
+        tr.setRoundedCorner(8, 8);
+        m_vis.setRendererFactory(new DefaultRendererFactory(tr));
+
+        // --------------------------------------------------------------------
+        // register the data with a visualization
+        
+        // adds graph to visualization and sets renderer label field
+        setGraph(m_graph, "label");
+        
+        // fix selected focus nodes
+        TupleSet focusGroup = m_vis.getGroup(Visualization.FOCUS_ITEMS); 
+        focusGroup.addTupleSetListener(new TupleSetListener() {
+            public void tupleSetChanged(TupleSet ts, Tuple[] add, Tuple[] rem)
+            {
+                for ( int i=0; i<rem.length; ++i )
+                    ((VisualItem)rem[i]).setFixed(false);
+                for ( int i=0; i<add.length; ++i ) {
+                    ((VisualItem)add[i]).setFixed(false);
+                    ((VisualItem)add[i]).setFixed(true);
+                }
+                if ( ts.getTupleCount() == 0 ) {
+                    ts.addTuple(rem[0]);
+                    ((VisualItem)rem[0]).setFixed(false);
+                }
+                m_vis.run("draw");
             }
-        } //
-        public Paint getFillColor(VisualItem item) {
-            if ( item.isHighlighted() )
-                return pastelOrange;
-            else if ( item instanceof NodeItem ) {
-                if ( item.isFixed() )
-                    return pastelRed;
-                else
-                    return lightGray;
-            } else {
-                return Color.BLACK;
-            }
-        } //        
-    } //
+        });
     
-    /**
-     * Tags and fixes the node under the mouse pointer.
-     */
-    public class MouseOverControl extends ControlAdapter {
         
-        public void itemEntered(VisualItem item, MouseEvent e) {
-            ((Display)e.getSource()).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            item.setFixed(true);
-        } //
         
-        public void itemExited(VisualItem item, MouseEvent e) {
-            ((Display)e.getSource()).setCursor(Cursor.getDefaultCursor());
-            item.setFixed(false);
-        } //
+        // --------------------------------------------------------------------
+        // create actions to process the visual data
+
+        int hops = 30;
+        final GraphDistanceFilter filter = new GraphDistanceFilter(graph, hops);
+
+        ColorAction fill = new ColorAction(nodes, 
+                VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
+        fill.add(VisualItem.FIXED, ColorLib.rgb(255,100,100));
+        fill.add(VisualItem.HIGHLIGHT, ColorLib.rgb(255,200,125));
         
-        public void itemReleased(VisualItem item, MouseEvent e) {
-            item.setFixed(false);
-        } //
+        ActionList draw = new ActionList();
+        draw.add(filter);
+        draw.add(fill);
+        draw.add(new ColorAction(nodes, VisualItem.STROKECOLOR, 0));
+        draw.add(new ColorAction(nodes, VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
+        draw.add(new ColorAction(edges, VisualItem.FILLCOLOR, ColorLib.gray(200)));
+        draw.add(new ColorAction(edges, VisualItem.STROKECOLOR, ColorLib.gray(200)));
         
-    } // end of inner class FocusControl
+        ActionList animate = new ActionList(Activity.INFINITY);
+        animate.add(new ForceDirectedLayout(graph));
+        animate.add(fill);
+        animate.add(new RepaintAction());
+        
+        // finally, we register our ActionList with the Visualization.
+        // we can later execute our Actions by invoking a method on our
+        // Visualization, using the name we've chosen below.
+        m_vis.putAction("draw", draw);
+        m_vis.putAction("layout", animate);
+
+        m_vis.runAfter("draw", "layout");
+        
+        
+        // --------------------------------------------------------------------
+        // set up a display to show the visualization
+        
+        Display display = new Display(m_vis);
+        display.setSize(700,700);
+        display.pan(350, 350);
+        display.setForeground(Color.GRAY);
+        display.setBackground(Color.WHITE);
+        
+        // main display controls
+        display.addControlListener(new FocusControl(1));
+        display.addControlListener(new DragControl());
+        display.addControlListener(new PanControl());
+        display.addControlListener(new ZoomControl());
+        display.addControlListener(new WheelZoomControl());
+        display.addControlListener(new ZoomToFitControl());
+        display.addControlListener(new NeighborHighlightControl());
+
+        // overview display
+//        Display overview = new Display(vis);
+//        overview.setSize(290,290);
+//        overview.addItemBoundsListener(new FitOverviewListener());
+        
+        display.setForeground(Color.GRAY);
+        display.setBackground(Color.WHITE);
+        
+        // --------------------------------------------------------------------        
+        // launch the visualization
+        
+        // create a panel for editing force values
+        ForceSimulator fsim = ((ForceDirectedLayout)animate.get(0)).getForceSimulator();
+        JForcePanel fpanel = new JForcePanel(fsim);
+        
+//        JPanel opanel = new JPanel();
+//        opanel.setBorder(BorderFactory.createTitledBorder("Overview"));
+//        opanel.setBackground(Color.WHITE);
+//        opanel.add(overview);
+        
+        final JValueSlider slider = new JValueSlider("Distance", 0, hops, hops);
+        slider.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent e) {
+                filter.setDistance(slider.getValue().intValue());
+                m_vis.run("draw");
+            }
+        });
+        slider.setBackground(Color.WHITE);
+        slider.setPreferredSize(new Dimension(300,30));
+        slider.setMaximumSize(new Dimension(300,30));
+        
+        Box cf = new Box(BoxLayout.Y_AXIS);
+        cf.add(slider);
+        cf.setBorder(BorderFactory.createTitledBorder("Connectivity Filter"));
+        fpanel.add(cf);
+
+        //fpanel.add(opanel);
+        
+        fpanel.add(Box.createVerticalGlue());
+        
+        // create a new JSplitPane to present the interface
+        JSplitPane split = new JSplitPane();
+        split.setLeftComponent(display);
+        split.setRightComponent(fpanel);
+        split.setOneTouchExpandable(true);
+        split.setContinuousLayout(false);
+        split.setDividerLocation(700);
+        
+        // now we run our action list
+        m_vis.run("draw");
+        
+        add(split);
+    }
+    
+    public void setGraph(Graph g, String label) {
+        // update labeling
+        DefaultRendererFactory drf = (DefaultRendererFactory)
+	    m_vis.getRendererFactory();
+        ((LabelRenderer)drf.getDefaultRenderer()).setTextField(label);
+        
+        // update graph
+        m_vis.removeGroup(graph);
+        VisualGraph vg = m_vis.addGraph(graph, g);
+        m_vis.setValue(edges, null, VisualItem.INTERACTIVE, Boolean.FALSE);
+        VisualItem f = (VisualItem)vg.getNode(0);
+        m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
+        f.setFixed(false);
+    }
     
     public void center() {
     }

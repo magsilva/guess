@@ -30,7 +30,6 @@
         <pathelement path="lib/jide-common.jar"/>
 	<pathelement path="lib/piccolox.jar"/>
         <pathelement path="lib/prefuse.jar"/>
-	<pathelement path="lib/prefusex.jar"/>
 	<pathelement path="lib/hsqldb.jar"/>
 	<pathelement path="lib/freehep-all.jar"/>
 	<pathelement path="lib/TGGraphLayout.jar"/>

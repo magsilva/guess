@@ -1,13 +1,16 @@
 package com.hp.hpl.guess.prefuse;
 
-import edu.berkeley.guir.prefuse.graph.DefaultEdge;
 import com.hp.hpl.guess.ui.EdgeListener;
+import prefuse.data.Node;
+import prefuse.data.Edge;
+import prefuse.data.Graph;
 
-public class PrefuseEdge extends DefaultEdge implements EdgeListener {
+public class PrefuseEdge implements EdgeListener {
 
-    public PrefuseEdge(PrefuseNode n1, PrefuseNode n2) {
-	super((edu.berkeley.guir.prefuse.graph.Node)n1,
-	      (edu.berkeley.guir.prefuse.graph.Node)n2);
+    protected prefuse.data.Edge iEdge = null;
+
+    public PrefuseEdge(Graph g, PrefuseNode n1, PrefuseNode n2) {
+//	iEdge = g.addEdge(n1.iNode,n2.iNode);
     }
 
     public Object get(String field) {

@@ -1,21 +1,22 @@
 package com.hp.hpl.guess.prefuse;
 
-import edu.berkeley.guir.prefuse.graph.DefaultNode;
 import com.hp.hpl.guess.ui.NodeListener;
+import prefuse.data.Node;
+import prefuse.data.Graph;
 
-public class PrefuseNode extends DefaultNode implements NodeListener {
+public class PrefuseNode implements NodeListener {
     
-    public PrefuseNode() {
-	super();
+    protected prefuse.data.Node iNode = null;
+
+    public PrefuseNode(prefuse.data.Graph g) {
+	//	iNode = g.addNode();
     }
 
     public Object get(String field) {
-	//return(getAttribute(field));
 	return(null);
     }
     
     public void set(String field, Object value) {
-	//setAttribute(field,value.toString());
     }
     
     public void highlight(boolean state) {
