@@ -69,7 +69,8 @@ public class GuessTextNode extends PText implements GuessPNode {
 						getY()-1,
 						getWidth()+2,
 						getHeight()+2,
-						2,2);
+						Math.max(2,getWidth()/5),
+						Math.max(2,getHeight()/5));
 	    }
 	}
 	style = s;

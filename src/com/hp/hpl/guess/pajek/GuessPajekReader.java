@@ -279,7 +279,7 @@ public class GuessPajekReader {
 	}
 	
 	e.__setattr__("width",new Double(width));
-	e.__setattr__("color",Colors.getColor(color,Color.green));
+	e.__setattr__("color",Colors.getColor(color,Color.darkGray));
 	e.__setattr__("weight", new Double(weight));
 	if (label != null)
 	    e.__setattr__("label",label);

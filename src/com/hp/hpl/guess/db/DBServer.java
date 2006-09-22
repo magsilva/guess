@@ -1344,10 +1344,10 @@ public class DBServer implements StorageListener {
 	nodedefs.put("x","X DOUBLE DEFAULT 500");
 	nodedefs.put("y","Y DOUBLE DEFAULT 500");
 	nodedefs.put("visible","VISIBLE BOOLEAN DEFAULT true");
-	nodedefs.put("color","COLOR VARCHAR(32) DEFAULT 'blue'");
+	nodedefs.put("color","COLOR VARCHAR(32) DEFAULT 'cornflowerblue'");
 	nodedefs.put("labelcolor","LABELCOLOR VARCHAR(32) DEFAULT NULL");
 	nodedefs.put("fixed","FIXED BOOLEAN DEFAULT false");
-	nodedefs.put("style","STYLE TINYINT DEFAULT 1");
+	nodedefs.put("style","STYLE TINYINT DEFAULT 2");
 	nodedefs.put("width","WIDTH DOUBLE DEFAULT 10");
 	nodedefs.put("height","HEIGHT DOUBLE DEFAULT 10");
 	nodedefs.put("label","LABEL VARCHAR(256) DEFAULT NULL");
@@ -1358,7 +1358,7 @@ public class DBServer implements StorageListener {
     public static Hashtable edgedefs = new Hashtable();
 
     static {
-	edgedefs.put("color","COLOR VARCHAR(32) DEFAULT 'green'");
+	edgedefs.put("color","COLOR VARCHAR(32) DEFAULT 'darkGray'");
 	edgedefs.put("labelcolor","LABELCOLOR VARCHAR(32) DEFAULT NULL");
 	edgedefs.put("visible","VISIBLE BOOLEAN DEFAULT true");
 	edgedefs.put("__edgeid","__EDGEID INT IDENTITY PRIMARY KEY");
@@ -1417,7 +1417,7 @@ public class DBServer implements StorageListener {
 	      " ADD COLUMN visible BOOLEAN default true");
 	db.alter("color",
 	      "ALTER TABLE nodes"+
-	      " ADD COLUMN color VARCHAR(32) default 'blue'");
+	      " ADD COLUMN color VARCHAR(32) default 'cornflowerblue'");
 	db.alter("labelcolor",
 	      "ALTER TABLE nodes"+
 	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
@@ -1426,7 +1426,7 @@ public class DBServer implements StorageListener {
 	      " ADD COLUMN fixed BOOLEAN default false");
 	db.alter("style",
 	      "ALTER TABLE nodes"+
-	      " ADD COLUMN style TINYINT default 1");
+	      " ADD COLUMN style TINYINT default 2");
 	db.alter("width",
 	      "ALTER TABLE nodes"+
 	      " ADD COLUMN width DOUBLE default 10");
@@ -1466,7 +1466,7 @@ public class DBServer implements StorageListener {
 	      " ADD COLUMN visible BOOLEAN default true");
 	db.alter("color",
 	      "ALTER TABLE nodes_def"+
-	      " ADD COLUMN color VARCHAR(32) default 'blue'");
+	      " ADD COLUMN color VARCHAR(32) default 'cornflowerblue'");
 	db.alter("labelcolor",
 	      "ALTER TABLE nodes_def"+
 	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
@@ -1475,7 +1475,7 @@ public class DBServer implements StorageListener {
 	      " ADD COLUMN fixed BOOLEAN default false");
 	db.alter("style",
 	      "ALTER TABLE nodes_def"+
-	      " ADD COLUMN style TINYINT default 1");
+	      " ADD COLUMN style TINYINT default 2");
 	db.alter("width",
 	      "ALTER TABLE nodes_def"+
 	      " ADD COLUMN width DOUBLE default 10");
@@ -1514,7 +1514,7 @@ public class DBServer implements StorageListener {
 	      " ADD COLUMN visible BOOLEAN default true");
 	db.alter("color",
 	      "ALTER TABLE edges"+
-	      " ADD COLUMN color VARCHAR(32) default 'green'");
+	      " ADD COLUMN color VARCHAR(32) default 'darkGray'");
 	db.alter("labelcolor",
 	      "ALTER TABLE edges"+
 	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
@@ -1549,7 +1549,7 @@ public class DBServer implements StorageListener {
 	      " ADD COLUMN visible BOOLEAN default true");
 	db.alter("color",
 	      "ALTER TABLE edges_def"+
-	      " ADD COLUMN color VARCHAR(32) default 'green'");
+	      " ADD COLUMN color VARCHAR(32) default 'darkGray'");
 	db.alter("labelcolor",
 	      "ALTER TABLE edges_def"+
 	      " ADD COLUMN labelcolor VARCHAR(32) default NULL");
