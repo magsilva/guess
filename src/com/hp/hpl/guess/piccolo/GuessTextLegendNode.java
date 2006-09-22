@@ -64,6 +64,7 @@ public class GuessTextLegendNode extends PText {
 	setStyle(gtn.getStyle());
 	curcolor = gtn.getPaint();
 	setTextPaint(gtn.getTextPaint());
+	strokePaint = gtn.strokePaint;
     }
 
 

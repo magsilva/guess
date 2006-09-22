@@ -84,6 +84,7 @@ public class GuessShape3DLegendNode extends PPath {
 	gradPaint = gsn.gradPaint;
 	flatColor = gsn.flatColor;
 	setGradPaint();
+	setStrokePaint(gsn.getStrokePaint());
     }
 
 

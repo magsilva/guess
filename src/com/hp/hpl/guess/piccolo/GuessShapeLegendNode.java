@@ -51,7 +51,7 @@ public class GuessShapeLegendNode extends PPath {
 		setLocation(0,0,width,height);
 	    }
 	}
-
+	setStrokePaint(gsn.getStrokePaint());
 	setPaint(gsn.getPaint());
     }
 

@@ -59,18 +59,18 @@ public class GuessTextNode extends PText implements GuessPNode {
 					   getHeight()+2);
 	    } else if (s == VisFactory.TEXT_ELLIPSE) {
 		borderShape = 
-		    new Ellipse2D.Double(getX()-2,
-					 getY()-2,
-					 getWidth()+4,
-					 getHeight()+4);
+		    new Ellipse2D.Double(getX()-4,
+					 getY()-4,
+					 getWidth()+8,
+					 getHeight()+8);
 	    } else {
 		borderShape = 
-		    new RoundRectangle2D.Double(getX()-1,
-						getY()-1,
-						getWidth()+2,
-						getHeight()+2,
-						Math.max(2,getWidth()/5),
-						Math.max(2,getHeight()/5));
+		    new RoundRectangle2D.Double(getX()-4,
+						getY()-4,
+						getWidth()+8,
+						getHeight()+8,
+						Math.max(8,(getWidth()+8)/5),
+						Math.max(8,(getHeight()+8)/5));
 	    }
 	}
 	style = s;
@@ -260,18 +260,11 @@ public class GuessTextNode extends PText implements GuessPNode {
 	    setStyle(style);
 	}
 
-	if (style == VisFactory.TEXT_ELLIPSE) {
-	    borderShape.setFrame(getX()-4,
-				 getY()-4,
-				 getWidth() + 8,
-				 getHeight() + 8);
-	} else {
-	    borderShape.setFrame(getX()-1,
-				 getY()-1,
-				 getWidth() + 2,
-				 getHeight() + 2);
-	}
-	
+	borderShape.setFrame(getX()-4,
+			     getY()-4,
+			     getWidth() + 8,
+			     getHeight() + 8);
+		
 	g2.fill(borderShape);
 	g2.setPaint(strokePaint);
 	g2.setStroke(linestroke);

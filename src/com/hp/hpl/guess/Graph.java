@@ -1056,6 +1056,17 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     }
 
     /**
+     * GEM Layout
+     * @param seed the seed for the random number generator, useful
+     * for getting the same layout every time.
+     * @pyexport
+     */
+    public void gemLayout(long seed)
+    {
+	layout(new GEM(this,seed));
+    }
+
+    /**
      * ISOM Layout, asks every 30 seconds if you want to continue
      * @pyexport
      */

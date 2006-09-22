@@ -222,6 +222,9 @@ public class PFactory extends VisFactory implements UIListener {
 		toRet.set("height",rep.getOwner().getAttrDB("height"));
 	    }
 	}
+
+	toRet.set("strokecolor",rep.get("strokecolor"));
+
 	return(toRet);
     }
     

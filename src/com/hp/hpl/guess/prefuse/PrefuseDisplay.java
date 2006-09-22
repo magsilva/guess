@@ -87,7 +87,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
-public class PrefuseDisplay extends JPanel implements FrameListener {
+public class PrefuseDisplay extends Display implements FrameListener {
 
     private static final String graph = "graph";
     private static final String nodes = "graph.nodes";
@@ -95,11 +95,38 @@ public class PrefuseDisplay extends JPanel implements FrameListener {
       
     private Visualization m_vis;
     
+    private Graph m_graph = null;
     public PrefuseDisplay(Graph m_graph) {
-    
         // create a new, empty visualization for our data
         m_vis = new Visualization();
+	this.m_graph = m_graph;
+        setVisualization(m_vis);
+        setSize(700,700);
+        pan(350, 350);
+        setForeground(Color.GRAY);
+        setBackground(Color.WHITE);
         
+        // main display controls
+        addControlListener(new FocusControl(1));
+        addControlListener(new DragControl());
+        addControlListener(new PanControl());
+        addControlListener(new ZoomControl());
+        addControlListener(new WheelZoomControl());
+        addControlListener(new ZoomToFitControl());
+        addControlListener(new NeighborHighlightControl());
+
+        // overview display
+//        Display overview = new Display(vis);
+//        overview.setSize(290,290);
+//        overview.addItemBoundsListener(new FitOverviewListener());
+        
+        setForeground(Color.GRAY);
+        setBackground(Color.WHITE);
+
+    }
+
+    public void runNow() {	
+	System.err.println("running...");
         // --------------------------------------------------------------------
         // set up the renderers
         
@@ -109,10 +136,11 @@ public class PrefuseDisplay extends JPanel implements FrameListener {
 
         // --------------------------------------------------------------------
         // register the data with a visualization
-        
+ 
+
         // adds graph to visualization and sets renderer label field
         setGraph(m_graph, "label");
-        
+
         // fix selected focus nodes
         TupleSet focusGroup = m_vis.getGroup(Visualization.FOCUS_ITEMS); 
         focusGroup.addTupleSetListener(new TupleSetListener() {
@@ -132,13 +160,14 @@ public class PrefuseDisplay extends JPanel implements FrameListener {
             }
         });
     
-        
-        
+
+       
         // --------------------------------------------------------------------
         // create actions to process the visual data
 
         int hops = 30;
-        final GraphDistanceFilter filter = new GraphDistanceFilter(graph, hops);
+        final GraphDistanceFilter filter = 
+	    new GraphDistanceFilter(graph, hops);
 
         ColorAction fill = new ColorAction(nodes, 
                 VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
@@ -170,73 +199,41 @@ public class PrefuseDisplay extends JPanel implements FrameListener {
         // --------------------------------------------------------------------
         // set up a display to show the visualization
         
-        Display display = new Display(m_vis);
-        display.setSize(700,700);
-        display.pan(350, 350);
-        display.setForeground(Color.GRAY);
-        display.setBackground(Color.WHITE);
-        
-        // main display controls
-        display.addControlListener(new FocusControl(1));
-        display.addControlListener(new DragControl());
-        display.addControlListener(new PanControl());
-        display.addControlListener(new ZoomControl());
-        display.addControlListener(new WheelZoomControl());
-        display.addControlListener(new ZoomToFitControl());
-        display.addControlListener(new NeighborHighlightControl());
-
-        // overview display
-//        Display overview = new Display(vis);
-//        overview.setSize(290,290);
-//        overview.addItemBoundsListener(new FitOverviewListener());
-        
-        display.setForeground(Color.GRAY);
-        display.setBackground(Color.WHITE);
         
         // --------------------------------------------------------------------        
         // launch the visualization
         
         // create a panel for editing force values
         ForceSimulator fsim = ((ForceDirectedLayout)animate.get(0)).getForceSimulator();
-        JForcePanel fpanel = new JForcePanel(fsim);
+        //JForcePanel fpanel = new JForcePanel(fsim);
         
-//        JPanel opanel = new JPanel();
-//        opanel.setBorder(BorderFactory.createTitledBorder("Overview"));
-//        opanel.setBackground(Color.WHITE);
-//        opanel.add(overview);
         
-        final JValueSlider slider = new JValueSlider("Distance", 0, hops, hops);
-        slider.addChangeListener(new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                filter.setDistance(slider.getValue().intValue());
-                m_vis.run("draw");
-            }
-        });
-        slider.setBackground(Color.WHITE);
-        slider.setPreferredSize(new Dimension(300,30));
-        slider.setMaximumSize(new Dimension(300,30));
+        //final JValueSlider slider = new JValueSlider("Distance", 0, hops, hops);
+        //slider.addChangeListener(new ChangeListener() {
+	//  public void stateChanged(ChangeEvent e) {
+	//      filter.setDistance(slider.getValue().intValue());
+	//      m_vis.run("draw");
+	//  }
+        //});
+        //slider.setBackground(Color.WHITE);
+        //slider.setPreferredSize(new Dimension(300,30));
+        //slider.setMaximumSize(new Dimension(300,30));
         
-        Box cf = new Box(BoxLayout.Y_AXIS);
-        cf.add(slider);
-        cf.setBorder(BorderFactory.createTitledBorder("Connectivity Filter"));
-        fpanel.add(cf);
+	//        Box cf = new Box(BoxLayout.Y_AXIS);
+        //cf.add(slider);
+        //cf.setBorder(BorderFactory.createTitledBorder("Connectivity Filter"));
+        //fpanel.add(cf);
 
         //fpanel.add(opanel);
         
-        fpanel.add(Box.createVerticalGlue());
+        //fpanel.add(Box.createVerticalGlue());
         
         // create a new JSplitPane to present the interface
-        JSplitPane split = new JSplitPane();
-        split.setLeftComponent(display);
-        split.setRightComponent(fpanel);
-        split.setOneTouchExpandable(true);
-        split.setContinuousLayout(false);
-        split.setDividerLocation(700);
-        
+                
         // now we run our action list
         m_vis.run("draw");
         
-        add(split);
+        //add(split);
     }
     
     public void setGraph(Graph g, String label) {

@@ -5,39 +5,25 @@ import com.hp.hpl.guess.*;
 import java.awt.Color;
 import prefuse.data.Table;
 import prefuse.data.Schema;
+import prefuse.visual.VisualItem;
 
 public class PrefuseFactory extends VisFactory {
 
     private PrefuseDisplay curFrame = null;
     
-    protected Table m_edges;
-    protected Table m_nodes;
-    protected Schema m_nsch = new Schema();
-    protected Schema m_esch = new Schema();
-
     protected prefuse.data.Graph m_graph = null;
     
-    protected static final String ID         = "id";
-    protected static final String SRC = prefuse.data.Graph.DEFAULT_SOURCE_KEY;
-    protected static final String TRG = prefuse.data.Graph.DEFAULT_TARGET_KEY;
-    protected static final String SRCID = SRC+'_'+ID;
-    protected static final String TRGID = TRG+'_'+ID;
-
     public PrefuseFactory() {
 	init();
     }
 
     private PrefuseDisplay init() {
-	m_esch.addColumn(SRC, int.class);
-	m_esch.addColumn(TRG, int.class);
-	m_esch.addColumn(SRCID, String.class);
-	m_esch.addColumn(TRGID, String.class);
-	m_nsch.lockSchema();
-	m_esch.lockSchema();
-	m_nodes = m_nsch.instantiate();
-	m_edges = m_esch.instantiate();
-	m_graph = new prefuse.data.Graph(m_nodes,m_edges,false);
+	m_graph = new prefuse.data.Graph(false);
+	prefuse.data.Node n1 = m_graph.addNode();
+	m_graph.getNodeTable().addColumn("label",String.class);
+	//m_graph.getNodeTable().addColumn(VisualItem.FILLED,int.class);
 	curFrame = new PrefuseDisplay(m_graph);
+	m_graph.removeNode(n1);
 	return(curFrame);
     }
 
@@ -46,7 +32,8 @@ public class PrefuseFactory extends VisFactory {
     }
 
     public void runNow() {
-	//curFrame.runNow();
+	curFrame.runNow();
+	System.out.println(m_graph.getNodeTable());
     }
 
     public NodeListener generateNode(int type, double x, double y,
@@ -58,6 +45,7 @@ public class PrefuseFactory extends VisFactory {
     public NodeListener generateNode(Node n) {
 	//m_actionList.setEnabled(false);	
 	PrefuseNode pn = new PrefuseNode(m_graph);
+	pn.set("label",n.getName());
 	//System.out.println(n.getName());
 	//pn.setAttribute("label",n.getName());
 	return(pn);

@@ -142,10 +142,15 @@ public class GraphElementEditorPopup extends EditorPopup {
 	if (currentH == null)
 	    return;
 
+	String ch = currentH.toString();
+	if (ch.length() > 60) {
+	    ch = ch.substring(0,60)+"...";
+	}
+
 	String s = 
 	    (String)JOptionPane.showInputDialog(null,
 						"Please enter a variable name for:\n"
-						+ currentH,
+						+ ch,
 						"Customized Dialog",
 						JOptionPane.PLAIN_MESSAGE,
 						UIManager.getIcon("OptionPane.questionIcon"),

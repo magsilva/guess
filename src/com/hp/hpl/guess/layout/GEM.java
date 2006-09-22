@@ -112,6 +112,14 @@ public class GEM extends AbstractLayout {
     /** 
      * Constructor  
      */
+    public GEM(Graph g, long seed) {
+	this(g);
+	rand.setSeed(seed);
+    }
+
+    /** 
+     * Constructor  
+     */
     public GEM(Graph g) {
 	super(g);
 	if (Guess.getGPLFreeMode()) {
@@ -159,9 +167,11 @@ public class GEM extends AbstractLayout {
     private Node invmap[];
     private ArrayList adjacent[];
     private HashMap nodeNumbers;
+    
+    private Random rand = new Random();
 
-    public static int rand() {
-	return (int)(Math.random() * Integer.MAX_VALUE);
+    public int rand() {
+	return (int)(rand.nextDouble() * Integer.MAX_VALUE);
     }
 
 
