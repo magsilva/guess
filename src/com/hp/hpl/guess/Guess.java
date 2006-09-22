@@ -792,6 +792,7 @@ public class Guess
 
 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
 	myF = myFrame;
+	myF.setDisplayBackground(Color.black);
 
 	try {
 	    g = new Graph(myFrame, interp, multiEdge);

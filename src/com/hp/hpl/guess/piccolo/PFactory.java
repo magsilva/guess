@@ -56,7 +56,7 @@ public class PFactory extends VisFactory implements UIListener {
 		new GuessShapeNode(new RoundRectangle2D.Double(x,y,
 							       width,
 							       height,
-							       2,2),
+							       Math.max(2,width/5),Math.max(2,height/5)),
 				   n,curFrame,type);
 	} else if (type == RECTANGLE3D) {
 	    toRet = 
@@ -71,7 +71,7 @@ public class PFactory extends VisFactory implements UIListener {
 		new GuessShapeNode3D(new RoundRectangle2D.Double(x,y,
 								 width,
 								 height,
-								 2,2),
+								 Math.max(2,width/5),Math.max(2,height/5)),
 				     n,curFrame,type);
 	} else if ((type == TEXT_RECTANGLE) || 
 		   (type == TEXT_ROUNDRECTANGLE) || 
@@ -158,9 +158,9 @@ public class PFactory extends VisFactory implements UIListener {
 
 	String image = "";
 	Object tCol = rep.get("color");
-	if (tCol == null) {
-	    System.out.println(n.__getattr__("color"));
-	}
+	//if (tCol == null) {
+	//  System.out.println(n.__getattr__("color"));
+	//}
 	
 	Color newCol = Color.blue;
 	if (tCol != null) {

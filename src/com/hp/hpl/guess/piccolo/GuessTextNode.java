@@ -339,6 +339,13 @@ public class GuessTextNode extends PText implements GuessPNode {
 		} else {
 		    setPaint((Colors.getColor((String)o,(Color)getPaint())));
 		}
+	    } else if (field.equals("strokecolor")) {
+		if (o instanceof Color) {
+		    strokePaint = (Color)o;
+		} else {
+		    strokePaint = 
+			(Colors.getColor((String)o,(Color)getPaint()));
+		}
 	    } else if (field.equals("visible")) {
 		setVisible(((Boolean)o).booleanValue());
 	    }
@@ -371,6 +378,8 @@ public class GuessTextNode extends PText implements GuessPNode {
 		return(new Boolean(getVisible()));
 	    } else if (field.equals("labelvisible")) {
 		return(new Boolean(true));
+	    } else if (field.equals("strokecolor")) {
+		return(strokePaint);
 	    } else {
 		return(null);
 	    }

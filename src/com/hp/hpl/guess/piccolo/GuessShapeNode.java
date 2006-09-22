@@ -59,7 +59,13 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    }
 	} else if (field.equals("visible")) {
 	    setVisible(((Boolean)o).booleanValue());
-	} 
+	} else if (field.equals("strokecolor")) {
+	    if (o instanceof Color) {
+		setStrokePaint((Color)o);
+	    } else {
+		setStrokePaint((Colors.getColor((String)o,(Color)getPaint())));
+	    }
+	}
 
 	if (Guess.getMTF()) 
 	    moveToFront();
@@ -88,6 +94,8 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 		return(new Boolean(labelMode));
 	    } else if (field.equals("color")) {
 		return(Colors.toString(curcolor));
+	    } else if (field.equals("strokecolor")) {
+		return(Colors.toString((Color)getStrokePaint()));
 	    } else if (field.equals("visible")) {
 		return(new Boolean(getVisible()));
 	    } else {
