@@ -93,9 +93,13 @@ public class PrefuseDisplay extends Display implements FrameListener {
     private static final String nodes = "graph.nodes";
     private static final String edges = "graph.edges";
       
-    private Visualization m_vis;
-    
+    protected Visualization m_vis = null;;
+    protected ForceSimulator fsim = null;
+    protected GraphDistanceFilter filter = null;
+
     private Graph m_graph = null;
+    protected int hops = 30;
+
     public PrefuseDisplay(Graph m_graph) {
         // create a new, empty visualization for our data
         m_vis = new Visualization();
@@ -165,9 +169,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // --------------------------------------------------------------------
         // create actions to process the visual data
 
-        int hops = 30;
-        final GraphDistanceFilter filter = 
-	    new GraphDistanceFilter(graph, hops);
+        filter = new GraphDistanceFilter(graph, hops);
 
         ColorAction fill = new ColorAction(nodes, 
                 VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
@@ -175,7 +177,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         fill.add(VisualItem.HIGHLIGHT, ColorLib.rgb(255,200,125));
         
         ActionList draw = new ActionList();
-        draw.add(filter);
+        //draw.add(filter);
         draw.add(fill);
         draw.add(new ColorAction(nodes, VisualItem.STROKECOLOR, 0));
         draw.add(new ColorAction(nodes, VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
@@ -204,32 +206,8 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // launch the visualization
         
         // create a panel for editing force values
-        ForceSimulator fsim = ((ForceDirectedLayout)animate.get(0)).getForceSimulator();
-        //JForcePanel fpanel = new JForcePanel(fsim);
-        
-        
-        //final JValueSlider slider = new JValueSlider("Distance", 0, hops, hops);
-        //slider.addChangeListener(new ChangeListener() {
-	//  public void stateChanged(ChangeEvent e) {
-	//      filter.setDistance(slider.getValue().intValue());
-	//      m_vis.run("draw");
-	//  }
-        //});
-        //slider.setBackground(Color.WHITE);
-        //slider.setPreferredSize(new Dimension(300,30));
-        //slider.setMaximumSize(new Dimension(300,30));
-        
-	//        Box cf = new Box(BoxLayout.Y_AXIS);
-        //cf.add(slider);
-        //cf.setBorder(BorderFactory.createTitledBorder("Connectivity Filter"));
-        //fpanel.add(cf);
+        fsim = ((ForceDirectedLayout)animate.get(0)).getForceSimulator();
 
-        //fpanel.add(opanel);
-        
-        //fpanel.add(Box.createVerticalGlue());
-        
-        // create a new JSplitPane to present the interface
-                
         // now we run our action list
         m_vis.run("draw");
         

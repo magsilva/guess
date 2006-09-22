@@ -6,6 +6,9 @@ import java.awt.Color;
 import prefuse.data.Table;
 import prefuse.data.Schema;
 import prefuse.visual.VisualItem;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 
 public class PrefuseFactory extends VisFactory {
 
@@ -31,9 +34,22 @@ public class PrefuseFactory extends VisFactory {
 	return(curFrame);
     }
 
+    private ForcePanel fp = null;
     public void runNow() {
 	curFrame.runNow();
-	System.out.println(m_graph.getNodeTable());
+	fp = new ForcePanel(curFrame);
+	JMenu pMenu = new JMenu("Prefuse");
+	JMenuItem fpan = new JMenuItem("Force controls...");
+	ActionListener displayListener = new ActionListener(  ) {
+		public void actionPerformed(ActionEvent event) {
+		    if (event.getActionCommand().equals("Force controls...")) {
+			Guess.getMainUIWindow().undock(fp);
+		    }
+		}
+	    };
+	fpan.addActionListener(displayListener);
+	pMenu.add(fpan);
+	Guess.getMainUIWindow().getGMenuBar().add(pMenu);
     }
 
     public NodeListener generateNode(int type, double x, double y,

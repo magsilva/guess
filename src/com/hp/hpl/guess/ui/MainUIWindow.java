@@ -251,14 +251,18 @@ public class MainUIWindow extends JFrame {
 		      (int)((Component)d).getPreferredSize().getWidth(),
 		      (int)((Component)d).getPreferredSize().getHeight()+50);
 	gjf.show();
-	selected.remove((Component)d);
-	if (selected.getTabCount() == 0) {
-	    if (selected == tabbedPaneV) {
-		splitPaneV.setEnabled(false);
-		splitPaneV.setDividerLocation(0);
-	    } else {
-		splitPaneH.setEnabled(false);
-		splitPaneH.setDividerLocation(getHeight());
+
+	if (selected != null) {
+	    selected.remove((Component)d);
+
+	    if (selected.getTabCount() == 0) {
+		if (selected == tabbedPaneV) {
+		    splitPaneV.setEnabled(false);
+		    splitPaneV.setDividerLocation(0);
+		} else {
+		    splitPaneH.setEnabled(false);
+		    splitPaneH.setDividerLocation(getHeight());
+		}
 	    }
 	}
     }
