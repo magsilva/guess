@@ -86,6 +86,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
+import java.util.Iterator;
 
 public class PrefuseDisplay extends Display implements FrameListener {
 
@@ -223,10 +224,19 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // update graph
         m_vis.removeGroup(graph);
         VisualGraph vg = m_vis.addGraph(graph, g);
+	int c = vg.getNodeTable().getColumnCount();
+	for (int i = 0 ; i < c ; i++) {
+	    System.out.println(vg.getNodeTable().getColumnName(i));
+	}
+	//System.out.println(vg.getNodeTable().getClass() + " " + vg.getNodeTable());
         m_vis.setValue(edges, null, VisualItem.INTERACTIVE, Boolean.FALSE);
-        VisualItem f = (VisualItem)vg.getNode(0);
-        m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
-        f.setFixed(false);
+	try {
+	    VisualItem f = (VisualItem)vg.getNode(0);
+	    m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
+	    f.setFixed(false);
+	} catch (Exception ex) {
+	    // ignore it, we don't have a graph yet
+	}
     }
     
     public void center() {

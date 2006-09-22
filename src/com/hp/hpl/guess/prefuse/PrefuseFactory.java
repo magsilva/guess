@@ -35,7 +35,8 @@ public class PrefuseFactory extends VisFactory {
     }
 
     private ForcePanel fp = null;
-    public void runNow() {
+
+    public synchronized void runNow() {
 	curFrame.runNow();
 	fp = new ForcePanel(curFrame);
 	JMenu pMenu = new JMenu("Prefuse");
