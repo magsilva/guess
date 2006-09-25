@@ -172,14 +172,18 @@ public class PrefuseDisplay extends Display implements FrameListener {
 
         filter = new GraphDistanceFilter(graph, hops);
 
-        ColorAction fill = new ColorAction(nodes, 
-                VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
-        fill.add(VisualItem.FIXED, ColorLib.rgb(255,100,100));
-        fill.add(VisualItem.HIGHLIGHT, ColorLib.rgb(255,200,125));
+        //ColorAction fill = new ColorAction(nodes, 
+	//      VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
+        //fill.add(VisualItem.FIXED, ColorLib.rgb(255,100,100));
+
+	//ColorAction fill = 
+	//  new ColorAction(nodes, 
+	//	    VisualItem.FIXED, ColorLib.rgb(255,100,100));
+        //fill.add(VisualItem.HIGHLIGHT, ColorLib.rgb(255,200,125));
         
         ActionList draw = new ActionList();
         //draw.add(filter);
-        draw.add(fill);
+        //draw.add(fill);
         draw.add(new ColorAction(nodes, VisualItem.STROKECOLOR, 0));
         draw.add(new ColorAction(nodes, VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
         draw.add(new ColorAction(edges, VisualItem.FILLCOLOR, ColorLib.gray(200)));
@@ -187,7 +191,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         
         ActionList animate = new ActionList(Activity.INFINITY);
         animate.add(new ForceDirectedLayout(graph));
-        animate.add(fill);
+        //animate.add(fill);
         animate.add(new RepaintAction());
         
         // finally, we register our ActionList with the Visualization.
@@ -226,7 +230,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         VisualGraph vg = m_vis.addGraph(graph, g);
 	int c = vg.getNodeTable().getColumnCount();
 	for (int i = 0 ; i < c ; i++) {
-	    System.out.println(vg.getNodeTable().getColumnName(i));
+	    System.out.println(vg.getNodeTable().getColumnName(i) + " " + vg.getNodeTable().getColumn(i).canSetInt());
 	}
 	//System.out.println(vg.getNodeTable().getClass() + " " + vg.getNodeTable());
         m_vis.setValue(edges, null, VisualItem.INTERACTIVE, Boolean.FALSE);

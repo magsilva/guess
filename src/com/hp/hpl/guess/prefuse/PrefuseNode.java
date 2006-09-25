@@ -7,6 +7,7 @@ import prefuse.data.Graph;
 import prefuse.util.ColorLib;
 import com.hp.hpl.guess.ui.Colors;
 import java.awt.Color;
+import prefuse.visual.VisualItem;
 
 public class PrefuseNode implements NodeListener {
     
@@ -21,7 +22,7 @@ public class PrefuseNode implements NodeListener {
 	if (field.equals("label")) {
 	    return(iNode.get(field));
 	} else if (field.equals("color")) {
-	    //  return(ColorLib.getColor(iNode.getFillColor()));
+	    return(ColorLib.getColor(iNode.getInt(VisualItem.FILLCOLOR)));
 	}
 	return(null);
     }
@@ -37,7 +38,7 @@ public class PrefuseNode implements NodeListener {
 		temp = (Colors.getColor((String)value,
 					Color.blue));
 	    }
-	    //iNode.setFillColor(ColorLib.color(temp));
+	    iNode.setInt(VisualItem.FILLCOLOR,ColorLib.color(temp));
 	}
     }
     
