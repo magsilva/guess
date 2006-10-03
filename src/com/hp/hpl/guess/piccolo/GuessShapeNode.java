@@ -127,6 +127,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	this.style = style;
 	this.label = owner.getName();
 	//System.out.println("Thread 1: " + Thread.currentThread().getName() + " " + owner + " " + label);
+	//setStroke(linestroke);
     }
 
 
@@ -288,6 +289,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
     }
     
     protected static BasicStroke linestroke = new BasicStroke((float).3);
+    //protected static BasicStroke linestroke = new BasicStroke((float)3);
     
     public static String[] breakupLines(String text) { 
 	String[] toRet = null;

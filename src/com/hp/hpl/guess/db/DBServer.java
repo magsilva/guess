@@ -1348,7 +1348,8 @@ public class DBServer implements StorageListener {
 	nodedefs.put("y","Y DOUBLE DEFAULT 500");
 	nodedefs.put("visible","VISIBLE BOOLEAN DEFAULT true");
 	nodedefs.put("color","COLOR VARCHAR(32) DEFAULT 'cornflowerblue'");
-	nodedefs.put("strokecolor","COLOR VARCHAR(32) DEFAULT 'cadetblue'");
+	nodedefs.put("strokecolor",
+		     "STROKECOLOR VARCHAR(32) DEFAULT 'cadetblue'");
 	nodedefs.put("labelcolor","LABELCOLOR VARCHAR(32) DEFAULT NULL");
 	nodedefs.put("fixed","FIXED BOOLEAN DEFAULT false");
 	nodedefs.put("style","STYLE TINYINT DEFAULT 2");
@@ -1401,6 +1402,7 @@ public class DBServer implements StorageListener {
     private static void processNodeDef(DBServer db, String def) 
 	throws Exception {
 	String fixed = fixString(def,nodedefs);
+	//System.out.println(fixed);
 	db.update("CREATE CACHED TABLE nodes"+"("+fixed+")");
 
 	tableList.clear();
@@ -1793,6 +1795,7 @@ public class DBServer implements StorageListener {
 		    }
 		    stmt.close();
 		} catch (SQLException ex2) {
+		    //ex2.printStackTrace();
 		    ExceptionWindow.getExceptionWindow(ex2);
 		    System.out.println("*** failed to create db correctly, make sure you have defined the required columns (line: "+lineNum+")");
 		    //shutdown();
