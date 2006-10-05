@@ -372,9 +372,8 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 	return dbValue;
     }
 
-    public void __setattr__(String name, Object value)
-    {
-	//System.out.println("\t " + name + " " + value);
+    public void __setattr__(String name, Object value) {
+
 	name = name.toLowerCase();
 	
 	Field field = null;

@@ -66,7 +66,19 @@ public class TGNode extends com.touchgraph.graphlayout.Node
 			    ((Double)o).doubleValue());
 	} 
     }
-    
+
+    public void setBackColor(Color bg) {
+	super.setBackColor(bg);
+	double lum = 
+	    (299 * bg.getRed() + 587 * bg.getGreen() + 114 * bg.getBlue()) 
+	    / 1000;
+	if (lum > 127) {
+	    setTextColor(Color.black);
+	} else {
+	    setTextColor(Color.white);
+	}
+    }
+
     private int getStyle() {
 	int t = getType();
 	if (t == com.touchgraph.graphlayout.Node.TYPE_CIRCLE) {
