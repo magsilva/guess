@@ -319,8 +319,12 @@ public class GFrame extends PCanvas implements FrameListener {
 	return(hulls);
     }
 
+    public PLayer getDraw() {
+	return(draw);
+    }
+
     /**
-     * returns the camera viewing the canvas in the frame
+     * Returns the camera viewing the canvas in the frame
      * @return the camera for this canvas
      */
     public synchronized PCamera getGCamera() {
