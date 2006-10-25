@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.prefuse;
 
 import com.hp.hpl.guess.ui.FrameListener;
+import com.hp.hpl.guess.ui.Colors;
 import com.hp.hpl.guess.freehep.*;
 
 import java.awt.BorderLayout;
@@ -101,6 +102,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
     private Graph m_graph = null;
     protected int hops = 30;
 
+
     public PrefuseDisplay(Graph m_graph) {
         // create a new, empty visualization for our data
         m_vis = new Visualization();
@@ -180,10 +182,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         ActionList draw = new ActionList();
         //draw.add(filter);
         //draw.add(fill);
-        draw.add(new ColorAction(nodes, VisualItem.STROKECOLOR, 0));
         draw.add(new ColorAction(nodes, VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
-        draw.add(new ColorAction(edges, VisualItem.FILLCOLOR, ColorLib.gray(200)));
-        draw.add(new ColorAction(edges, VisualItem.STROKECOLOR, ColorLib.gray(200)));
         
         ActionList animate = new ActionList(Activity.INFINITY);
         animate.add(new ForceDirectedLayout(graph));
@@ -222,7 +221,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         
 
         // now we run our action list
-        m_vis.run("draw");
+	m_vis.run("draw");
         
         //add(split);
     }
@@ -239,9 +238,6 @@ public class PrefuseDisplay extends Display implements FrameListener {
         m_vis.removeGroup(graph);
         vg = m_vis.addGraph(graph, g);
 	int c = vg.getNodeTable().getColumnCount();
-	for (int i = 0 ; i < c ; i++) {
-	    System.out.println(vg.getNodeTable().getColumnName(i) + " " + vg.getNodeTable().getColumn(i).canSetInt());
-	}
 	//System.out.println(vg.getNodeTable().getClass() + " " + vg.getNodeTable());
         m_vis.setValue(edges, null, VisualItem.INTERACTIVE, Boolean.FALSE);
 	try {
@@ -255,11 +251,72 @@ public class PrefuseDisplay extends Display implements FrameListener {
     }
     
     public void center() {
+	Rectangle2D bounds = m_vis.getBounds(Visualization.ALL_ITEMS);
+	GraphicsLib.expand(bounds, 50 + (int)(1/this.getScale()));
+	DisplayLib.fitViewToBounds(this, bounds, 2000);
     }
 
     public void center(Object o) {
+	center(o,2000);
     }
 
+    public void center(Object o, long t) {
+
+	if (o == null) {
+	    return;
+	}
+
+	double minx = Double.MAX_VALUE;
+	double miny = Double.MAX_VALUE;
+	double maxx = Double.MIN_VALUE;
+	double maxy = Double.MIN_VALUE;
+
+	if (o instanceof Integer) {
+	    center();
+	    return;
+	}
+
+	if (o instanceof com.hp.hpl.guess.Node) {
+
+	    Rectangle2D bounds = 
+		((PrefuseNode)((com.hp.hpl.guess.Node)o).getRep()).getBounds();
+
+	    GraphicsLib.expand(bounds, 50 + (int)(1/this.getScale()));
+	    DisplayLib.fitViewToBounds(this, bounds, 2000);
+
+	    return;
+	} else if (o instanceof com.hp.hpl.guess.Edge) {
+	    //centerOn((GuessPNode)((Edge)o).getNode1().getRep(),
+	    //     (GuessPNode)((Edge)o).getNode2().getRep());
+	    //return;
+	} else {
+	    throw(new Error("center() on " + o.getClass().toString() + 
+			    " not implemented"));
+	}
+    }
+
+    public void center(double minx, double miny, double maxx, 
+		       double maxy, long t) {
+	
+	if ((minx == Double.MAX_VALUE) ||
+	    (maxx == Double.MIN_VALUE) ||
+	    (miny == Double.MAX_VALUE) ||
+	    (maxy == Double.MIN_VALUE)) {
+	    return;
+	}
+
+	minx -= 10;
+	miny -= 10;
+	maxx += 10;
+	maxy += 10;
+	
+	//frame.getGCamera().addChild(labelText);
+	Rectangle2D bounds = new Rectangle2D.Double(minx,
+						    miny,
+						    maxx-minx,
+						    maxy-miny);
+	DisplayLib.fitViewToBounds(this, bounds, t);
+    }
 
     public void setFrozen(boolean state){}
 
@@ -311,7 +368,12 @@ public class PrefuseDisplay extends Display implements FrameListener {
 	return(null);
     }
     
-    public void setDisplayBackground(Color c) {
+    public void setDisplayBackground(java.awt.Color bg) {
+	this.setBackground(bg);
+    }
+
+    public void setDisplayBackground(String bg) {
+	this.setBackground(Colors.getColor(bg,getDisplayBackground()));
     }
 
     public void setBackgroundImage(String filename) {

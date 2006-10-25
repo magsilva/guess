@@ -27,6 +27,9 @@ public class PrefuseFactory extends VisFactory {
 	prefuse.data.Node n1 = m_graph.addNode();
 	m_graph.getNodeTable().addColumn("label",String.class);
 	m_graph.getNodeTable().addColumn(VisualItem.FILLCOLOR,int.class);
+	m_graph.getNodeTable().addColumn(VisualItem.STROKECOLOR,int.class);
+	m_graph.getEdgeTable().addColumn(VisualItem.FILLCOLOR,int.class);
+	m_graph.getEdgeTable().addColumn(VisualItem.STROKECOLOR,int.class);
 	curFrame = new PrefuseDisplay(m_graph);
 	try {
 	    curFrame.preRun();
