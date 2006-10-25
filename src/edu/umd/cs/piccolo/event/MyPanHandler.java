@@ -24,11 +24,15 @@ public class MyPanHandler extends PPanEventHandler {
 
     private static Class nodeClass = null;
     private static Class edgeClass = null;
-
+    private static Class serClass = null;
     static {
 	try {
-	    nodeClass = Class.forName("com.hp.hpl.guess.piccolo.GuessPNode");
-	    edgeClass = Class.forName("com.hp.hpl.guess.piccolo.GuessPEdge");
+	    nodeClass = 
+		Class.forName("com.hp.hpl.guess.piccolo.GuessPNode");
+	    edgeClass = 
+		Class.forName("com.hp.hpl.guess.piccolo.GuessPEdge");
+	    serClass = 
+		Class.forName("com.hp.hpl.guess.piccolo.util.SerInterface");
 	} catch (Exception e) {e.printStackTrace();}
     }
 
@@ -40,6 +44,9 @@ public class MyPanHandler extends PPanEventHandler {
 	    return(true);
 	}
 	if (edgeClass.isAssignableFrom(t.getClass())) {
+	    return(true);
+	}
+	if (serClass.isAssignableFrom(t.getClass())) {
 	    return(true);
 	}
 	return(false);

@@ -34,7 +34,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 
     private static int tool = RECTANGLE;
 
-    private static Color myColor = Color.black;
+    private static Color myColor = Color.gray;
 
     private static Stroke myStroke = new BasicStroke(1.0f);
 
@@ -252,7 +252,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 	widthJCB.addActionListener(this);
 
 	colorBut = new JButton(" ");
-	colorBut.setBackground(Color.black);
+	colorBut.setBackground(myColor);
 	colorBut.setToolTipText("Pick a color");
 	selectionPanel.add(colorBut);
 	colorBut.addMouseListener(new MouseAdapter() {

@@ -22,7 +22,7 @@ import java.util.*;
 import javax.swing.*;
 import java.io.*;
 
-public class SerLine extends PPath {
+public class SerLine extends PPath implements SerInterface {
     
     private double sx,sy,sw,sh;
 
