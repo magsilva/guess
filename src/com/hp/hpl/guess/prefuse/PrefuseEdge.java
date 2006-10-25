@@ -27,10 +27,14 @@ public class PrefuseEdge implements EdgeListener {
 							   iEdge);
 	if (field.equals("color")) {
 	    return(ColorLib.getColor(vi.getStrokeColor()));
-	} 
+	}  else if (field.equals("width")) {
+	    return(new Double(width));
+	}
 	return(null);
     }
     
+    private double width = -1;
+
     public void set(String field, Object value) {
 	//setAttribute(field,value.toString());
 	VisualItem vi = PrefuseFactory.m_vis.getVisualItem("graph.edges",
@@ -45,7 +49,13 @@ public class PrefuseEdge implements EdgeListener {
 	    }
 	    vi.setFillColor(ColorLib.color(temp));
 	    vi.setStrokeColor(ColorLib.color(temp));
-	} 
+	} else if (field.equals("width")) {
+	    double tempWidth = ((Double)value).doubleValue();
+	    if (tempWidth != width) {
+		vi.setStroke(new java.awt.BasicStroke((float)tempWidth));
+	    }
+	    width = tempWidth;
+	}
     }
 
     public void highlight(boolean state) {

@@ -261,11 +261,21 @@ public class GMenuBar extends JMenuBar {
 	ver.addActionListener(editListener);
 	editMenu.add(ver);
 
-	add(fileMenu);
-	add(editMenu);
-	add(displayMenu);
-	add(layoutMenu);
-	add(helpMenu);
+	super.add(fileMenu);
+	super.add(editMenu);
+	super.add(displayMenu);
+	super.add(layoutMenu);
+	super.add(helpMenu);
+    }
+
+    public JMenu add(JMenu c) {
+	JMenu temp = getMenu(getMenuCount() - 1);
+	if (temp == helpMenu) {
+	    remove(getMenuCount() - 1);
+	}
+	super.add(c);
+	super.add(helpMenu);
+	return(c);
     }
 
     File prevRun = null;

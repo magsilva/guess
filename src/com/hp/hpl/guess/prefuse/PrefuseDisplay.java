@@ -88,6 +88,11 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 import java.util.Iterator;
+import java.util.Collection;
+
+import org.python.core.PySequence;
+import org.python.core.PyObject;
+import org.python.core.PyInstance;
 
 public class PrefuseDisplay extends Display implements FrameListener {
 
@@ -286,9 +291,89 @@ public class PrefuseDisplay extends Display implements FrameListener {
 
 	    return;
 	} else if (o instanceof com.hp.hpl.guess.Edge) {
-	    //centerOn((GuessPNode)((Edge)o).getNode1().getRep(),
-	    //     (GuessPNode)((Edge)o).getNode2().getRep());
-	    //return;
+	    Rectangle2D bounds1 = 
+		((PrefuseNode)((com.hp.hpl.guess.Edge)o).getNode1().getRep()).getBounds();
+	    Rectangle2D bounds2 = 
+		((PrefuseNode)((com.hp.hpl.guess.Edge)o).getNode2().getRep()).getBounds();
+	    
+	    Rectangle2D bounds = bounds1.createIntersection(bounds2);
+
+	    GraphicsLib.expand(bounds, 50 + (int)(1/this.getScale()));
+	    DisplayLib.fitViewToBounds(this, bounds, 2000);
+
+	    return;
+	} 
+	
+	if (o instanceof PySequence) {
+	    PySequence q = (PySequence)o;
+	    int len = q.__len__();
+	    Rectangle2D bounds = null;
+	    for (int i = 0 ; i < len ; i++) {
+
+		// hack, we should really be iterating internaly, but whatever
+		if (!(q.__getitem__(i) instanceof PyInstance)) 
+		    continue;
+
+		Object elem = 
+		    ((PyInstance)q.__getitem__(i)).__tojava__(Object.class);
+
+		if (elem instanceof com.hp.hpl.guess.Node) {
+		    Rectangle2D bounds1 = 
+			((PrefuseNode)((com.hp.hpl.guess.Node)elem).getRep()).getBounds();
+		    if (bounds == null) {
+			bounds = bounds1;
+		    } else {
+			bounds = bounds.createIntersection(bounds1);
+		    }
+
+		} else if (elem instanceof com.hp.hpl.guess.Edge) {
+		    Rectangle2D bounds1 = 
+			((PrefuseNode)((com.hp.hpl.guess.Edge)elem).getNode1().getRep()).getBounds();
+		    Rectangle2D bounds2 = 
+			((PrefuseNode)((com.hp.hpl.guess.Edge)elem).getNode2().getRep()).getBounds();
+		    if (bounds == null) {
+			bounds = bounds1;
+		    } else {
+			bounds = bounds.createIntersection(bounds1);
+		    } 
+		    bounds = bounds.createIntersection(bounds2);
+		}
+	    }
+	    if (bounds != null) {
+		GraphicsLib.expand(bounds, 50 + (int)(1/this.getScale()));
+		DisplayLib.fitViewToBounds(this, bounds, 2000);
+	    }
+	} else if (o instanceof Collection) {
+	    Iterator it = ((Collection)o).iterator();
+	    Rectangle2D bounds = null;
+	    while(it.hasNext()) {
+		Object elem = it.next();
+		if (elem instanceof com.hp.hpl.guess.Node) {
+		    Rectangle2D bounds1 = 
+			((PrefuseNode)((com.hp.hpl.guess.Node)elem).getRep()).getBounds();
+		    if (bounds == null) {
+			bounds = bounds1;
+		    } else {
+			bounds = bounds.createIntersection(bounds1);
+		    }
+
+		} else if (elem instanceof com.hp.hpl.guess.Edge) {
+		    Rectangle2D bounds1 = 
+			((PrefuseNode)((com.hp.hpl.guess.Edge)elem).getNode1().getRep()).getBounds();
+		    Rectangle2D bounds2 = 
+			((PrefuseNode)((com.hp.hpl.guess.Edge)elem).getNode2().getRep()).getBounds();
+		    if (bounds == null) {
+			bounds = bounds1;
+		    } else {
+			bounds = bounds.createIntersection(bounds1);
+		    } 
+		    bounds = bounds.createIntersection(bounds2);
+		}
+	    }
+	    if (bounds != null) {
+		GraphicsLib.expand(bounds, 50 + (int)(1/this.getScale()));
+		DisplayLib.fitViewToBounds(this, bounds, 2000);
+	    }
 	} else {
 	    throw(new Error("center() on " + o.getClass().toString() + 
 			    " not implemented"));
