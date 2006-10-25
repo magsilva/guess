@@ -130,11 +130,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
 
     }
 
-    public void runNow() {	
-	System.err.println("running...");
-        // --------------------------------------------------------------------
-        // set up the renderers
-        
+    public void preRun() {
         LabelRenderer tr = new LabelRenderer();
         tr.setRoundedCorner(8, 8);
         m_vis.setRendererFactory(new DefaultRendererFactory(tr));
@@ -170,7 +166,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // --------------------------------------------------------------------
         // create actions to process the visual data
 
-        filter = new GraphDistanceFilter(graph, hops);
+        //filter = new GraphDistanceFilter(graph, hops);
 
         //ColorAction fill = new ColorAction(nodes, 
 	//      VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
@@ -213,12 +209,26 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // create a panel for editing force values
         fsim = ((ForceDirectedLayout)animate.get(0)).getForceSimulator();
 
+	VisualItem f = (VisualItem)vg.getNode(0);
+	m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
+	f.setFixed(false);
+
+    }
+
+    public void runNow() {	
+	System.err.println("running...");
+        // --------------------------------------------------------------------
+        // set up the renderers
+        
+
         // now we run our action list
         m_vis.run("draw");
         
         //add(split);
     }
     
+    VisualGraph vg = null;
+
     public void setGraph(Graph g, String label) {
         // update labeling
         DefaultRendererFactory drf = (DefaultRendererFactory)
@@ -227,7 +237,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         
         // update graph
         m_vis.removeGroup(graph);
-        VisualGraph vg = m_vis.addGraph(graph, g);
+        vg = m_vis.addGraph(graph, g);
 	int c = vg.getNodeTable().getColumnCount();
 	for (int i = 0 ; i < c ; i++) {
 	    System.out.println(vg.getNodeTable().getColumnName(i) + " " + vg.getNodeTable().getColumn(i).canSetInt());
@@ -238,6 +248,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
 	    VisualItem f = (VisualItem)vg.getNode(0);
 	    m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
 	    f.setFixed(false);
+	    f.setFillColor(ColorLib.rgb(255,0,0));
 	} catch (Exception ex) {
 	    // ignore it, we don't have a graph yet
 	}

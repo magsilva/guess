@@ -9,13 +9,15 @@ import prefuse.visual.VisualItem;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import prefuse.Visualization;
 
 public class PrefuseFactory extends VisFactory {
 
     private PrefuseDisplay curFrame = null;
     
     protected prefuse.data.Graph m_graph = null;
-    
+    protected static Visualization m_vis = null;
+
     public PrefuseFactory() {
 	init();
     }
@@ -26,7 +28,13 @@ public class PrefuseFactory extends VisFactory {
 	m_graph.getNodeTable().addColumn("label",String.class);
 	m_graph.getNodeTable().addColumn(VisualItem.FILLCOLOR,int.class);
 	curFrame = new PrefuseDisplay(m_graph);
+	try {
+	    curFrame.preRun();
+	} catch (Exception ex) {
+	    ex.printStackTrace();
+	}
 	m_graph.removeNode(n1);
+	m_vis = curFrame.m_vis;
 	return(curFrame);
     }
 

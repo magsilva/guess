@@ -12,9 +12,10 @@ import prefuse.visual.VisualItem;
 public class PrefuseNode implements NodeListener {
     
     protected prefuse.data.Node iNode = null;
-
+    
     public PrefuseNode(prefuse.data.Graph g) {
 	iNode = g.addNode();
+	//System.out.println();
 	//System.err.println(iNode.getClass());
     }
 
@@ -22,7 +23,9 @@ public class PrefuseNode implements NodeListener {
 	if (field.equals("label")) {
 	    return(iNode.get(field));
 	} else if (field.equals("color")) {
-	    return(ColorLib.getColor(iNode.getInt(VisualItem.FILLCOLOR)));
+	    VisualItem vi = PrefuseFactory.m_vis.getVisualItem("graph.nodes",
+							       iNode);
+	    return(ColorLib.getColor(vi.getFillColor()));
 	}
 	return(null);
     }
@@ -32,13 +35,15 @@ public class PrefuseNode implements NodeListener {
 	    iNode.set(field,value);
 	} else if (field.equals("color")) {
 	    Color temp = null;
+	    VisualItem vi = PrefuseFactory.m_vis.getVisualItem("graph.nodes",
+							       iNode);
 	    if (value instanceof Color) {
 		temp = (Color)value;
 	    } else {
 		temp = (Colors.getColor((String)value,
 					Color.blue));
 	    }
-	    iNode.setInt(VisualItem.FILLCOLOR,ColorLib.color(temp));
+	    vi.setFillColor(ColorLib.color(temp));
 	}
     }
     
