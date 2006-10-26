@@ -39,6 +39,8 @@ public class GuessShapeNode3D extends GuessShapeNode {
 	    } else {
 		setPaint((Color)(Colors.getColor((String)o,flatColor)));
 	    }
+	} else if (field.equals("strokecolor")) {
+	    super.set("strokecolor",flatColor);
 	} else {
 	    super.set(field,o);
 	}
