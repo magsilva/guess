@@ -78,11 +78,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Paint;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
@@ -98,36 +94,36 @@ public class ForcePanel extends DockableAdapter {
     
     PrefuseDisplay pd = null;
 
+    private final JButton run = new JButton("Start/Stop");
+
     public ForcePanel(PrefuseDisplay pd) {
 	this.pd = pd;
 
-        final JValueSlider slider = 
-	    new JValueSlider("Distance", 0, pd.hops, pd.hops);
 	final GraphDistanceFilter filter = pd.filter;
 	final Visualization m_vis = pd.m_vis;
+	final PrefuseDisplay finalDisp = pd;
 
         JForcePanel jp = new JForcePanel(pd.fsim);
-        slider.addChangeListener(new ChangeListener() {
-		public void stateChanged(ChangeEvent e) {
-		    filter.setDistance(slider.getValue().intValue());
-		    m_vis.run("draw");
+        
+	Box cf = new Box(BoxLayout.X_AXIS);
+        
+	cf.add(run);
+        cf.setBorder(BorderFactory.createTitledBorder(""));
+	cf.add(Box.createHorizontalGlue());
+        jp.add(cf);
+
+	ActionListener startstop = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    finalDisp.toggleForce();
 		}
-	    });
-        slider.setBackground(Color.WHITE);
-        slider.setPreferredSize(new Dimension(300,30));
-        slider.setMaximumSize(new Dimension(300,30));
-        
-	Box cf = new Box(BoxLayout.Y_AXIS);
-        
-	cf.add(slider);
-        cf.setBorder(BorderFactory.createTitledBorder("Connectivity Filter"));
-        //jp.add(cf);
+	    };
+	    
+	run.addActionListener(startstop);
 
         //add(opanel);
-        
-        //jp.add(Box.createVerticalGlue());
-        
+      
 	add(jp);
+        add(Box.createVerticalGlue());
     }
 
     public String getTitle() {

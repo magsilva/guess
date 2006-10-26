@@ -16,8 +16,6 @@ public class PrefuseNode implements NodeListener {
     
     public PrefuseNode(prefuse.data.Graph g) {
 	iNode = g.addNode();
-	//System.out.println();
-	//System.err.println(iNode.getClass());
     }
 
     public Rectangle2D getBounds() {

@@ -26,7 +26,10 @@ public class PrefuseFactory extends VisFactory {
 	m_graph = new prefuse.data.Graph(false);
 	prefuse.data.Node n1 = m_graph.addNode();
 	m_graph.getNodeTable().addColumn("label",String.class);
-	m_graph.getNodeTable().addColumn(VisualItem.FILLCOLOR,int.class);
+
+	m_graph.getNodeTable().addColumn(VisualItem.X,double.class);
+	m_graph.getNodeTable().addColumn(VisualItem.Y,double.class);
+
 	m_graph.getNodeTable().addColumn(VisualItem.STROKECOLOR,int.class);
 	m_graph.getEdgeTable().addColumn(VisualItem.FILLCOLOR,int.class);
 	m_graph.getEdgeTable().addColumn(VisualItem.STROKECOLOR,int.class);
@@ -62,12 +65,16 @@ public class PrefuseFactory extends VisFactory {
 	fpan.addActionListener(displayListener);
 	pMenu.add(fpan);
 	Guess.getMainUIWindow().getGMenuBar().add(pMenu);
+	Guess.getMainUIWindow().undock(fp);
     }
 
     public NodeListener generateNode(int type, double x, double y,
 				     double width, double height,
 				     Color clr, Node n) {
-	return(generateNode(n));
+	NodeListener node = generateNode(n);
+	node.set("x",new Double(x));
+	node.set("y",new Double(y));
+	return(node);
     }
 
     public NodeListener generateNode(Node n) {

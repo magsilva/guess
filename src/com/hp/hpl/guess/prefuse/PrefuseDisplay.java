@@ -127,14 +127,15 @@ public class PrefuseDisplay extends Display implements FrameListener {
         addControlListener(new ZoomToFitControl());
         addControlListener(new NeighborHighlightControl());
 
-        // overview display
-//        Display overview = new Display(vis);
-//        overview.setSize(290,290);
-//        overview.addItemBoundsListener(new FitOverviewListener());
-        
         setForeground(Color.GRAY);
         setBackground(Color.WHITE);
 
+    }
+
+    ForceDirectedLayout fdl = null;
+
+    public void toggleForce() {
+	fdl.setEnabled(!fdl.isEnabled());
     }
 
     public void preRun() {
@@ -149,49 +150,17 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // adds graph to visualization and sets renderer label field
         setGraph(m_graph, "label");
 
-        // fix selected focus nodes
-        TupleSet focusGroup = m_vis.getGroup(Visualization.FOCUS_ITEMS); 
-        focusGroup.addTupleSetListener(new TupleSetListener() {
-            public void tupleSetChanged(TupleSet ts, Tuple[] add, Tuple[] rem)
-            {
-                for ( int i=0; i<rem.length; ++i )
-                    ((VisualItem)rem[i]).setFixed(false);
-                for ( int i=0; i<add.length; ++i ) {
-                    ((VisualItem)add[i]).setFixed(false);
-                    ((VisualItem)add[i]).setFixed(true);
-                }
-                if ( ts.getTupleCount() == 0 ) {
-                    ts.addTuple(rem[0]);
-                    ((VisualItem)rem[0]).setFixed(false);
-                }
-                m_vis.run("draw");
-            }
-        });
-    
+	ActionList draw = new ActionList();
 
-       
-        // --------------------------------------------------------------------
-        // create actions to process the visual data
+	draw.add(new ColorAction(nodes, 
+				 VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
 
-        //filter = new GraphDistanceFilter(graph, hops);
 
-        //ColorAction fill = new ColorAction(nodes, 
-	//      VisualItem.FILLCOLOR, ColorLib.rgb(200,200,255));
-        //fill.add(VisualItem.FIXED, ColorLib.rgb(255,100,100));
-
-	//ColorAction fill = 
-	//  new ColorAction(nodes, 
-	//	    VisualItem.FIXED, ColorLib.rgb(255,100,100));
-        //fill.add(VisualItem.HIGHLIGHT, ColorLib.rgb(255,200,125));
-        
-        ActionList draw = new ActionList();
-        //draw.add(filter);
-        //draw.add(fill);
-        draw.add(new ColorAction(nodes, VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
-        
 	ActionList animate = new ActionList(Activity.INFINITY);
-        animate.add(new ForceDirectedLayout(graph));
-        //animate.add(fill);
+	fdl = new ForceDirectedLayout(graph);
+	fdl.setEnabled(false);
+        animate.add(fdl);
+
         animate.add(new RepaintAction());
         
         // finally, we register our ActionList with the Visualization.
@@ -201,17 +170,10 @@ public class PrefuseDisplay extends Display implements FrameListener {
         m_vis.putAction("layout", animate);
 
         m_vis.runAfter("draw", "layout");
-        
-        
-        // --------------------------------------------------------------------
-        // set up a display to show the visualization
-        
-        
-        // --------------------------------------------------------------------        
-        // launch the visualization
-        
-        // create a panel for editing force values
+
         fsim = ((ForceDirectedLayout)animate.get(0)).getForceSimulator();
+
+
 
 	VisualItem f = (VisualItem)vg.getNode(0);
 	m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
@@ -219,16 +181,10 @@ public class PrefuseDisplay extends Display implements FrameListener {
 
     }
 
+
     public void runNow() {	
 	System.err.println("running...");
-        // --------------------------------------------------------------------
-        // set up the renderers
-        
-
-        // now we run our action list
 	m_vis.run("draw");
-        
-        //add(split);
     }
     
     VisualGraph vg = null;
@@ -242,21 +198,8 @@ public class PrefuseDisplay extends Display implements FrameListener {
         // update graph
         m_vis.removeGroup(graph);
         vg = m_vis.addGraph(graph, g);
-	int c = vg.getNodeTable().getColumnCount();
-	//System.out.println(vg.getNodeTable().getClass() + " " + vg.getNodeTable());
         m_vis.setValue(edges, null, VisualItem.INTERACTIVE, Boolean.FALSE);
-	try {
-	    VisualItem f = (VisualItem)vg.getNode(0);
-	    m_vis.getGroup(Visualization.FOCUS_ITEMS).setTuple(f);
-	    f.setFixed(false);
-	    f.setFillColor(ColorLib.rgb(255,0,0));
-	} catch (Exception ex) {
-	    // ignore it, we don't have a graph yet
-	}
-	//int c = vg.getNodeTable().getColumnCount();
- 	for (int i = 0 ; i < c ; i++) {
- 	    System.out.println(vg.getNodeTable().getColumnName(i) + " " + vg.getNodeTable().getColumn(i).canSetInt());
- 	}
+
     }
     
     public void center() {
