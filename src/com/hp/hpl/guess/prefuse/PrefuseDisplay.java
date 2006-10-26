@@ -189,7 +189,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
         //draw.add(fill);
         draw.add(new ColorAction(nodes, VisualItem.TEXTCOLOR, ColorLib.rgb(0,0,0)));
         
-        ActionList animate = new ActionList(Activity.INFINITY);
+	ActionList animate = new ActionList(Activity.INFINITY);
         animate.add(new ForceDirectedLayout(graph));
         //animate.add(fill);
         animate.add(new RepaintAction());
@@ -253,6 +253,10 @@ public class PrefuseDisplay extends Display implements FrameListener {
 	} catch (Exception ex) {
 	    // ignore it, we don't have a graph yet
 	}
+	//int c = vg.getNodeTable().getColumnCount();
+ 	for (int i = 0 ; i < c ; i++) {
+ 	    System.out.println(vg.getNodeTable().getColumnName(i) + " " + vg.getNodeTable().getColumn(i).canSetInt());
+ 	}
     }
     
     public void center() {

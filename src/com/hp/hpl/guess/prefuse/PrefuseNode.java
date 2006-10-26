@@ -59,8 +59,12 @@ public class PrefuseNode implements NodeListener {
 	    vi.setFillColor(ColorLib.color(temp));
 	} else if (field.equals("x")) {
 	    vi.setX(((Double)value).doubleValue());
+	    vi.setStartX(((Double)value).doubleValue());
+	    vi.setEndX(((Double)value).doubleValue());
 	} else if (field.equals("y")) {
 	    vi.setY(((Double)value).doubleValue());
+	    vi.setStartY(((Double)value).doubleValue());
+	    vi.setEndY(((Double)value).doubleValue());
 	} else if (field.equals("strokecolor")) {
 	    Color temp = null;
 	    if (value instanceof Color) {
