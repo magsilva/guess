@@ -62,16 +62,16 @@ public abstract class HEPWriter {
     public static final int GIF = 0;
     public static final int JPG = 1;
     public static final int PDF = 2;
-    public static final int PS = 5;
-    public static final int EPS = 5; // same thing for now
-    public static final int SVG = 7;
-    public static final int SWF = 8;
-    public static final int JAVA = 9;
-    public static final int CGM = 11;
-    public static final int EMF = 12;
-    public static final int PNG = 2;
-    public static final int PPM = 13;
-    public static final int RAW = 14;
+    public static final int PS = 3;
+    public static final int EPS = 3; // same thing for now
+    public static final int SVG = 4;
+    public static final int SWF = 5;
+    public static final int JAVA = 6;
+    public static final int CGM = 7;
+    public static final int EMF = 8;
+    public static final int PNG = 9;
+    public static final int PPM = 10;
+    public static final int RAW = 11;
 
 
     public static Graphics2D getGraphics2D(String outputfile,
@@ -87,6 +87,9 @@ public abstract class HEPWriter {
 					   int height,
 					   Properties props) {
 	Graphics2D toReturn = null;
+
+	System.out.println("type: " + type + " " + PNG);
+
 
 	try {
 	    if (type == PS) {
@@ -104,6 +107,7 @@ public abstract class HEPWriter {
 					new Dimension(width,height),"jpg");
 		toReturn = g;
 	    } else if (type == PNG) {
+		System.err.println("PNG");
 		ImageGraphics2D g = 
 		    new ImageGraphics2D(new File(outputfile),
 					new Dimension(width,height),"png");
@@ -124,6 +128,7 @@ public abstract class HEPWriter {
 				       new Dimension(width,height));
 		toReturn = g;
 	    } else if (type == PDF) {
+		System.err.println("PDF");
 		PDFGraphics2D g = 
 		    new PDFGraphics2D(new File(outputfile),
 				      new Dimension(width,height));
@@ -168,6 +173,7 @@ public abstract class HEPWriter {
 			      Component mds,
 			      int type) {
 
+	System.out.println("type: " + type + " " + PNG);
 	export(outputfile,mds,type,null);
     }
 
@@ -177,6 +183,7 @@ public abstract class HEPWriter {
 			      Properties props) {
 	try {
 	    Rectangle b = mds.getBounds();
+	    System.out.println("type: " + type + " " + PNG);
 	    VectorGraphics g = 
 		(VectorGraphics)getGraphics2D(outputfile,type,
 					      (int)b.getWidth(),
