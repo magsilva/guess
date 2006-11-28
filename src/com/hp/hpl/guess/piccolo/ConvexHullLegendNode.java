@@ -23,7 +23,7 @@ public class ConvexHullLegendNode extends PPath {
 	float[] y3Points = chn.getY3();
 	if ((x3Points != null) && (x3Points.length > 0)) {
 	    setPathToPolyline(x3Points,y3Points);
-	    setPaint(chn.getColor());
+	    setPaint(chn.getPaint());
 	    setStrokePaint(null);
 	}
 	setBounds(0,0,15,15);

@@ -34,12 +34,12 @@ public interface ConvexHull {
     /**
      * sets the color
      */
-    public void setColor(Color c);
+    public void setColor(Object c);
 
     /**
      * gets the hull color
      */
-    public Color getColor();
+    public String getColor();
 
     /**
      * sets the convex hull visibility

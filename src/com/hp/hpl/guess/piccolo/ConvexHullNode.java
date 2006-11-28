@@ -132,18 +132,21 @@ public class ConvexHullNode extends PPath implements ConvexHull {
 	return(nodes);
     }
 
-    /**
-     * sets the color
-     */
-    public void setColor(Color c) {
-	myColor = c;
+    public void setColor(Object color) {
+	if (color instanceof Color) {
+	    myColor = (Color)color;
+	} else {
+	    myColor = (Colors.getColor((String)color,(Color)getPaint()));
+	}
+	super.setPaint(myColor);
     }
+    
 
     /**
      * gets the color
      */
-    public Color getColor() {
-	return(myColor);
+    public String getColor() {
+	return(Colors.toString(myColor));
     }
 
 
