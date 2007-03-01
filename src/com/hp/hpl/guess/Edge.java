@@ -258,6 +258,13 @@ public abstract class Edge extends AbstractSparseEdge implements GraphElement
 	updateColumn("weight",new Double(weight));
     }*/
     
+    public Collection getNodes() {
+	HashSet hs = new HashSet();
+	hs.add(getNode1());
+	hs.add(getNode2());
+	return(hs);
+    }
+
     public abstract Node getNode1();
     
     public abstract Node getNode2();

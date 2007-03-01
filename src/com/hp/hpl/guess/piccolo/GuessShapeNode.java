@@ -225,15 +225,36 @@ public class GuessShapeNode extends PPath implements GuessPNode {
     }
 
 
+    private PInterpolatingActivity act = null;
+    private PBounds pb = null;
+
     public void mouseEntered(PInputEvent aEvent) {
 	if (getVisible()) {
 	    GraphEvents.mouseEnter(owner);
+	    if (act != null) {
+		act.terminate();
+		act = null;
+		setBounds(pb);
+		pb = null;
+	    }
+	    pb = getBounds();
+	    act = animateToBounds(super.getX()-super.getWidth(),
+				  super.getY()-super.getHeight(),
+				  super.getWidth()*2,
+				  super.getHeight()*2,
+				  500);
 	}
     }
 
     public void mouseExited(PInputEvent aEvent) {
 	if (getVisible()) {
 	    GraphEvents.mouseLeave(owner);
+	    if (act != null) {
+		act.terminate();
+		act = null;
+		setBounds(pb);
+		pb = null;
+	    }
 	}
     }
     
