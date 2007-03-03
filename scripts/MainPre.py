@@ -249,3 +249,12 @@ def einverse(_set):
 		if _t not in _set:
 			_toret += [_t]
 	return _toret 
+
+import math
+
+def floatRange(a, b, inc):
+	try: x = [float(a)]
+	except: return False
+	for i in range(1, int(math.ceil((b - a ) / inc))):
+		x. append(a + i * inc)
+	return x
