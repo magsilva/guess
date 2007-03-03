@@ -14,25 +14,25 @@ import com.hp.hpl.guess.Guess;
 
 public class WeightedKK extends AbstractLayout {
 
-	//private static final Object KK_KEY = "KK_Visualization_Key";
-
-	private double EPSILON = 0.1d;
-
-	private int currentIteration;
+    //private static final Object KK_KEY = "KK_Visualization_Key";
+    
+    private double EPSILON = 0.1d;
+    
+    private int currentIteration;
     private int maxIterations = 2000;
-	private String status = "KKLayout";
-	//private Pair key;
-
-	private double L;			// the ideal length of an edge
-	private double K = 1;		// arbitrary const number
-	private DoubleMatrix2D dm;	// distance matrix
-
-	private boolean adjustForGravity = true;
-	private boolean exchangeVertices = true;
-
-	private Vertex[] vertices;
-	private Coordinates[] xydata;
-
+    private String status = "KKLayout";
+    //private Pair key;
+    
+    private double L;			// the ideal length of an edge
+    private double K = 1;		// arbitrary const number
+    private DoubleMatrix2D dm;	// distance matrix
+    
+    private boolean adjustForGravity = true;
+    private boolean exchangeVertices = true;
+    
+    private Vertex[] vertices;
+    private Coordinates[] xydata;
+    
     private Graph g = null;
     /**
      * Stores graph distances between vertices of the visible graph
@@ -43,41 +43,41 @@ public class WeightedKK extends AbstractLayout {
      * The diameter of the visible graph. In other words, length of
      * the longest shortest path between any two vertices of the visible graph.
      */
-	protected double diameter;
-
-	public WeightedKK(Graph g) {
-		super(g);
-		this.g = g;
-		//key = new Pair(this, KK_KEY);
-	}
-
-	public String getStatus() {
-		return status + this.getCurrentSize();
-	}
-
+    protected double diameter;
+    
+    public WeightedKK(Graph g) {
+	super(g);
+	this.g = g;
+	//key = new Pair(this, KK_KEY);
+    }
+    
+    public String getStatus() {
+	return status + this.getCurrentSize();
+    }
+    
     public void setMaxIterations(int maxIterations) {
         this.maxIterations = maxIterations;
     }
-
-	/**
-	 * This one is an incremental visualization.
-	 */
-	public boolean isIncremental() {
-		return true;
+    
+    /**
+     * This one is an incremental visualization.
+     */
+    public boolean isIncremental() {
+	return true;
+    }
+    
+    /**
+     * Returns true once the current iteration has passed the maximum count.
+     */
+    public boolean incrementsAreDone() {
+	if (currentIteration > maxIterations) {
+	    return true;
 	}
-
-	/**
-	 * Returns true once the current iteration has passed the maximum count.
-	 */
-	public boolean incrementsAreDone() {
-		if (currentIteration > maxIterations) {
-			return true;
-		}
-		return false;
-	}
-
+	return false;
+    }
+    
     protected void initialize_local() {
-	}
+    }
     
     protected void initializeLocations() {
 	super.initializeLocations();

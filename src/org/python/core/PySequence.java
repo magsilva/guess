@@ -660,8 +660,18 @@ abstract public class PySequence extends PyObject
 			    if (((PyInstance)get(i)).isGraphElementProxy()) {
 				GraphElement element = 
 				    (GraphElement)((PyInstance)get(i)).__tojava__(GraphElement.class);
-				
-				element.__setattr__(name, value);
+				if (value instanceof PySequence) {
+				    if (((PySequence)value).__len__() < __len__()) {
+					System.out.println(((PySequence)value).__len__() + " " + i);
+					if (gf != null) {
+					    gf.setFrozen(false);
+					}
+					throw new Error("Length of value sequence is shorter than sequence you are applying it to");
+				    }
+				    element.__setattr__(name,((PySequence)value).__finditem__(i));
+				} else {
+				    element.__setattr__(name, value);
+				}
 			    }
 			} catch (ClassCastException cce) {
 			    // ignore it
