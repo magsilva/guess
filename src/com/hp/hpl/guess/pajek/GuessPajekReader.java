@@ -5,13 +5,16 @@ import com.hp.hpl.guess.*;
 import java.io.*;
 import com.hp.hpl.guess.ui.Colors;
 import java.awt.Color;
+import java.sql.Types;
 
 public class GuessPajekReader {
 
     private static Random rand = new Random();
 
     private static HashSet shapes = new HashSet();
-    
+
+    private static Vector nds = new Vector();
+ 
     static {
 	shapes.add("box");
 	shapes.add("ellipse");
@@ -26,7 +29,12 @@ public class GuessPajekReader {
 	    boolean vert = false;
 	    boolean edges = false;
 	    boolean arcs = false;
+	    boolean partition = false;
+
 	    int nodes = -1;
+	    String part_name = "";
+	    int partIndex = -1;
+
 	    while(br.ready()) {
 		String line = br.readLine();
 		line = line.trim();
@@ -34,9 +42,15 @@ public class GuessPajekReader {
 		    continue;
 
 		if (line.startsWith("*Vertices")) {
+		    if (partition == true) {
+			// we're in a partition def section
+			// we can ignore this
+			continue;
+		    }
 		    vert = true;
 		    edges = false;
 		    arcs = false;
+		    partition = false;
 		    int space = (int)Math.max((double)line.lastIndexOf(' '),
 					      (double)line.lastIndexOf('\t'));
 		    nodes = Integer.parseInt(line.substring(space+1));
@@ -45,11 +59,24 @@ public class GuessPajekReader {
 		    vert = false;
 		    edges = false;
 		    arcs = true;
+		    partition = false;
 		    continue;
 		} else if (line.startsWith("*Edges")) {
 		    vert = false;
 		    edges = true;
 		    arcs = false;
+		    partition = false;
+		    continue;
+		} else if (line.startsWith("*Partition")) {
+		    vert = false;
+		    edges = false;
+		    arcs = false;
+		    partition = true;
+		    partIndex = -1;
+		    int space = (int)Math.max((double)line.lastIndexOf(' '),
+					      (double)line.lastIndexOf('\t'));
+		    part_name = line.substring(space+1);
+		    g.addNodeField(part_name,Types.BIT,Boolean.FALSE);
 		    continue;
 		}
 		
@@ -61,6 +88,13 @@ public class GuessPajekReader {
 		    continue;
 		} else if (arcs) {
 		    processEdge(g,line,true);
+		    continue;
+		} else if (partition) {
+		    partIndex++;
+		    Node n = (Node)nds.elementAt(partIndex);
+		    if (line.startsWith("1")) {
+			n.__setattr__(part_name,Boolean.TRUE);
+		    }
 		    continue;
 		}
 	    }
@@ -110,7 +144,7 @@ public class GuessPajekReader {
 	    }
 	}
 	
-	String shape = "box";
+	String shape = "circle";
 
 	if (rest.length > pointer) {
 	    shape = rest[pointer];
@@ -125,7 +159,7 @@ public class GuessPajekReader {
 
 	boolean rounded = false;
 	
-	String color = "blue";
+	String color = "cornflowerblue";
 	String labelcolor = null;
 
 	for (int i = pointer ; i < rest.length - 1; i = i+2) {
@@ -171,7 +205,7 @@ public class GuessPajekReader {
 	double width = s_size * x_fact;
 	double height = s_size * y_fact;
 
-	int style = 1;
+	int style = 2;
 	if (shape.equals("box")) {
 	    style = 1;
 	    if (rounded)
@@ -187,7 +221,9 @@ public class GuessPajekReader {
 	n.__setattr__("width",new Double(width));
 	n.__setattr__("height",new Double(height));
 	n.__setattr__("color",color);
+	n.__setattr__("strokecolor","cadetblue");
 	n.__setattr__("label",label);
+	nds.addElement(n);
     }
 
     public static void processEdge(Graph g, String line, boolean directed) {
@@ -228,7 +264,7 @@ public class GuessPajekReader {
 	    }
 	}
 
-	String color = "blue";
+	String color = "dandelion";
 	String labelcolor = null;
 	double width = 2;
 

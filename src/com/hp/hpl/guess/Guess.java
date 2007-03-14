@@ -392,7 +392,9 @@ public class Guess
 		doLater = "g.makeFromGML(\""+
 		    database.replace('\\','/')+
 		    "\")";
-	    } else if (fileExtension.equalsIgnoreCase("net")) {
+	    } else if ((fileExtension.equalsIgnoreCase("net")) ||
+		       (fileExtension.equalsIgnoreCase("paj")) ||
+		       (fileExtension.equalsIgnoreCase("pajek"))) {
 		if (persistent != null) {
 		    StorageFactory.useDBServer(persistent);
 		} else {
@@ -416,6 +418,7 @@ public class Guess
 		    database.replace('\\','/')+
 		    "\")";
 	    } else {
+		System.out.println(database + " not found as file, trying to load database");
 		//System.out.println("using database: " + database);
 		StorageFactory.useDBServer(database);
 	    }
@@ -572,7 +575,9 @@ public class Guess
 			doLater = "g.makeFromGML(\""+
 			    fileName.replace('\\','/')+
 			    "\")";
-		    } else if (fileExtension.equalsIgnoreCase("net")) {
+		    } else if ((fileExtension.equalsIgnoreCase("net")) ||
+			       (fileExtension.equalsIgnoreCase("paj")) ||
+			       (fileExtension.equalsIgnoreCase("pajek"))) {
 			StorageFactory.useDBServer(directory + 
 						   sep + 
 						   dbName);
@@ -607,7 +612,9 @@ public class Guess
  			doLater = "g.makeFromGML(\""+
  			    fileName.replace('\\','/')+
  			    "\")";
- 		    } else if (fileExtension.equalsIgnoreCase("net")) {
+ 		    } else if ((fileExtension.equalsIgnoreCase("net")) ||
+			       (fileExtension.equalsIgnoreCase("paj")) ||
+			       (fileExtension.equalsIgnoreCase("pajek"))) {
 
  			StorageFactory.useDBServer();
  			StorageFactory.createEmpty();
