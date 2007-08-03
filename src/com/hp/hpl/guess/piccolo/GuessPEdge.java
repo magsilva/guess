@@ -46,6 +46,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
 		//  Thread.dumpStack();
 		//}
 		setVisible(((Boolean)o).booleanValue());
+		if (getVisible())
+		    readjust();
 		//Thread.dumpStack();
 	    }  else if (field.equals("label")) {
 		//		Thread.dumpStack();

@@ -34,12 +34,20 @@ public abstract class Query extends PyList
     
     public PyObject __and__(PyObject other)
     {
-	return new CompoundQuery(graph, AND, this, (Query)other, type);
+	if (other instanceof PyList) {
+	    return super.__and__(other);
+	} else {
+	    return new CompoundQuery(graph, AND, this, (Query)other, type);
+	}
     }
     
     public PyObject __or__(PyObject other)
     {
-	return new CompoundQuery(graph, OR, this, (Query)other, type);
+	if (other instanceof PyList) {
+	    return super.__or__(other);
+	} else {
+	    return new CompoundQuery(graph, OR, this, (Query)other, type);
+	}
     }
     
     protected void forceQuery()

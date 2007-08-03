@@ -141,8 +141,11 @@ public class PFactory extends VisFactory implements UIListener {
 
     public void add(Edge e) {
 	PNode pn = (PNode)e.getRep();
-	if (pn.getParent() == null) 
+	if (pn.getParent() == null) {
 	    curFrame.getEdges().addChild(pn);
+	    if (pn instanceof GuessPEdge)
+		((GuessPEdge)pn).readjust();
+	}
     }
 
     public NodeListener convertNode(GuessPNode rep,
