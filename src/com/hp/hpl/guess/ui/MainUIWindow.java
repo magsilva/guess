@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventListener;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.HashSet;
 import java.awt.GridBagConstraints;
 
 import javax.swing.*;
@@ -38,6 +40,17 @@ public class MainUIWindow extends JFrame {
     private final JPopupMenu jpop = new JPopupMenu("Dock Menu");
 
     private JTabbedPane selected = null;
+
+    public Set getDockedComponents() {
+	HashSet s = new HashSet();
+	for (int i = 0 ; i < tabbedPaneH.getTabCount() ; i++) {
+	    s.add(tabbedPaneH.getComponentAt(i));
+	}
+	for (int i = 0 ; i < tabbedPaneV.getTabCount() ; i++) {
+	    s.add(tabbedPaneV.getComponentAt(i));
+	}
+	return(s);
+    }
 
     public void enableButtons(boolean state) {
 	StatusBar.enableButtons(state);
