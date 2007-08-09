@@ -2077,6 +2077,14 @@ public class DBServer implements StorageListener {
     Hashtable unusedEdges = new Hashtable();
     Hashtable unusedNodes = new Hashtable();
 
+    public Collection getRemovedNodes() {
+	return(unusedNodes.values());
+    }
+
+    public Collection getRemovedEdges() {
+	return(unusedEdges.values());
+    }
+
     public Vector getNodesNotInCurrent(Graph g, int statenum) {
 	return(getNodesNotInCurrent(g,""+statenum));
     }
