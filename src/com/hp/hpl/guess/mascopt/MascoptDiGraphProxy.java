@@ -31,19 +31,22 @@ public class MascoptDiGraphProxy extends DiGraph {
      * guess object -> mascopt object
      * guess object -> Arc[2] (two arc objects)
      */
-    public static HashMap g2m = new HashMap();
+    public HashMap g2m = new HashMap();
 
     /**
      * maps a mascopt object to a guess object
      * mascopt -> guess, possibly multiple
      * mascopt obj to single guess obj
      */
-    public static HashMap m2g = new HashMap();
+    public HashMap m2g = new HashMap();
 
     /**
      * creates a proxy for the given graph object
      */
     public static MascoptDiGraphProxy createProxy(com.hp.hpl.guess.Graph g) {
+
+	HashMap g2m = new HashMap();
+	HashMap m2g = new HashMap();
 
 	// copy in all the vertex objects, creating if necessary
 	VertexSet vs = new VertexSet();
@@ -132,6 +135,8 @@ public class MascoptDiGraphProxy extends DiGraph {
 
 	MascoptDiGraphProxy toRet = new MascoptDiGraphProxy(vs,as);
 	//as.setDouValue("poids",toRet,1.0);	
+	toRet.m2g = m2g;
+	toRet.g2m = g2m;
 	return(toRet);
     }    
 
