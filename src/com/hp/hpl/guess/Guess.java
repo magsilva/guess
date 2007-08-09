@@ -1075,6 +1075,10 @@ public class Guess
 	g = null;
 	interpSingleton = null;
 	VisFactory.shutdown();
+	
+	if (tpjc != null) {
+	    tpjc.shutdown();
+	}
 
 	if (myWin != null)
 	    myWin.dispose();

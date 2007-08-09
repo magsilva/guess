@@ -69,9 +69,11 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	return(new Dimension(800,600));
     }
 
+    private InternalTextPane itp = null;
+
     public TextPaneJythonConsole(PythonInterpreter jython) {
 	super();
-	InternalTextPane itp = new InternalTextPane(jython);
+	itp = new InternalTextPane(jython);
 	setViewportView(itp);
     }
 
@@ -83,6 +85,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    //this.func = func;
 	    this.name = name;
 	}
+    }
+
+    public void shutdown() {
+	itp.shutdown();
     }
 
     class InternalTextPane extends JTextPane implements GuessSelectable {
@@ -111,6 +117,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 	private boolean demoMode = false;//true;
 	
+	public void shutdown() {
+	    document.shutdown();
+	}
+
 	public Object getGuessSelected() {
 	    IntervalNode[] matching =
 		Tracker.searchContained(getSelectionStart(),
@@ -854,30 +864,48 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		currentItem = history.size() - 1;
 	    }
 	
+	    public void shutdown() {
+		saveHistoryToFile();
+	    }
+
 	    protected void saveHistoryToFile() {
 		try {
-		    File f = new File(".guess_history");
-		    BufferedWriter out = new BufferedWriter(new FileWriter(f));
+		    String toLoad = System.getProperty("gHome");
+		    if (toLoad == null) { 
+			toLoad = ".";
+		    } 
+		    File f = new File(toLoad + 
+				      File.separatorChar + 
+				      ".guess_history");
+		    PrintStream out = new PrintStream(new FileOutputStream(f));
 		    int len = history.size();
 		    int start = history.size() - 100;
 		    if (start < 0) {
 			start = 0;
 		    }
+		    for (int i = start ; i < history.size() ; i++) {
+			out.println(history.elementAt(i));
+		    }
 		    out.close();
 		} catch (Exception ex) {
-		    ex.printStackTrace();
 		}
 	    }
 
 	    protected void addHistoryFromFile() {
 
 		try {
-		    File f = new File(".guess_history");
+		    String toLoad = System.getProperty("gHome");
+		    if (toLoad == null) { 
+			toLoad = ".";
+		    } 
+		    File f = new File(toLoad + 
+				      File.separatorChar + 
+				      ".guess_history");
 		    if (!f.exists()) {
 			return;
 		    }
 		    BufferedReader in
-			= new BufferedReader(new FileReader(".guess_history"));
+			= new BufferedReader(new FileReader(f));
 		    while(in.ready()) {
 			String command = in.readLine();
 			if ((command.indexOf('\n') == -1) && // FIXME : find a way to include multiline commands in history
