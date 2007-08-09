@@ -198,7 +198,7 @@ public class Guess
      * null if it doesn't exist
      * @pyexport
      */
-    public static TextPaneJythonConsole getTextPaneJythonConsole() {
+    public static TextPaneJythonConsole getJythonConsole() {
 	return(tpjc);
     }
 

@@ -19,7 +19,9 @@ public abstract class DockableAdapter extends JPanel implements Dockable {
     }
 
     public void attaching(boolean state) {
-	//System.out.println("attaching: " + state);	
+	//System.out.println("attaching: " + state);
+	if ((state == true) && (myParent != null))
+	    myParent.hide();	
     }
 
     public String getTitle() {

@@ -270,6 +270,14 @@ public class MainUIWindow extends JFrame {
 		      (int)((Component)d).getPreferredSize().getHeight()+50);
 	gjf.show();
 
+	if (selected == null) {
+	    if (d.getDirectionPreference() == HORIZONTAL_DOCK) {
+		selected = tabbedPaneH;
+	    } else {
+		selected = tabbedPaneV;
+	    }
+	}
+
 	if (selected != null) {
 	    selected.remove((Component)d);
 
@@ -295,6 +303,7 @@ public class MainUIWindow extends JFrame {
 	    }
 	    d.opening(false);
 	    selected.remove((Component)d);
+
 	    if (selected.getTabCount() == 0) {
 		if (selected == tabbedPaneV) {
 		    splitPaneV.setEnabled(false);

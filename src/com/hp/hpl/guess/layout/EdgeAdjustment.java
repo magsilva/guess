@@ -53,4 +53,17 @@ public class EdgeAdjustment {
 	    }
 	}
     }
+
+    public static void expandOverlapping(Graph g) {
+	adjust(g);
+    }
+
+    public static void compressOverlapping(Graph g) {
+
+	Iterator it = g.getEdges().iterator();
+	while(it.hasNext()) {
+	    Edge e = (Edge)it.next();
+	    e.readjust();
+	}	
+    }
 }

@@ -1892,6 +1892,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
     public void attaching(boolean state) {
 	docked = state;
+	if ((state == true) && (myParent != null))
+	    myParent.hide();
     }
 
     private GuessJFrame myParent = null;

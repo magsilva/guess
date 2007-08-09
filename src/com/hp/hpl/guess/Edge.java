@@ -212,7 +212,15 @@ public abstract class Edge extends AbstractSparseEdge implements GraphElement
     }
 
     public void readjust() {
-	rep.readjust();
+	expandOverlapping();
+    }
+
+    public void compressOverlapping() {
+	EdgeAdjustment.compressOverlapping(this);
+    }
+
+    public void expandOverlapping() {
+	EdgeAdjustment.expandOverlapping(this);
     }
 
     /*public void setVisible(boolean state) {
