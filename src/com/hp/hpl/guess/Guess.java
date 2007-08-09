@@ -80,6 +80,11 @@ public class Guess
     private static boolean appletMode = false;
 
     /**
+     * are we running inside a signed applet
+     */
+    private static boolean signedAppletMode = false;
+
+    /**
      * the applet context
      */
     private static AppletContext myAC = null;
@@ -127,6 +132,20 @@ public class Guess
 	return(gplFree);
     }
 
+    /**
+     * running as a signed applet?
+     */
+    public static void setSignedAppletMode(boolean state) {
+	signedAppletMode = state;
+    }
+
+    /**
+     * running as a signed applet?
+     */
+    public static boolean getSignedAppletMode() {
+	return(signedAppletMode);
+    }
+    
     /**
      * running inside an applet? true for yes, default is false
      */
@@ -1069,7 +1088,9 @@ public class Guess
      * shutdown and exit
      */
     public static void shutdown() {
-	interpSingleton.stoplog();
+	if (interpSingleton != null) 
+	    interpSingleton.stoplog();
+
 	StorageFactory.shutdown();
 	myF = null;
 	g = null;

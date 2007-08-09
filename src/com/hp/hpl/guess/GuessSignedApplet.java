@@ -24,6 +24,7 @@ public class GuessSignedApplet extends Applet
 	    //PySystemState.initializeApplet();
 	    Guess.setCacheDir();
 	    Guess.setAppletMode(true,getAppletContext());
+	    Guess.setSignedAppletMode(true);
 	    Guess.configureUI();
 	    //Guess.useFakeInterpreter(true);
 	    System.out.println("init...");

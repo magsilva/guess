@@ -46,6 +46,16 @@ public class GMenuBar extends JMenuBar {
     protected JMenu layoutMenu = new JMenu("Layout");
     protected JMenu helpMenu = new JMenu("Help");
 
+    public boolean displayProtected() {
+	//System.out.println(Guess.getAppletMode() + " " + Guess.getSignedAppletMode());
+	if ((Guess.getAppletMode() == true) &&
+	    (Guess.getSignedAppletMode() == false)) {
+	    return(false);
+	} else {
+	    return(true);
+	}
+    }
+
     public GMenuBar() {
 	this.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
 	
@@ -140,6 +150,9 @@ public class GMenuBar extends JMenuBar {
 	load.add(l1);
 
 	fileMenu.add(load);
+	if (!displayProtected()) {
+	    load.setEnabled(false);
+	}
 
 	for (int i=0; i < fileItems.length; i++) {
 	    JMenuItem item = null;
@@ -154,6 +167,9 @@ public class GMenuBar extends JMenuBar {
 	    
 	    item.addActionListener(printListener);
 	    fileMenu.add(item);
+	    if (!displayProtected()) {
+		item.setEnabled(false);
+	    }
 	}
 	
 
@@ -162,6 +178,9 @@ public class GMenuBar extends JMenuBar {
 	// access it later
 	logItem.addActionListener(printListener);
 	fileMenu.add(logItem);
+	if (!displayProtected()) {
+	    logItem.setEnabled(false);
+	}
 
 	// we want exit to always be last
 	JMenuItem item2 = new JMenuItem("Exit");

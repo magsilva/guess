@@ -869,6 +869,11 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    }
 
 	    protected void saveHistoryToFile() {
+		if ((Guess.getAppletMode() == true) &&
+		    (Guess.getSignedAppletMode() == false)) {
+		    return;
+		}
+
 		try {
 		    String toLoad = System.getProperty("gHome");
 		    if (toLoad == null) { 
@@ -892,6 +897,11 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    }
 
 	    protected void addHistoryFromFile() {
+
+		if ((Guess.getAppletMode() == true) &&
+		    (Guess.getSignedAppletMode() == false)) {
+		    return;
+		}
 
 		try {
 		    String toLoad = System.getProperty("gHome");
