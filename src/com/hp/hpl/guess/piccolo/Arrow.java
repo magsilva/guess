@@ -49,7 +49,8 @@ public class Arrow {
 	
 	int m_arrowWidth = Arrow.m_arrowWidth;
 	if (m_arrowWidth < 0) 
-	    m_arrowWidth = (int)Math.max(10,(width * 4));
+	    m_arrowWidth = (int)Math.max(2,(width * 4));
+	//	System.out.println(m_arrowWidth);
 	int m_arrowLength = Arrow.m_arrowLength;
 	if (m_arrowLength < 0) 
 	    m_arrowLength = (int)Math.max(4,(width * 2));		
