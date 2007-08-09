@@ -258,24 +258,3 @@ def floatRange(a, b, inc):
 	for i in range(1, int(math.ceil((b - a ) / inc))):
 		x. append(a + i * inc)
 	return x
-
-def average(_input_list):
-       _sum = 0
-       for _elem in _input_list: _sum = _sum + _elem
-       return _sum / len(_input_list)
-
-def collapse(_to_merge,_nname):
-       _newx = average(_to_merge.x)
-       _newy = average(_to_merge.y)
-       _connections = ((_to_merge-g.nodes).nodes.findNodes() & complement(_to_merge))
-       _removed = remove(_to_merge)
-       _myn = addNode(_nname)
-       _myn.x = _newx
-       _myn.y = _newy
-       for _c in _connections: addEdge(_myn,_c)
-       return(_removed)
-
-def uncollapse(_myn,_toadd):
-       _removed = remove([_myn])
-       add(_toadd)
-       return(_removed)
