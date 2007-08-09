@@ -133,9 +133,14 @@ public class FieldModWindow extends JFrame implements TreeSelectionListener {
 
     public void applyToList() {
 
+	int start = -1;
+	int end = -1;
 	try {
-	    int start = applyList.getSelectionModel().getMinSelectionIndex();
-	    int end = applyList.getSelectionModel().getMaxSelectionIndex();
+	    start = applyList.getSelectionModel().getMinSelectionIndex();
+	    end = applyList.getSelectionModel().getMaxSelectionIndex();
+	    if (end >= model.getSize()) {
+		end = model.getSize() - 1;
+	    }
 	    if ((start == -1) || (end == -1)) {
 		return;
 	    }
@@ -149,7 +154,8 @@ public class FieldModWindow extends JFrame implements TreeSelectionListener {
 	} catch (Throwable e) {
 	    JOptionPane.showMessageDialog(this,
 					  "Error setting value " + 
-					  e.toString(),
+					  e.toString() + " range: ("+start + 
+					  "-" + end + ")",
 					  "Error",
 					  JOptionPane.ERROR_MESSAGE);
 
