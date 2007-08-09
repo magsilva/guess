@@ -41,6 +41,11 @@ public class Arrow {
 	VisFactory.getFactory().getDisplay().repaint();
     }
 
+    public static double distance(Point2D p1, Point2D p2) {
+	return Math.sqrt(Math.pow(p1.getX() - p2.getX(),2) +
+			 Math.pow(p1.getY() - p2.getY(),2));
+    }
+
     public static void drawArrow(Graphics2D g2d, 
 				 Point2D point1, 
 				 Point2D point2,
@@ -55,6 +60,11 @@ public class Arrow {
 	if (m_arrowLength < 0) 
 	    m_arrowLength = (int)Math.max(4,(width * 2));		
 
+	double dist = distance(point1,point2);
+	if (m_arrowLength > (dist / 2)) {
+	    m_arrowLength = (int)(dist / 2);
+	}
+
 	// get angle of line from 0 - 360
 	double thetaRadians = 
 	    Math.atan2(( point1.getY() - point2.getY()),
@@ -62,7 +72,7 @@ public class Arrow {
 	    Math.PI;
 	
 	AffineTransform at = new AffineTransform();
-	at.translate(point2.getX(),point2.getY() );
+	at.translate(point2.getX(),point2.getY());
 	at.rotate(thetaRadians);
 	Shape arrow = null;
 	if (type == SLEEK) {
