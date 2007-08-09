@@ -41,13 +41,18 @@ public class MainUIWindow extends JFrame {
 
     private JTabbedPane selected = null;
 
-    public Set getDockedComponents() {
+    public Set getVerticalDockedComponents() {
+	HashSet s = new HashSet();
+	for (int i = 0 ; i < tabbedPaneV.getTabCount() ; i++) {
+	    s.add(tabbedPaneV.getComponentAt(i));
+	}
+	return(s);
+    }
+
+    public Set getHorizontalDockedComponents() {
 	HashSet s = new HashSet();
 	for (int i = 0 ; i < tabbedPaneH.getTabCount() ; i++) {
 	    s.add(tabbedPaneH.getComponentAt(i));
-	}
-	for (int i = 0 ; i < tabbedPaneV.getTabCount() ; i++) {
-	    s.add(tabbedPaneV.getComponentAt(i));
 	}
 	return(s);
     }

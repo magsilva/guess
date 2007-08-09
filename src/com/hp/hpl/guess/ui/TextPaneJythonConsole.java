@@ -1881,6 +1881,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	return("Interpreter");
     }
 
+    public String toString() {
+	return(getTitle());
+    }
+
     private boolean docked = true;
 
     public void opening(boolean state) {

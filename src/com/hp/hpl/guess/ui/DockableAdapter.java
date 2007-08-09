@@ -26,6 +26,10 @@ public abstract class DockableAdapter extends JPanel implements Dockable {
 	return("");
     }
 
+    public String toString() {
+	return(getTitle());
+    }
+
     private GuessJFrame myParent = null;
 
     public GuessJFrame getWindow() {

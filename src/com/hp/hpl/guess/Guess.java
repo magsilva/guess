@@ -191,6 +191,17 @@ public class Guess
 	return(myF);
     }
 
+    private static TextPaneJythonConsole tpjc = null;
+
+    /**
+     * gets a reference to the existing GUI console object, or
+     * null if it doesn't exist
+     * @pyexport
+     */
+    public static TextPaneJythonConsole getTextPaneJythonConsole() {
+	return(tpjc);
+    }
+
     /**
      * gets the current working graph, if the sytem
      * hasn't been inited you get back null
@@ -925,8 +936,10 @@ public class Guess
 		guiMode = false;
 		textMode = true;
 	    } else {
-		if (enableMainUI) 
-		    myWin.dock(new TextPaneJythonConsole((PythonInterpreter)interp));
+		if (enableMainUI) {
+		    tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
+		    myWin.dock(tpjc);
+		}
 	    }
 	    //LabNotebook.createNotebook((PythonInterpreter)interp);
 	}
