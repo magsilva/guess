@@ -854,6 +854,21 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		currentItem = history.size() - 1;
 	    }
 	
+	    protected void saveHistoryToFile() {
+		try {
+		    File f = new File(".guess_history");
+		    BufferedWriter out = new BufferedWriter(new FileWriter(f));
+		    int len = history.size();
+		    int start = history.size() - 100;
+		    if (start < 0) {
+			start = 0;
+		    }
+		    out.close();
+		} catch (Exception ex) {
+		    ex.printStackTrace();
+		}
+	    }
+
 	    protected void addHistoryFromFile() {
 
 		try {

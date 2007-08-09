@@ -6,7 +6,7 @@ import java.util.*;
 
 public class EdgeAdjustment {
     
-    public static void adjust(Graph g) {
+    public static void expandOverlapping(Graph g) {
 	HashMap edgeb = new HashMap();
 	
 	// first thing is to group all the edges
@@ -52,10 +52,6 @@ public class EdgeAdjustment {
 		}
 	    }
 	}
-    }
-
-    public static void expandOverlapping(Graph g) {
-	adjust(g);
     }
 
     public static void compressOverlapping(Graph g) {

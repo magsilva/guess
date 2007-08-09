@@ -373,8 +373,15 @@ public class StateGraph extends Graph {
      *
      */
     public void readjustEdges() {
-	
-	EdgeAdjustment.adjust(this);
+	expandOverlapping();
+    }
+
+    public void compressOverlapping() {
+	EdgeAdjustment.compressOverlapping(this);
+    }
+
+    public void expandOverlapping() {
+	EdgeAdjustment.expandOverlapping(this);
     }
 
     /**
