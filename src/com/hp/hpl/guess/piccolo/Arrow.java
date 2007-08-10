@@ -46,6 +46,21 @@ public class Arrow {
 			 Math.pow(p1.getY() - p2.getY(),2));
     }
 
+    public static double getArrowLength(double x1, double y1,
+					double x2, double y2,
+					double width) {
+	int m_arrowLength = Arrow.m_arrowLength;
+	if (m_arrowLength < 0) 
+	    m_arrowLength = (int)Math.max(4,(width * 2));		
+
+	double dist = Math.sqrt(Math.pow(x1 - x2,2) +
+				Math.pow(y1 - y2,2));
+	if (m_arrowLength > (dist / 2)) {
+	    m_arrowLength = (int)(dist / 2);
+	}
+	return(m_arrowLength);
+    }
+
     public static void drawArrow(Graphics2D g2d, 
 				 Point2D point1, 
 				 Point2D point2,
@@ -55,7 +70,7 @@ public class Arrow {
 	int m_arrowWidth = Arrow.m_arrowWidth;
 	if (m_arrowWidth < 0) 
 	    m_arrowWidth = (int)Math.max(2,(width * 4));
-	//	System.out.println(m_arrowWidth);
+
 	int m_arrowLength = Arrow.m_arrowLength;
 	if (m_arrowLength < 0) 
 	    m_arrowLength = (int)Math.max(4,(width * 2));		

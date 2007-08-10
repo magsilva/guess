@@ -276,6 +276,7 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	double angle = 
 	    Math.sqrt(Math.pow(Math.toDegrees(Math.atan2(testy,testx)),
 			       2));
+
 	if ((angle < 30) || (angle > 150) || 
 	    ((angle > 60) && (angle < 120))) {
 	    n1 = node1.getPrefPorts();
@@ -328,8 +329,37 @@ public class GuessPEdge extends PPath implements EdgeListener {
 		double y1 = pa.getY();
 		double x2 = pb.getX();
 		double y2 = pb.getY();
-				
-		setShape(new Line2D.Double(x1,y1,x2,y2));
+
+
+		if (VisFactory.getFactory().getDirected()) {
+		    // get angle of line from 0 - 360
+		    double cx = (x1 + x2)/2;
+		    double cy = (y1 + y2)/2;
+		    double thetaRadians = 
+			Math.atan2(( y1 - y2),
+				   (x1 - x2));
+		    double buffer = Math.max(2,
+					     Arrow.getArrowLength(x1,y1,
+								  x2,y2,
+								  getLineWidth()) / 2);
+		    System.out.println(" " + buffer);
+
+		    double radius = (Math.sqrt(Math.pow(x1-x2,2)+
+					       Math.pow(y1-y2,2)) / 2)-buffer;
+
+		    double tx1 = radius * Math.cos(thetaRadians) + cx;
+		    double ty1 = radius * Math.sin(thetaRadians) + cy;
+
+		    thetaRadians += Math.PI;
+
+		    double tx2 = radius * Math.cos(thetaRadians) + cx;
+		    double ty2 = radius * Math.sin(thetaRadians) + cy;
+
+		    setShape(new Line2D.Double(tx1,ty1,tx2,ty2));
+		} else {
+		    setShape(new Line2D.Double(x1,y1,x2,y2));
+		}
+
 		if (owner instanceof DirectedEdge) {
 		    if (((Node)(((DirectedEdge)owner).getSource())).getRep() == node1) {
 			// put the arrow head at point 1
