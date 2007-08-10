@@ -674,10 +674,16 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	expandOverlapping();
     }
 
+    /**
+     * @pyexport
+     */
     public void compressOverlapping() {
 	EdgeAdjustment.compressOverlapping(this);
     }
 
+    /**
+     * @pyexport
+     */
     public void expandOverlapping() {
 	EdgeAdjustment.expandOverlapping(this);
     }

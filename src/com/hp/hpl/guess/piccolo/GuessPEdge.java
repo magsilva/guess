@@ -116,6 +116,7 @@ public class GuessPEdge extends PPath implements EdgeListener {
 
     public void setLineWidth(double width) {
 	setStroke(new BasicStroke((float)width));
+	readjust();
     }
 
     Color curcolor = Color.black;
@@ -342,7 +343,7 @@ public class GuessPEdge extends PPath implements EdgeListener {
 					     Arrow.getArrowLength(x1,y1,
 								  x2,y2,
 								  getLineWidth()) / 2);
-		    System.out.println(" " + buffer);
+		    //System.out.println(" " + buffer);
 
 		    double radius = (Math.sqrt(Math.pow(x1-x2,2)+
 					       Math.pow(y1-y2,2)) / 2)-buffer;
