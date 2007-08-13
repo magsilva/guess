@@ -291,6 +291,21 @@
 	 </zip>
     </target>
 
+    <target name="makezipnc">
+        <zip destfile="guess.zip">
+           <zipfileset dir="lib" prefix="guess/lib"/>
+           <zipfileset dir="demo" prefix="guess/demo"/>
+           <zipfileset dir="Tools" prefix="guess/Tools"/>
+	   <zipfileset dir="scripts" prefix="guess/scripts"/>
+	   <zipfileset dir="src/Lib" prefix="guess/src/Lib"/>
+           <zipfileset dir="." includes="guess.bat,guess-noopengl.bat,guess-console-noopengl.bat,guess.sh,guess-console.bat,nohost.gdf,test.html,test2.html,testprefuse.html,testtouchgraph.html,jython.bat,jythonc.bat,test.xml,README.TXT,sample.gdf,guess-src.jar,licenses/**" prefix="guess/"/>
+	 </zip>
+	 <zip destfile="guess-upgrade.zip">
+	   <zipfileset dir="scripts" prefix="guess/scripts"/>
+           <zipfileset dir="." includes="lib/guess.jar" prefix="guess/"/>
+	 </zip>
+    </target>
+
     <target name="izpack" depends="jar">
        <izpack input="compile-lib/install.xml"
               output="guess-install.jar"
