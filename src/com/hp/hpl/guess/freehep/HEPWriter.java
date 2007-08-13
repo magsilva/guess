@@ -183,18 +183,22 @@ public abstract class HEPWriter {
 			      Properties props) {
 	try {
 	    Rectangle b = mds.getBounds();
-	    System.out.println("type: " + type + " " + PNG);
+//	    System.out.println("type: " + type + " " + PNG);
 	    VectorGraphics g = 
 		(VectorGraphics)getGraphics2D(outputfile,type,
 					      (int)b.getWidth(),
 					      (int)b.getHeight(),
 					      props);
+	    // System.out.println("1");
 
 	    StatusBar.setStatus("Saving image...",true);
+	    //System.out.println("2");
 	    g.startExport();
+	    //System.out.println("3 " + mds);
 	    mds.paint(g);
+	    //System.out.println("4");
 	    g.endExport();
-		
+	    //System.out.println("5");
 	    //if (LabNotebook.getNotebook() != null) {
 	    //    LabNotebook.getNotebook().addImage(outputfile,
 	    //				       (int)b.width,
@@ -202,6 +206,7 @@ public abstract class HEPWriter {
 	    //}
 	    StatusBar.setStatus("Imaged saved...",false);
 	} catch (Exception e) {
+	    //e.printStackTrace();
 	    throw new Error(e.toString());
 	}
     }

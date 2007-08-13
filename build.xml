@@ -285,6 +285,10 @@
 	   <zipfileset dir="src/Lib" prefix="guess/src/Lib"/>
            <zipfileset dir="." includes="guess.bat,guess-noopengl.bat,guess-console-noopengl.bat,guess.sh,guess-console.bat,nohost.gdf,test.html,test2.html,testprefuse.html,testtouchgraph.html,jython.bat,jythonc.bat,test.xml,README.TXT,sample.gdf,guess-src.jar,licenses/**" prefix="guess/"/>
 	 </zip>
+	 <zip destfile="guess-upgrade.zip">
+           <zipfileset dir="lib" prefix="guess/lib/guess.jar"/>
+	   <zipfileset dir="scripts" prefix="guess/scripts"/>
+	 </zip>
     </target>
 
     <target name="izpack" depends="jar">
