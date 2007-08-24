@@ -273,7 +273,7 @@ public class Guess
 
 	try {
 	    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-	    //UIManager.getSystemLookAndFeelClassName());
+
 	    configureUI();
 	} catch (Exception lnfe) { 
 	}
