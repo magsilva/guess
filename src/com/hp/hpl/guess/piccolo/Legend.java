@@ -119,8 +119,17 @@ public class Legend extends JPanel implements Dockable {
 	int cellLoc = 0;
 	Font newFont = null;
 	if (font != null) {
+
 	    newFont = font.deriveFont((float)maxHeight);
+	    if (Guess.getDefaultFont() != null) {
+		if (!newFont.getFamily().equals(Guess.getDefaultFont())) {
+		    newFont = new Font(Guess.getDefaultFont(),
+				       newFont.getStyle(),
+				       newFont.getSize());
+		}
+	    }
 	}
+
 	double maxX = 0;
 	double maxY = 0;
 
@@ -275,6 +284,13 @@ public class Legend extends JPanel implements Dockable {
 	    annotations.put(toRet,anno);
 	    myCanvas.dLayer.addChild(anno);
 	    font = anno.getFont();
+	    if (Guess.getDefaultFont() != null) {
+		if (!font.getFamily().equals(Guess.getDefaultFont())) {
+		    font = new Font(Guess.getDefaultFont(),
+				    font.getStyle(),
+				    font.getSize());
+		}
+	    }
 	    a2n.put(annotation,toRet);
 	}
 	relayoutNodes();
@@ -294,6 +310,13 @@ public class Legend extends JPanel implements Dockable {
 	annotations.put(toRet,anno);
 	myCanvas.dLayer.addChild(anno);
 	font = anno.getFont();
+	if (Guess.getDefaultFont() != null) {
+	    if (!font.getFamily().equals(Guess.getDefaultFont())) {
+		font = new Font(Guess.getDefaultFont(),
+				font.getStyle(),
+				font.getSize());
+	    }
+	}
 	a2n.put(annotation,toRet);
 	relayoutNodes();
     }
@@ -311,6 +334,13 @@ public class Legend extends JPanel implements Dockable {
 	annotations.put(toRet,anno);
 	myCanvas.dLayer.addChild(anno);
 	font = anno.getFont();
+	if (Guess.getDefaultFont() != null) {
+	    if (!font.getFamily().equals(Guess.getDefaultFont())) {
+		font = new Font(Guess.getDefaultFont(),
+				font.getStyle(),
+				font.getSize());
+	    }
+	}
 	a2n.put(annotation,toRet);
 	relayoutNodes();
     }

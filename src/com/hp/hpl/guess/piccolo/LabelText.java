@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import edu.umd.cs.piccolo.activities.*;
 import com.hp.hpl.guess.ui.VisFactory;
+import com.hp.hpl.guess.Guess;
 
 public class LabelText extends PText {
 
@@ -53,6 +54,13 @@ public class LabelText extends PText {
 	    if (owner != null) {
 		setX(owner.getX() + owner.getWidth()+1*scaling);
 		setY(owner.getY() + owner.getHeight());
+	    }
+	    if (Guess.getDefaultFont() != null) {
+		if (!f.getFamily().equals(Guess.getDefaultFont())) {
+		    f = new Font(Guess.getDefaultFont(),
+				 f.getStyle(),
+				 f.getSize());
+		}
 	    }
 	    setFont(f);
 	} 

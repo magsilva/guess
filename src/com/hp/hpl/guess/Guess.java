@@ -238,6 +238,18 @@ public class Guess
 	return(myWin);
     }
 
+    public static String defaultFont = null;
+
+    public static String defaultFileFormat = null;
+
+    public static String getDefaultFont() {
+	return(defaultFont);
+    }
+
+    public static String getDefaultFileFormat() {
+	return(defaultFileFormat);
+    }
+
     public static void setCacheDir() {
 	Properties prop = System.getProperties();
 	String tempdir = System.getProperty("java.io.tmpdir");
@@ -266,7 +278,7 @@ public class Guess
 	} catch (Exception lnfe) { 
 	}
 	
-	LongOpt[] longopts = new LongOpt[11];
+	LongOpt[] longopts = new LongOpt[13];
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
@@ -283,6 +295,10 @@ public class Guess
 	longopts[9] = new LongOpt("jung", LongOpt.NO_ARGUMENT, null, 'j');
 	longopts[10] = new LongOpt("consolelog", 
 				  LongOpt.NO_ARGUMENT, null, 'l');
+	longopts[11] = new LongOpt("font", 
+				  LongOpt.REQUIRED_ARGUMENT, null, 'a'); 
+	longopts[12] = new LongOpt("fileformat", 
+				  LongOpt.REQUIRED_ARGUMENT, null, 'b'); 
 
 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
 	go.setOpterr(false);
@@ -350,6 +366,12 @@ public class Guess
 		    case 'l':
 			System.out.println("STDOUT/STDERR logged to console");
 			handleOver = false;
+			break;
+		    case 'a':
+			defaultFont = go.getOptarg(); 
+			break;
+		    case 'b':
+			defaultFileFormat = go.getOptarg();
 			break;
 		    case ':':
 			System.out.print("unknown option: " + (char)c + "\n");

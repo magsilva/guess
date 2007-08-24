@@ -811,10 +811,14 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		def = addStyle(null, def);
 		//StyleConstants.setFontFamily(def, "Monospaced");
 
+		if (Guess.getDefaultFont() != null) {
+		    StyleConstants.setFontFamily(def, Guess.getDefaultFont());
+		}
+
 		Style style = addStyle(PROMPT_STYLE, def);
 		StyleConstants.setBold(style, true);
 		StyleConstants.setFontSize(style, fontSize);
-
+		
 		style = addStyle(COMMAND_STYLE, def);
 		StyleConstants.setBold(style, true);
 		StyleConstants.setFontSize(style, fontSize);
@@ -824,20 +828,20 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		StyleConstants.setFontSize(style, fontSize);
 		StyleConstants.setForeground(style, Color.blue);
 		StyleConstants.setUnderline(style,true);
-
+		
 		style = addStyle(ANSWER_STYLE, def);
 		StyleConstants.setForeground(style, Color.darkGray);
 		StyleConstants.setFontSize(style, fontSize);
-
+		
 		style = addStyle(ANSWER_UNDERLINE_STYLE, def);
 		StyleConstants.setForeground(style, Color.blue);
 		StyleConstants.setFontSize(style, fontSize);
 		StyleConstants.setUnderline(style,true);
-
+		
 		style = addStyle(ERROR_STYLE, def);
 		StyleConstants.setForeground(style, Color.red);
 		StyleConstants.setFontSize(style, fontSize);
-
+	
 		style = addStyle(ERROR_UNDERLINE_STYLE, def);
 		StyleConstants.setForeground(style, Color.red);
 		StyleConstants.setFontSize(style, fontSize);

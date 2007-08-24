@@ -91,7 +91,14 @@ public class MainUIWindow extends JFrame {
 	setBackground(null);
 	
 	try {
-	    setDefaultCloseOperation(EXIT_ON_CLOSE);
+	    addWindowListener
+		(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+			    com.hp.hpl.guess.Guess.shutdown();
+			}
+		    }
+		    );
+	    //setDefaultCloseOperation(EXIT_ON_CLOSE);
 	} catch (SecurityException e) {} // expected from applets
 	
 	canvas = aCanvas;

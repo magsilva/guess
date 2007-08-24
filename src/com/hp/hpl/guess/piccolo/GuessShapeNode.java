@@ -358,6 +358,13 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    float scaling = (float)(1/frame.getGCamera().getViewScale());
 	    Font f = g2.getFont();
 	    f = f.deriveFont((float)(12*scaling));
+	    if (Guess.getDefaultFont() != null) {
+		if (!f.getFamily().equals(Guess.getDefaultFont())) {
+		    f = new Font(Guess.getDefaultFont(),
+				 f.getStyle(),
+				 f.getSize());
+		}
+	    }
 	    g2.setFont(f);
 	    g2.setPaint(curcolor);
 	    paintLabel(g2,(float)(getX() + getWidth()+2),

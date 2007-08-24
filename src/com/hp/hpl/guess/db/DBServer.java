@@ -1595,7 +1595,13 @@ public class DBServer implements StorageListener {
 	    // check to see if this is a file that exists
 	    File f = new File(text);
 	    if (f.exists()) {
-		BufferedReader br = new BufferedReader(new FileReader(text)); 
+		BufferedReader br = null;
+		if (Guess.getDefaultFileFormat() != null) {
+		    br = 
+			new BufferedReader(new InputStreamReader(new FileInputStream(text),Guess.getDefaultFileFormat()));
+		} else {
+		    br = new BufferedReader(new FileReader(text));
+		}
 		loadFromFile(br);
 		br.close();
 	    }
@@ -1913,7 +1919,9 @@ public class DBServer implements StorageListener {
 			nodecount++;
 		    } catch (Exception e3) {
 			System.out.println("problem with: " + line + " (line: "+lineNum+")");
+			//e3.printStackTrace();
 			ExceptionWindow.getExceptionWindow(e3);
+			//System.exit(0);
 			continue;
 		    }
 		} else if (inEdgeDef) {
@@ -2697,8 +2705,13 @@ public class DBServer implements StorageListener {
 
     public void exportGDF(String filename) {
 	try {
-	    PrintStream gdf = 
-		new PrintStream(new BufferedOutputStream(new FileOutputStream(filename)));
+	    PrintStream gdf = null;
+	    if (Guess.getDefaultFileFormat() != null) {
+		gdf = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename)),false,Guess.getDefaultFileFormat());
+	    } else {
+		gdf = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename)));
+	    }
+
 	    Statement stmt = conn.createStatement();
 	    ResultSet rs = stmt.executeQuery("SELECT * from nodes");
 	    ResultSetMetaData rsmd = rs.getMetaData();

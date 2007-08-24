@@ -15,6 +15,7 @@ import edu.umd.cs.piccolo.activities.*;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
 import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.Guess;
 
 public class GuessTextLegendNode extends PText {
     
@@ -65,6 +66,16 @@ public class GuessTextLegendNode extends PText {
 	curcolor = gtn.getPaint();
 	setTextPaint(gtn.getTextPaint());
 	strokePaint = gtn.strokePaint;
+	setLabel(gtn.getText());
+	if (Guess.getDefaultFont() != null) {
+	    Font f = getFont();
+	    if (!f.getFamily().equals(Guess.getDefaultFont())) {
+		f = new Font(Guess.getDefaultFont(),
+			     f.getStyle(),
+			     f.getSize());
+		setFont(f);
+	    }
+	}
     }
 
 

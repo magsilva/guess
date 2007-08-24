@@ -87,6 +87,15 @@ public class GuessTextNode extends PText implements GuessPNode {
 	this.setX(x);
 	this.setY(y);
 	this.style = style;
+	if (Guess.getDefaultFont() != null) {
+	    Font f = getFont();
+	    if (!f.getFamily().equals(Guess.getDefaultFont())) {
+		f = new Font(Guess.getDefaultFont(),
+			     f.getStyle(),
+			     f.getSize());
+		setFont(f);
+	    }
+	}
     }
 
 
