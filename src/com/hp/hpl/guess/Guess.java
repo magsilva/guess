@@ -243,7 +243,14 @@ public class Guess
     public static String defaultFileFormat = null;
 
     public static String getDefaultFont() {
+	if ((defaultFont != null) && (defaultFont.equals("GUESSFONT"))) {
+	    defaultFont = null;
+	}
 	return(defaultFont);
+    }
+
+    public static void setDefaultFont(String font) {
+	defaultFont = font;
     }
 
     public static String getDefaultFileFormat() {
@@ -278,7 +285,7 @@ public class Guess
 	} catch (Exception lnfe) { 
 	}
 	
-	LongOpt[] longopts = new LongOpt[13];
+	LongOpt[] longopts = new LongOpt[14];
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
@@ -299,6 +306,8 @@ public class Guess
 				  LongOpt.REQUIRED_ARGUMENT, null, 'a'); 
 	longopts[12] = new LongOpt("fileformat", 
 				  LongOpt.REQUIRED_ARGUMENT, null, 'b'); 
+	longopts[13] = new LongOpt("fitfont", 
+				   LongOpt.NO_ARGUMENT, null, 'g'); 
 
 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
 	go.setOpterr(false);
@@ -368,7 +377,11 @@ public class Guess
 			handleOver = false;
 			break;
 		    case 'a':
-			defaultFont = go.getOptarg(); 
+			defaultFont = go.getOptarg();
+			break;
+		    case 'g':
+			defaultFont = "GUESSFONT";
+			System.out.println("Trying to find best font");
 			break;
 		    case 'b':
 			defaultFileFormat = go.getOptarg();

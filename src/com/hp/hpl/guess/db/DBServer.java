@@ -1763,8 +1763,19 @@ public class DBServer implements StorageListener {
 
 	int lineNum = 0;
 
+	StringBuffer fontTest = null;
+
+	if ((Guess.defaultFont != null) && 
+	    (Guess.defaultFont.equals("GUESSFONT"))) {
+	    // hack
+	    fontTest = new StringBuffer();
+	}
+
 	while ((line = br.readLine()) != null) {
 	    line = line.trim();
+	    if (fontTest != null) {
+		fontTest.append(line);
+	    }
 	    lineNum++;
 	    if ((line.startsWith("#")) || (line.equals(""))) {
 		continue;
@@ -2033,6 +2044,24 @@ public class DBServer implements StorageListener {
 	}
 	System.out.println("\nLoaded " + nodecount + 
 			   " nodes and " + edgecount + " edges");
+
+	if (fontTest != null) {
+	    System.out.println("Checking for best font...");
+	    Vector<java.awt.Font> validFonts = 
+		FontTest.getValid(fontTest.toString());
+	    if (validFonts.size() == 0) {
+		System.out.println("None found... using default");
+		Guess.setDefaultFont(null);
+	    } else {
+		System.out.println("using: " + 
+				   validFonts.elementAt(0).getFontName());
+		Guess.setDefaultFont(validFonts.elementAt(0).getFontName());
+		System.out.println("\nall choices:");
+		for (int i = 0 ; i < validFonts.size() ; i++) {
+		    System.out.println(validFonts.elementAt(i).getFontName());
+		}
+	    }
+	}
 	return;
     }
 
