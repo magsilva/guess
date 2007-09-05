@@ -151,6 +151,7 @@ public class FieldModWindow extends JFrame implements TreeSelectionListener {
 		    //System.out.println(o);
 		}
 	    }
+	    VisFactory.getFactory().getDisplay().repaint();
 	} catch (Throwable e) {
 	    JOptionPane.showMessageDialog(this,
 					  "Error setting value " + 
