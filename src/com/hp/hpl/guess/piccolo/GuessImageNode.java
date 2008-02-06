@@ -63,7 +63,13 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	    } else {
 		setImage((String)o);
 	    }
-	}
+	} else if (field.equals("labelcolor")) {
+	    if (o instanceof Color) {
+		setLabelPaint((Color)o);
+	    } else {
+		setLabelPaint((Colors.getColor((String)o,(Color)getPaint())));
+	    }
+	} 
 	if (Guess.getMTF()) 
 	    moveToFront();
     
@@ -149,6 +155,12 @@ public class GuessImageNode extends PImage implements GuessPNode {
 		return(new Boolean(getVisible()));
 	    } else if (field.equals("image")) {
 		return(image);
+	    } else if (field.equals("labelcolor")) {
+		if (labelColor != null) {
+		    return(Colors.toString(labelColor));
+		} else {
+		    return(Colors.toString(curcolor));
+		}
 	    } else {
 		return(null);
 	    }
@@ -338,10 +350,20 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	return(toRet);
     }
 
+    private Color labelColor = null;
+    
+    public void setLabelPaint(Color c) {
+	labelColor = c;
+    }
+
     public void paintLabel(Graphics2D g, 
 			   float labelX, 
 			   float labelY,
 			   Font font) { 
+
+	if (labelColor != null) {
+	    g.setPaint(labelColor);
+	}
 
 	if (multiLineLabel == null) {
 	    g.drawString(label,(float)labelX,(float)labelY);

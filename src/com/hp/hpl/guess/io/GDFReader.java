@@ -295,7 +295,10 @@ public class GDFReader {
 	    } else {
 		String[] vals = stringSplit(line);
 		if (inNodeDef) {
-		    Node n = g.addNode(vals[nNameCol]);
+		    Node n = g.getNodeByName(vals[nNameCol]);
+		    if (n == null) {
+			n = g.addNode(vals[nNameCol]);
+		    }
 		    n.__setattr__("label",vals[nNameCol]);
 		    for (int i = 0 ; i < vals.length ; i++) {
 			if (i == nNameCol)
@@ -319,19 +322,25 @@ public class GDFReader {
 		    }
 		    Edge e = null;
 		    if (eIDCol == -1) {
-			if (directed) {
-			    e = g.addDirectedEdge(s,t);
-			} else {
-			    e = g.addUndirectedEdge(s,t);
+			e = (Edge)s.findEdge(t);
+			if (e == null) {
+			    if (directed) {
+				e = g.addDirectedEdge(s,t);
+			    } else {
+				e = g.addUndirectedEdge(s,t);
+			    }
 			}
 		    } else {
 			// we have an existing edgeid that 
 			// overrides everything else
 			int eid = Integer.parseInt(vals[eIDCol]);
-			if (directed) {
-			    e = g.addDirectedEdgeWID(s,t,eid);
-			} else {
-			    e = g.addUndirectedEdgeWID(s,t,eid);
+			e = g.getEdgeByID(eid);
+			if (e == null) {
+			    if (directed) {
+				e = g.addDirectedEdgeWID(s,t,eid);
+			    } else {
+				e = g.addUndirectedEdgeWID(s,t,eid);
+			    }
 			}
 		    }
 		    for (int i = 0 ; i < vals.length ; i++) {

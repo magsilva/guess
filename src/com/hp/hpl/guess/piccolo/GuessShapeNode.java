@@ -57,6 +57,12 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    } else {
 		setPaint((Colors.getColor((String)o,(Color)getPaint())));
 	    }
+	} else if (field.equals("labelcolor")) {
+	    if (o instanceof Color) {
+		setLabelPaint((Color)o);
+	    } else {
+		setLabelPaint((Colors.getColor((String)o,(Color)getPaint())));
+	    }
 	} else if (field.equals("visible")) {
 	    setVisible(((Boolean)o).booleanValue());
 	} else if (field.equals("strokecolor")) {
@@ -74,6 +80,12 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    throw new Error("Problem with setting rep attribute: " + 
 			    e.toString());
 	}*/
+    }
+
+    protected Color labelColor = null;
+    
+    public void setLabelPaint(Color c) {
+	labelColor = c;
     }
 
     public Object get(String field) {
@@ -94,6 +106,12 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 		return(new Boolean(labelMode));
 	    } else if (field.equals("color")) {
 		return(Colors.toString(curcolor));
+	    } else if (field.equals("labelcolor")) {
+		if (labelColor != null) {
+		    return(Colors.toString(labelColor));
+		} else {
+		    return(Colors.toString(curcolor));
+		}
 	    } else if (field.equals("strokecolor")) {
 		return(Colors.toString((Color)getStrokePaint()));
 	    } else if (field.equals("visible")) {
@@ -330,6 +348,11 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 			   float labelX, 
 			   float labelY,
 			   Font font) { 
+
+	//	System.out.println(labelColor);
+	if (labelColor != null) {
+	    g.setPaint(labelColor);
+	}
 
 	if (multiLineLabel == null) {
 	    g.drawString(label,(float)labelX,(float)labelY);

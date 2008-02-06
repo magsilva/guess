@@ -41,6 +41,12 @@ public class GuessShapeNode3D extends GuessShapeNode {
 	    }
 	} else if (field.equals("strokecolor")) {
 	    super.set("strokecolor",flatColor);
+	} else if (field.equals("labelcolor")) {
+	    if (o instanceof Color) {
+		setLabelPaint((Color)o);
+	    } else {
+		setLabelPaint((Color)(Colors.getColor((String)o,flatColor)));
+	    }
 	} else {
 	    super.set(field,o);
 	}
@@ -49,6 +55,12 @@ public class GuessShapeNode3D extends GuessShapeNode {
     public Object get(String field) {
 	if (field.equals("color")) {
 	    return(flatColor);
+	} else if (field.equals("labelcolor")) {
+	    if (super.labelColor != null) {
+		return(Colors.toString(super.labelColor));
+	    } else {
+		return(Colors.toString(flatColor));
+	    }
 	} else {
 	    return(super.get(field));
 	}

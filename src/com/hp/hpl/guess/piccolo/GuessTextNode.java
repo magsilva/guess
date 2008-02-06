@@ -350,6 +350,8 @@ public class GuessTextNode extends PText implements GuessPNode {
 		}
 	    } else if (field.equals("visible")) {
 		setVisible(((Boolean)o).booleanValue());
+	    } else if (field.equals("labelsize")) {
+		setLabelSize(((Integer)o).intValue());
 	    }
 	    if (Guess.getMTF()) 
 		moveToFront();
@@ -358,6 +360,15 @@ public class GuessTextNode extends PText implements GuessPNode {
 	    throw new Error("Problem with setting rep attribute: " + 
 			    e.toString());
 	}
+    }
+
+    private void setLabelSize(int newsz) {
+	Font f = getFont().deriveFont((float)newsz);
+	setFont(f);
+    }
+
+    private int getLabelSize() {
+	return(getFont().getSize());
     }
 
     public Object get(String field) {
@@ -382,6 +393,8 @@ public class GuessTextNode extends PText implements GuessPNode {
 		return(new Boolean(true));
 	    } else if (field.equals("strokecolor")) {
 		return(strokePaint);
+	    } else if (field.equals("labelsize")) {
+		return(new Integer(getLabelSize()));
 	    } else {
 		return(null);
 	    }

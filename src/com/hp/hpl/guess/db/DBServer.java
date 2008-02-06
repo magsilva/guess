@@ -1084,7 +1084,7 @@ public class DBServer implements StorageListener {
 	    rs = st.executeQuery("SELECT name,label,x,y,visible,"+
 				 "color,fixed,style,width,height,"+
 				 "labelvisible,labelcolor,strokecolor,"+
-				 "image from nodes"); 
+				 "image,labelsize from nodes"); 
 	    
 	    Hashtable map = new Hashtable();
 	    while(rs.next()) {
@@ -1102,6 +1102,7 @@ public class DBServer implements StorageListener {
 		double width = rs.getDouble("width");
 		double height = rs.getDouble("height");
 		String image = rs.getString("image");
+		int labelsize = rs.getInt("labelsize");
 
 		// is it in the database
 		Node n = g.getNodeByName(name);
@@ -1142,6 +1143,7 @@ public class DBServer implements StorageListener {
 		n.__setattr__("fixed",new Boolean(fixed));
 		n.__setattr__("visible",new Boolean(vis));
 		n.__setattr__("labelvisible",new Boolean(labelvis));
+		n.__setattr__("labelsize",new Integer(labelsize));
 		n.__setattr__("image",image);
 	    }
 
@@ -1151,7 +1153,7 @@ public class DBServer implements StorageListener {
 	    st = conn.createStatement(); 
 	    rs = st.executeQuery("SELECT __EDGEID,node1,node2,visible,color,"+
 				 "width,weight,directed,label,labelvisible,"+
-				 "labelcolor from edges");
+				 "labelcolor,labelsize from edges");
 	    while(rs.next()) {
 		String src = rs.getString("node1");
 		String dest = rs.getString("node2");
@@ -1164,6 +1166,7 @@ public class DBServer implements StorageListener {
 		String label = rs.getString("label");
 		boolean labelvis = rs.getBoolean("labelvisible");
 		int id = rs.getInt("__EDGEID");
+		int labelsize = rs.getInt("labelsize");
 
 		//System.out.println("figuring out: " + src + " " + dest);
 		Edge e = g.getEdgeByID(new Integer(id));
@@ -1238,6 +1241,7 @@ public class DBServer implements StorageListener {
 		    e.__setattr__("labelcolor",labelcolor);
 
 		e.__setattr__("labelvisible",new Boolean(labelvis));
+		e.__setattr__("labelsize",new Integer(labelsize));
 
 		//e = g.getEdgeByID(new Integer(id));
 	    }
@@ -1358,6 +1362,7 @@ public class DBServer implements StorageListener {
 	nodedefs.put("label","LABEL VARCHAR(256) DEFAULT NULL");
 	nodedefs.put("image","IMAGE VARCHAR(256) DEFAULT NULL");
 	nodedefs.put("labelvisible","LABELVISIBLE BOOLEAN DEFAULT FALSE");
+	nodedefs.put("labelsize","LABELSIZE INT DEFAULT 12");
     }
 
     public static Hashtable edgedefs = new Hashtable();
@@ -1374,6 +1379,7 @@ public class DBServer implements StorageListener {
 	edgedefs.put("node2","node2 VARCHAR(32) DEFAULT '' NOT NULL");
 	edgedefs.put("label","LABEL VARCHAR(256) DEFAULT NULL");
 	edgedefs.put("labelvisible","LABELVISIBLE BOOLEAN DEFAULT FALSE");
+	edgedefs.put("labelsize","LABELSIZE INT DEFAULT 12");
     }
 
     public static String fixString(String init,Hashtable defs) {
@@ -1454,6 +1460,9 @@ public class DBServer implements StorageListener {
 	db.alter("labelvisible",
 		 "ALTER TABLE nodes"+
 		 " ADD COLUMN labelvisible BOOLEAN DEFAULT false");
+	db.alter("labelsize",
+		 "ALTER TABLE nodes"+
+		 " ADD COLUMN labelsize INT DEFAULT 12");
 
 	// we need to create a default nodes table
 	// it's only going to hold around one fake node with 
@@ -1506,6 +1515,9 @@ public class DBServer implements StorageListener {
 	db.alter("labelvisible",
 		 "ALTER TABLE nodes_def"+
 		 " ADD COLUMN labelvisible BOOLEAN DEFAULT false");
+	db.alter("labelsize",
+		 "ALTER TABLE nodes_def"+
+		 " ADD COLUMN labelsize INT DEFAULT 12");
 
 	db.query("INSERT INTO nodes_def(name) values('default')");
     }
@@ -1551,6 +1563,9 @@ public class DBServer implements StorageListener {
 	db.alter("labelvisible",
 		 "ALTER TABLE edges"+
 		 " ADD COLUMN labelvisible BOOLEAN DEFAULT false");
+	db.alter("labelsize",
+		 "ALTER TABLE edges"+
+		 " ADD COLUMN labelsize INT DEFAULT 12");
 
 	db.update("CREATE CACHED TABLE edges_def"+"("+fixed+")");
 	tableList.clear();
@@ -1586,6 +1601,9 @@ public class DBServer implements StorageListener {
 	db.alter("labelvisible",
 		 "ALTER TABLE edges_def"+
 		 " ADD COLUMN labelvisible BOOLEAN DEFAULT false");
+	db.alter("labelsize",
+		 "ALTER TABLE edges_def"+
+		 " ADD COLUMN labelsize INT DEFAULT 12");
 
 	db.query("INSERT INTO edges_def(node1,node2) values('default','default')");
     }

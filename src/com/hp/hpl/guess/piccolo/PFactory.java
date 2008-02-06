@@ -209,6 +209,8 @@ public class PFactory extends VisFactory implements UIListener {
 	
 	toRet.set("labelvisible",rep.get("labelvisible"));
 
+	toRet.set("labelcolor",rep.get("labelcolor"));
+	
 	// need to do the same thing to recover size, but that has to come 
 	// from the Node
 	if ((rep.getStyle() == TEXT_RECTANGLE) || 
