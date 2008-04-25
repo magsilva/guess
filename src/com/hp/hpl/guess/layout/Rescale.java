@@ -5,6 +5,7 @@ import java.awt.geom.*;
 import javax.swing.*;
 import java.util.*;
 import com.hp.hpl.guess.*;
+import com.hp.hpl.guess.ui.ExceptionWindow;
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
 import edu.uci.ics.jung.graph.Vertex;
@@ -198,7 +199,13 @@ public class Rescale extends AbstractLayout {
 	double height = (yMax - yMin)*ypercent;
 
 	if ((width == 0) || (height == 0)) {
-	    throw(new Error("can't rescale, width or height = 0"));
+	    ExceptionWindow.getExceptionWindow(new Error("can't rescale, width or height = 0"));
+	    for (i = 0; i < nNodes; i++) {
+		locations.put(nlist[i],
+			      new Coordinates(xPos[i],
+					      yPos[i]));
+	    }
+	    return;
 	}
 
 	//rescale coords of nodes to fit inside frame, move to 
