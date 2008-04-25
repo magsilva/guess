@@ -2126,6 +2126,10 @@ public class DBServer implements StorageListener {
 	    
 	    ExceptionWindow.getExceptionWindow(e);
 	}
+	Iterator it = listeners.iterator();
+	while(it.hasNext()) {
+	    ((DBEventListener)it.next()).stateSaved(statenum);
+	}
 	StatusBar.setState(statenum);
     }
 
@@ -2385,6 +2389,11 @@ public class DBServer implements StorageListener {
 	refresh(g);
 
 	StatusBar.setState(statenum);
+
+	Iterator it = listeners.iterator();
+	while(it.hasNext()) {
+	    ((DBEventListener)it.next()).stateLoaded(statenum);
+	}
     }
 
     public static void main(String[] args) throws Exception {
@@ -2849,4 +2858,9 @@ public class DBServer implements StorageListener {
 	}
     }
 
+    private HashSet listeners = new HashSet();
+
+    public void addDBEventListener(DBEventListener dbl) {
+	listeners.add(dbl);
+    }
 }
