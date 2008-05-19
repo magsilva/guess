@@ -219,6 +219,18 @@ public interface StorageListener {
     //deletes the given edge from the database.
     public void removeComplete(Edge edge);
 
+    // get a list of all removed nodes
+    public java.util.Collection getRemovedNodes();
+
+    // get a specific removed node, or null if it's not there
+    public Node getRemovedNode(String n);
+
+    // get a list of removed edges
+    public java.util.Collection getRemovedEdges();
+
+    // get a specific removed edge, or null if it's not there
+    public Edge getRemovedEdge(String e);
+
     /**
      * @pyexport ls
      */

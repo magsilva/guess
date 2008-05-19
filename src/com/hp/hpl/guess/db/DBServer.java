@@ -2140,8 +2140,16 @@ public class DBServer implements StorageListener {
 	return(unusedNodes.values());
     }
 
+    public Node getRemovedNode(String n) {
+	return((Node)unusedNodes.get(n));
+    }
+
     public Collection getRemovedEdges() {
 	return(unusedEdges.values());
+    }
+
+    public Edge getRemovedEdge(String e) {
+	return((Edge)unusedEdges.get(e));
     }
 
     public Vector getNodesNotInCurrent(Graph g, int statenum) {

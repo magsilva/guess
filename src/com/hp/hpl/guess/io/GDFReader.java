@@ -297,8 +297,25 @@ public class GDFReader {
 		if (inNodeDef) {
 		    Node n = g.getNodeByName(vals[nNameCol]);
 		    if (n == null) {
-			n = g.addNode(vals[nNameCol]);
+			// let's try to get it from the deleted list
+			StorageListener sl = StorageFactory.getSL();
+			n = sl.getRemovedNode(vals[nNameCol]);
+			if (n != null) {
+			    Guess.getGraph().addNode(n);
+			}
 		    }
+		    if (n == null) {
+			n = g.addNode(vals[nNameCol]);
+			if (randomLayout) {
+			    // node we haven't seen before AND 
+			    // we haven't defined the x/y
+			    n.__setattr__("x",
+					  new Double((rand.nextDouble()*500)));
+			    n.__setattr__("y",
+					  new Double((rand.nextDouble()*500)));
+			}
+
+		    } 
 		    n.__setattr__("label",vals[nNameCol]);
 		    for (int i = 0 ; i < vals.length ; i++) {
 			if (i == nNameCol)
@@ -306,10 +323,6 @@ public class GDFReader {
 			n.__setattr__(nodeCols[i].getName(),
 				      convertToType(nodeCols[i].getSQLType(),
 						    vals[i]));
-		    }
-		    if (randomLayout) {
-			n.__setattr__("x",new Double((rand.nextDouble()*500)));
-			n.__setattr__("y",new Double((rand.nextDouble()*500)));
 		    }
 		} else if (inEdgeDef) {
 		    Node s = g.getNodeByName(vals[eNode1Col]);

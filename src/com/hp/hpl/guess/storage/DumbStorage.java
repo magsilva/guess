@@ -185,6 +185,27 @@ public class DumbStorage implements StorageListener {
     public void undelete(Edge edge) {
     }
 
+    // get a list of all removed nodes
+    public java.util.Collection getRemovedNodes() {
+	return(null);
+    }
+
+    // get a specific removed node, or null if it's not there
+    public Node getRemovedNode(String n) {
+	return(null);
+    }
+
+    // get a list of removed edges
+    public java.util.Collection getRemovedEdges() {
+	return(null);
+    }
+
+    // get a specific removed edge, or null if it's not there
+    public Edge getRemovedEdge(String e) {
+	return(null);
+    }
+
+
     public void loadState(Graph g, int state) {
 	throw(new Error("Unsupported function"));
     }
