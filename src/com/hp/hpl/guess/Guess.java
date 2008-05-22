@@ -1079,7 +1079,6 @@ public class Guess
 				    
 				    checkFrozen(interp);
 				    interp.exec("if _ != None: print _");
-				    
 				} catch(PySyntaxError e)
 				    {
 					try

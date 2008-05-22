@@ -1564,6 +1564,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 				    LabNotebook.getNotebook().addText(command,
 								      oval);
 				jython.exec("if _ != None: print _");
+				VisFactory.getFactory().getDisplay().repaint();
 				//System.out.println(oval.getClass());
 			    } catch(PySyntaxError e)
 				{
@@ -1573,6 +1574,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 					    if (LabNotebook.getNotebook() != null)
 						LabNotebook.getNotebook().addText(command,
 										  null);
+					    VisFactory.getFactory().getDisplay().repaint();
 					}
 				    catch(Throwable e2)
 					{

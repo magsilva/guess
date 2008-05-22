@@ -69,7 +69,7 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 	getInfoWindow().updateInt(n);
     }
 
-    public void updateInt(GraphElement n) {
+    private void updateInt(GraphElement n) {
 	if (visible) {
 	    if (n instanceof Node) {
 		gtm.details((Node)n);

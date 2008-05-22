@@ -107,7 +107,22 @@ public abstract class VisualUtils {
 	    return;
 	}
 
-	ArrayList al = Colors.generateColors(start,end,c.size());
+	int sz = c.size();
+	if (sz == 1) {
+	    Iterator it2 = null;
+	    if (column.getType() == Field.NODE) {
+		it2 = g.getNodes().iterator();
+	    } else {
+		it2 = g.getEdges().iterator();
+	    }
+	    while(it2.hasNext()) {
+		GraphElement ge = (GraphElement)it2.next();
+		ge.__setattr__("color",start);
+	    }
+	    return;
+	}
+
+	ArrayList al = Colors.generateColors(start,end,sz);
 
 	Iterator it = c.iterator();
 
@@ -143,7 +158,22 @@ public abstract class VisualUtils {
 	    return;
 	}
 
-	ArrayList al = Colors.generateColors(start,middle,end,c.size());
+	int sz = c.size();
+	if (sz == 1) {
+	    Iterator it2 = null;
+	    if (column.getType() == Field.NODE) {
+		it2 = g.getNodes().iterator();
+	    } else {
+		it2 = g.getEdges().iterator();
+	    }
+	    while(it2.hasNext()) {
+		GraphElement ge = (GraphElement)it2.next();
+		ge.__setattr__("color",start);
+	    }
+	    return;
+	}
+
+	ArrayList al = Colors.generateColors(start,middle,end,sz);
 
 	Iterator it = c.iterator();
 
