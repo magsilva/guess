@@ -1673,6 +1673,10 @@ public class DBServer implements StorageListener {
 			curString.append("\t");
 			i++;
 			continue;
+		    } else if (chars[i+1] == '\'') {
+			curString.append("''");
+			i++;
+			continue;
 		    }
 		}
 		if (inQuote) {
@@ -1942,9 +1946,9 @@ public class DBServer implements StorageListener {
 			String b = values.toString();
 			a = a.substring(1);
 			b = b.substring(1);
+			//System.out.println(a + "\n" + b);
 			db.query("INSERT INTO nodes"+"("+a+") VALUES(" + 
 				 b + ")");
-			//System.out.println(a + "\n" + b);
 			nodecount++;
 		    } catch (Exception e3) {
 			System.out.println("problem with: " + line + " (line: "+lineNum+")");
@@ -2803,9 +2807,10 @@ public class DBServer implements StorageListener {
 			gdf.print(",");
 		    if ((o != null) && (!o.toString().equals(""))) {
 			String test = o.toString();
+			test = test.replaceAll("'","\\\\'");
 			if (test.indexOf(",") >= 0) {
 			    gdf.print("'");
-			    gdf.print(o.toString());
+			    gdf.print(test);
 			    gdf.print("'");
 			} else {
 			    gdf.print(o.toString());
@@ -2846,9 +2851,10 @@ public class DBServer implements StorageListener {
 			gdf.print(",");
 		    if ((o != null) && (!o.toString().equals(""))) {
 			String test = o.toString();
+			test = test.replaceAll("'","\\\\'");
 			if (test.indexOf(",") >= 0) {
 			    gdf.print("'");
-			    gdf.print(o.toString());
+			    gdf.print(test);
 			    gdf.print("'");
 			} else {
 			    gdf.print(o.toString());
