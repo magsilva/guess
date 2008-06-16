@@ -195,8 +195,25 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
     public Node addNode(String name)
     {
+
+	// let's see if it already exists
+	Node node = getNodeByName(name);
+
+	if (node != null) {
+	    // recover node if we already had a data for it
+	    return(addNode(node));
+	} 
+
+	// recover from deleted
+	node = StorageFactory.getSL().getRemovedNode(name);
+
+	if (node != null) {
+	    // recover node if we already had a data for it
+	    return(addNode(node));
+	} 
+	
 	//create new node with given name and default values
-	Node node = new Node(name);
+	node = new Node(name);
 	
 	//add node to database
 	StorageFactory.getSL().addNode(node);
