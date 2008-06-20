@@ -41,6 +41,22 @@ public class MainUIWindow extends JFrame {
 
     private JTabbedPane selected = null;
 
+    public JTabbedPane getHorizontalTabbedPane() {
+	return(tabbedPaneH);
+    }
+
+    public JTabbedPane getVerticalTabbedPane() {
+	return(tabbedPaneV);
+    }
+
+    public JSplitPane getHorizontalSplitPane() {
+	return(splitPaneH);
+    }
+
+    public JSplitPane getVerticalSplitPane() {
+	return(splitPaneV);
+    }
+
     public Set getVerticalDockedComponents() {
 	HashSet s = new HashSet();
 	for (int i = 0 ; i < tabbedPaneV.getTabCount() ; i++) {
@@ -209,7 +225,39 @@ public class MainUIWindow extends JFrame {
 	tabbedPaneH.addMouseListener(ma);
 	tabbedPaneV.addMouseListener(ma);
     }
-    
+
+    /**
+     * set the location of the horizontal panel
+     * @param loc the integer location, distance from top
+     */
+    public void setHDividerLocation(int loc) {
+	splitPaneH.setDividerLocation(loc);
+    }
+
+    /**
+     * set the location of the vertical panel
+     * @param loc the integer location, distance from left
+     */
+    public void setVDividerLocation(int loc) {
+	splitPaneV.setDividerLocation(loc);
+    }
+
+    /**
+     * get the location of the horizontal panel
+     * @return loc the integer location, distance from top
+     */
+    public int getHDividerLocation() {
+	return(splitPaneH.getDividerLocation());
+    }
+
+    /**
+     * get the location of the vertical panel
+     * @param loc the integer location, distance from left
+     */
+    public int setVDividerLocation() {
+	return(splitPaneV.getDividerLocation());
+    }
+
     public static JTabbedPane createTabbedPane(int tabPlacement){ 
 	switch(tabPlacement){ 
         case JTabbedPane.LEFT: 
@@ -332,6 +380,7 @@ public class MainUIWindow extends JFrame {
     
     public Rectangle getDefaultFrameBounds() {
 	return new Rectangle(100, 100, 800, 600);
+	//return new Rectangle(100, 100, 1024,768);
     }		
     
     //****************************************************************
