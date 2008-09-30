@@ -7,10 +7,6 @@ import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.event.TableModelEvent;
 
-import com.jgoodies.looks.FontSizeHints;
-import com.jgoodies.looks.LookUtils;
-import com.jgoodies.looks.Options;
-
 import com.hp.hpl.guess.freehep.*;
 import com.hp.hpl.guess.piccolo.GFrame;
 import com.hp.hpl.guess.*;
@@ -35,7 +31,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
     private static int tool = RECTANGLE;
 
     private static Color myColor = Color.gray;
-
+    
     private static Stroke myStroke = new BasicStroke(1.0f);
 
     private static int myArrow = 0;
@@ -260,7 +256,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 		    JButton cb = (JButton)e.getSource();
 		    Color newCol = 
 			JColorChooser.showDialog(null,
-						 "Please pick a color",
+						 "Please pick a color - GUESS",
 						 cb.getBackground());
 		    cb.setBackground(newCol);
 		    myColor = newCol;

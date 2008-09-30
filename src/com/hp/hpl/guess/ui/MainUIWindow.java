@@ -11,12 +11,16 @@ import java.util.EventListener;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.prefs.Preferences;
 import java.awt.GridBagConstraints;
 
 import javax.swing.*;
-import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
+
 import java.awt.*;
 
+import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.piccolo.GFrame;
 
 public class MainUIWindow extends JFrame {
@@ -40,6 +44,11 @@ public class MainUIWindow extends JFrame {
     private final JPopupMenu jpop = new JPopupMenu("Dock Menu");
 
     private JTabbedPane selected = null;
+    
+    /**
+	* Object to save user preferences
+	*/
+	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
 
     public JTabbedPane getHorizontalTabbedPane() {
 	return(tabbedPaneH);
@@ -94,8 +103,12 @@ public class MainUIWindow extends JFrame {
 	super(aDevice.getDefaultConfiguration());
 	getContentPane().setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
-	
+		
 	graphicsDevice = aDevice;
+	
+	// Set Window Icon
+	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
+    setIconImage(imageIcon.getImage());
 	
 	try {
 	    originalDisplayMode = graphicsDevice.getDisplayMode();
@@ -109,9 +122,18 @@ public class MainUIWindow extends JFrame {
 	try {
 	    addWindowListener
 		(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
+			public void windowClosing(WindowEvent e) {			
+				// Save position of dividers
+				userPrefs.putInt("HDividerLocation", getHDividerLocation());
+				userPrefs.putInt("VDividerLocation", getVDividerLocation());
+				
+				// Save window size
+				userPrefs.putInt("MainWindowWidth", getWidth());
+				userPrefs.putInt("MainWindowHeight", getHeight());
+
 			    com.hp.hpl.guess.Guess.shutdown();
 			}
+
 		    }
 		    );
 	    //setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -122,7 +144,8 @@ public class MainUIWindow extends JFrame {
 	if (canvas == null) {
 	    System.err.println("null canvas");
 	}
-
+	
+	
 	tabbedPaneH = new JTabbedPane();
 	//tabbedPaneH.setUI(new PSTabbedPaneUI());
 	tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
@@ -137,10 +160,6 @@ public class MainUIWindow extends JFrame {
 	splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 				    tabbedPaneV,
 				    splitPaneH);
-
-	splitPaneH.setDividerLocation(getHeight());
-	splitPaneH.setEnabled(false);
-	splitPaneV.setEnabled(false);
 
 	c.fill = GridBagConstraints.BOTH;
 	c.weighty = 1;
@@ -161,7 +180,7 @@ public class MainUIWindow extends JFrame {
 	validate(); 	
 	setFullScreenMode(fullScreenMode);
 	canvas.requestFocus();
-	setTitle("Guess Visualization");
+	setTitle("Visualization - GUESS");
 
 	JMenuItem jmi1 = jpop.add("Undock");
 	JMenuItem jmi2 = jpop.add("Close");
@@ -195,11 +214,9 @@ public class MainUIWindow extends JFrame {
 			}
 			if (selected.getTabCount() == 0) {
 			    if (selected == tabbedPaneV) {
-				splitPaneV.setDividerLocation(0);
-				splitPaneV.setEnabled(false);
+			    	hideDividers(splitPaneV);
 			    } else {
-				splitPaneH.setDividerLocation(getHeight());
-				splitPaneH.setEnabled(false);
+			    	hideDividers(splitPaneH);
 			    }
 			}
 		    }
@@ -232,6 +249,9 @@ public class MainUIWindow extends JFrame {
      */
     public void setHDividerLocation(int loc) {
 	splitPaneH.setDividerLocation(loc);
+	if (loc>=getHeight()) {
+		hideDividers(splitPaneH);
+	}
     }
 
     /**
@@ -240,6 +260,9 @@ public class MainUIWindow extends JFrame {
      */
     public void setVDividerLocation(int loc) {
 	splitPaneV.setDividerLocation(loc);
+	if (loc==0) {
+		hideDividers(splitPaneV);
+	}	
     }
 
     /**
@@ -247,15 +270,25 @@ public class MainUIWindow extends JFrame {
      * @return loc the integer location, distance from top
      */
     public int getHDividerLocation() {
-	return(splitPaneH.getDividerLocation());
+		BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitPaneH.getUI();
+    	if (bspui.getDivider().isVisible()) {
+    		return splitPaneH.getDividerLocation();
+    	} else {
+    		return splitPaneH.getMaximumDividerLocation();
+    	}
     }
 
     /**
      * get the location of the vertical panel
      * @param loc the integer location, distance from left
      */
-    public int setVDividerLocation() {
-	return(splitPaneV.getDividerLocation());
+    public int getVDividerLocation() {
+		BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitPaneV.getUI();
+    	if (bspui.getDivider().isVisible()) {
+    		return splitPaneV.getDividerLocation();
+    	} else {
+    		return 0;
+    	}
     }
 
     public static JTabbedPane createTabbedPane(int tabPlacement){ 
@@ -279,9 +312,11 @@ public class MainUIWindow extends JFrame {
     public void dock(Dockable d) {
 	try {
 	    if (d.getDirectionPreference() == VERTICAL_DOCK) {
-		splitPaneV.setEnabled(true);
-		splitPaneV.setDividerLocation((int)Math.max(splitPaneV.getDividerLocation(),
-						       ((Component)d).getPreferredSize().getWidth()));
+	    	double m1 = getVDividerLocation();
+			double m2 = ((Component)d).getPreferredSize().getWidth();
+			int m3 = (int)Math.max(m1,m2);
+			
+	    	showDividers(splitPaneV, m3);
 		tabbedPaneV.addTab(null, 
 				   new VerticalTextIcon(d.getTitle(),
 							false),
@@ -290,11 +325,13 @@ public class MainUIWindow extends JFrame {
 		//tabbedPaneV.addTab(d.getTitle(),(Component)d);
 		tabbedPaneV.setSelectedComponent((Component)d);
 	    } else {
-		splitPaneH.setEnabled(true);
-		double m1 = Math.max(200,tabbedPaneH.getHeight());
+		
+		double m1 = splitPaneH.getDividerLocation();
 		double m2 = ((Component)d).getPreferredSize().getHeight();
 		int m3 = (int)Math.max(m1,m2);
-		splitPaneH.setDividerLocation(getHeight() - m3);
+
+		
+		showDividers(splitPaneH, m3);
 		tabbedPaneH.addTab(d.getTitle(),(Component)d);
 		tabbedPaneH.setSelectedComponent((Component)d);
 	    }
@@ -323,7 +360,7 @@ public class MainUIWindow extends JFrame {
 	gjf.setBounds(20,20,
 		      (int)((Component)d).getPreferredSize().getWidth(),
 		      (int)((Component)d).getPreferredSize().getHeight()+50);
-	gjf.show();
+	gjf.setVisible(true);
 
 	if (selected == null) {
 	    if (d.getDirectionPreference() == HORIZONTAL_DOCK) {
@@ -337,17 +374,56 @@ public class MainUIWindow extends JFrame {
 	    selected.remove((Component)d);
 
 	    if (selected.getTabCount() == 0) {
-		if (selected == tabbedPaneV) {
-		    splitPaneV.setEnabled(false);
-		    splitPaneV.setDividerLocation(0);
-		} else {
-		    splitPaneH.setEnabled(false);
-		    splitPaneH.setDividerLocation(getHeight());
-		}
+			if (selected == tabbedPaneV) {
+			    hideDividers(splitPaneV);
+			} else {
+				hideDividers(splitPaneH);
+			}
 	    }
 	}
     }
 
+    /**
+     * Hides the Dividers from the JSplitpane
+     * @param splitpane
+     */
+    private void hideDividers(JSplitPane splitpane) {
+		BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitpane.getUI();
+		bspui.getDivider().setVisible(false);
+		splitpane.setEnabled(false);
+		
+		
+		if (splitpane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+			tabbedPaneV.setVisible(false);
+			splitpane.setDividerLocation(0);
+			splitpane.setLastDividerLocation(0);
+			userPrefs.putInt("VDividerLocation", 0);
+		} else {
+			tabbedPaneH.setVisible(false);
+			splitpane.setDividerLocation(splitPaneH.getMaximumDividerLocation());
+			splitpane.setLastDividerLocation(splitPaneH.getMaximumDividerLocation());
+			userPrefs.putInt("HDividerLocation", splitPaneH.getMaximumDividerLocation());
+		}
+		
+    }
+    
+    /**
+     * Shows the Dividers from the JSplitpane
+     * @param splitpane
+     */
+    private void showDividers(JSplitPane splitpane, int dividerLoction) {
+		BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitpane.getUI();
+		bspui.getDivider().setVisible(true);
+		splitpane.setEnabled(true);
+		if (splitpane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+			tabbedPaneV.setVisible(true);
+			setVDividerLocation(dividerLoction);
+		} else {
+			tabbedPaneH.setVisible(true);
+			setHDividerLocation(dividerLoction);
+		}
+    }    
+    
     public void close(Dockable d) {
 	try {
 	    JTabbedPane selected = null;
@@ -360,13 +436,11 @@ public class MainUIWindow extends JFrame {
 	    selected.remove((Component)d);
 
 	    if (selected.getTabCount() == 0) {
-		if (selected == tabbedPaneV) {
-		    splitPaneV.setEnabled(false);
-		    splitPaneV.setDividerLocation(0);
-		} else {
-		    splitPaneH.setEnabled(false);
-		    splitPaneH.setDividerLocation(getHeight());
-		}
+			if (selected == tabbedPaneV) {
+			    hideDividers(splitPaneV);
+			} else {
+				hideDividers(splitPaneH);
+			}
 	    }
 	} catch (Exception e) {
 	    ExceptionWindow.getExceptionWindow(e);
@@ -412,10 +486,20 @@ public class MainUIWindow extends JFrame {
 	    
 	    setUndecorated(false);
 	    setResizable(true);
-	    graphicsDevice.setFullScreenWindow(null);					 
+	    graphicsDevice.setFullScreenWindow(null);	
+	    
+	    // Restore size
+		setSize(userPrefs.getInt("MainWindowWidth", getWidth()), 
+				userPrefs.getInt("MainWindowHeight", getHeight()));
+		
 	    validate();
 	    setVisible(true);
-	}		
+	}
+	
+	// Restore position of dividers
+	setHDividerLocation(userPrefs.getInt("HDividerLocation", 2*getHeight() / 4));
+	setVDividerLocation(userPrefs.getInt("VDividerLocation", 0));
+	
     }
     
     protected void chooseBestDisplayMode(GraphicsDevice device) {

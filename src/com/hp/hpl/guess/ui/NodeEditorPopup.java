@@ -36,10 +36,6 @@ public class NodeEditorPopup extends GraphElementEditorPopup {
 
     public static EditorPopup singleton = null;
 
-    public String getHeader() {
-	return("Node Options");
-    }
-
     public static JMenuItem addItem(String s) {
 	EditorPopup ep = getPopup();
 

@@ -5,6 +5,7 @@ import org.python.util.PythonInterpreter;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -35,7 +36,7 @@ import com.hp.hpl.guess.*;
 public class GraphElementEditorPopup extends EditorPopup {
 
 
-    String[ ] menuItems = new String[ ] { "Center On...",
+    String[ ] menuItems = new String[ ] { "Center On",
 					  "Color...",
 					  "Remove",
 					  "Add",
@@ -43,10 +44,6 @@ public class GraphElementEditorPopup extends EditorPopup {
 					  "Copy as Variable..."};
 
     public static EditorPopup singleton = null;
-
-    public String getHeader() {
-	return("Node/Edge Options");
-    }
 
     public static JMenuItem addItem(String s) {
 	EditorPopup ep = getPopup();
@@ -75,7 +72,7 @@ public class GraphElementEditorPopup extends EditorPopup {
 	ActionListener al = new ActionListener(  ) {
 		public void actionPerformed(ActionEvent event) {
 		    String ac = event.getActionCommand();
-		    if (ac.equals("Center On...")) {
+		    if (ac.equals("Center On")) {
 			centerOn();
 		    } else if (ac.equals("Color...")) {
 			colorSelected();
@@ -94,6 +91,13 @@ public class GraphElementEditorPopup extends EditorPopup {
 	for (int i = 0 ; i < menuItems.length ; i++) {
 	    JMenuItem jmi1 = add(menuItems[i]);
 	    jmi1.addActionListener(al);
+	    
+	    // Makes the first item the default menuitem
+	    // see http://java.sun.com/products/jlf/at/book/Menus9.html
+	    if (i==0) {
+	    	Font DefaultFont = jmi1.getFont();
+	    	jmi1.setFont(DefaultFont.deriveFont(Font.BOLD));
+	    }
 	}
     }
 
@@ -167,7 +171,7 @@ public class GraphElementEditorPopup extends EditorPopup {
     public void colorSelected() {
 	Color c = 
 	    JColorChooser.showDialog(null,
-				     "Please pick a color",
+				     "Please pick a color - GUESS",
 				     Color.yellow);
 	if (selected == null)
 	    return;

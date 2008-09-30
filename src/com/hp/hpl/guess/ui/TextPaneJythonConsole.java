@@ -10,6 +10,7 @@ import java.awt.event.KeyEvent;
 
 import java.util.*;
 import javax.swing.*;
+
 import java.io.*;
 import javax.swing.text.*;
 import java.awt.event.*;
@@ -55,7 +56,8 @@ import com.hp.hpl.guess.Guess;
 public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
     private int lineNumber = 1;
-
+    private boolean opening = true;
+    
     protected static int fontSize = 11;
 
     public static void setFontSize(int size) {
@@ -75,6 +77,12 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	super();
 	itp = new InternalTextPane(jython);
 	setViewportView(itp);
+    }
+    
+    public void create() {
+    	if (opening == false) {
+    	    Guess.getMainUIWindow().dock(this);
+    	}
     }
 
     class PyFunctionWrapper {
@@ -686,7 +694,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 	    // replace CTRL+... shortcut actions
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_C,
-							     KeyEvent.CTRL_MASK), new CancelAction());
+							     KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK), new CancelAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_D,
 							     KeyEvent.CTRL_MASK), new DeleteAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_K,
@@ -698,7 +706,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_P,
 							     KeyEvent.CTRL_MASK), new PreviousHistoryItemAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_R,
-							     KeyEvent.CTRL_MASK), new SearchHistoryItemAction());
+							     KeyEvent.CTRL_MASK + KeyEvent.SHIFT_MASK), new SearchHistoryItemAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_T,
 							     KeyEvent.CTRL_MASK), new SwapAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_U,
@@ -707,6 +715,9 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 							     KeyEvent.CTRL_MASK), new YankWordAction());
 	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_Y,
 							     KeyEvent.CTRL_MASK), new PasteAction());
+	    map.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_V,
+			     				KeyEvent.CTRL_MASK), new PasteAction());
+	    
 	}
 
 	/**
@@ -780,16 +791,21 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    private void setMenuOptions() {
 		JMenu editMenu = 
 		    Guess.getMainUIWindow().getGMenuBar().editMenu;
-		JMenuItem copy = new JMenuItem("Copy from console");
-		JMenuItem paste = new JMenuItem("Paste to console");
+		JMenuItem copy = new JMenuItem("Copy from Console");
+		copy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,
+			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));		
+		JMenuItem paste = new JMenuItem("Paste to Console");
+		paste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,
+			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
+		
 		ActionListener cpListener = new ActionListener(  ) {
 			public void actionPerformed(ActionEvent event) {
-			    if (event.getActionCommand().equals("Copy from console")) {
+			    if (event.getActionCommand().equals("Copy from Console")) {
 				if (getSelectedText() != null) {
 				    yank = getSelectedText();
 				    addToClipboard(yank);
 				}
-			    } else if (event.getActionCommand().equals("Paste to console")) {
+			    } else if (event.getActionCommand().equals("Paste to Console")) {
 				pasteBuffer();
 			    }  
 			}
@@ -1947,8 +1963,13 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
     private boolean docked = true;
 
     public void opening(boolean state) {
+    	opening = state;
     }
 
+    public boolean isCVisible() {
+    	return opening;
+    }
+    
     public void attaching(boolean state) {
 	docked = state;
 	if ((state == true) && (myParent != null))

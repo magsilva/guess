@@ -2,12 +2,22 @@
 package com.hp.hpl.guess;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+
 import javax.swing.*;
+
 import java.io.*;
 import java.util.*;
+import java.util.prefs.Preferences;
+
 import com.hp.hpl.guess.*;
 import org.python.core.*;
 import org.python.util.*;
+
 import edu.uci.ics.jung.graph.*;
 import com.hp.hpl.guess.storage.*;
 import com.hp.hpl.guess.ui.*;
@@ -100,10 +110,20 @@ public class Guess
     private static boolean enableMainUI = true;
 
     /**
+     * Internal or external consoel
+     */
+    public static boolean guiMode = true;    
+    
+    /**
      * allow multiple edges between nodes?
      */
     private static boolean multiEdge = false;
 
+    /**
+     * Object to save user preferences
+     */
+	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");    
+    
     /**
      * allow multiple edges
      */
@@ -313,9 +333,8 @@ public class Guess
 	go.setOpterr(false);
 	int c;
 
-	boolean guiMode = true;
-
 	int uiMode = VisFactory.PICCOLO;
+
 
 	String persistent = null;
 
@@ -521,35 +540,78 @@ public class Guess
      * process (see the main loop for an example)
      */
     public static void getDataBase() {
-	Object[] options = {"Existing Database",
-			    "Load GDF/GraphML",
-			    "Empty"};
-	int n = 
-	    JOptionPane.showOptionDialog(null,
-					 (Object)"Would you like to open an existing database, load a graph definition file, or start with a blank space?",
-					 "Welcome to GUESS",
-					 JOptionPane.YES_NO_OPTION,
-					 JOptionPane.QUESTION_MESSAGE,
-					 null,
-					 options,
-					 options[0]);
-	if (n == 0) {
-	    // user wants an existing database, let them
-	    // pick one and then return
-	    if (existingChooser()) {
-		return;
-	    }
-	} else if (n == 1) {
-	    // user wants to pick to load
-	    if (newChooser()) {
-		return;
-	    }
-	} else {
-	    if (emptyChooser()) {
-		return;
-	    }
-	}
-	getDataBase();
+    	// Create Buttons
+    	JButton btnOpenDatabase = new JButton("Open Database...");
+    	btnOpenDatabase.setMnemonic('O');
+    	JButton btnImportGraph = new JButton("Import Graph...");
+    	btnImportGraph.setMnemonic('I');
+    	JButton btnCreateEmpty = new JButton("Create Empty");
+    	btnCreateEmpty.setMnemonic('C');    	
+		Object[] options = new Object[]{btnOpenDatabase, btnImportGraph, btnCreateEmpty};
+
+	    
+		// Create Dialog
+		JOptionPane pane = new JOptionPane((Object)"What kind of database do you want GUESS to start with?", 
+				 JOptionPane.PLAIN_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null, options, options[userPrefs.getInt("LastButtonSelection", 0)]);
+		
+		final JDialog jd = pane.createDialog("Choose Database - GUESS");
+
+		// Set Window Icon
+		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
+		jd.setIconImage(imageIcon.getImage());
+		
+		
+		try {
+			jd.addWindowListener(new WindowAdapter() {
+				public void windowClosing(WindowEvent e) {
+					// User did not choose anything but to exit 
+					System.exit(0);
+				}
+			});
+			
+		} catch (SecurityException e) {
+			// expected from applets
+		    System.err.println("Could not add Window Listener");
+		}		
+
+		
+		
+		//Create ActionListener for Buttons
+		ActionListener listChooseDB = new ActionListener() {
+			public void actionPerformed(ActionEvent ae){
+				if (ae.getActionCommand().equals("Open Database...")) {
+				    // user wants an existing database, let them
+				    // pick one and then return
+					userPrefs.putInt("LastButtonSelection", 0);
+				    if (existingChooser()) {
+				    	jd.dispose();
+				    	return;
+				    }
+				} else if (ae.getActionCommand().equals("Import Graph...")) {
+				    // user wants to pick to load
+					userPrefs.putInt("LastButtonSelection", 1);
+				    if (newChooser()) {
+				    	jd.dispose();
+				    	return;
+				    }
+				} else if (ae.getActionCommand().equals("Create Empty")) {
+					// user wants an empty database
+					userPrefs.putInt("LastButtonSelection", 2);
+				    if (emptyChooser()) {
+				    	jd.dispose();
+						return;
+					 }				
+				}
+			}
+		};
+		
+		// Set ActionsListener for Buttons
+		btnOpenDatabase.addActionListener(listChooseDB);
+		btnImportGraph.addActionListener(listChooseDB);
+		btnCreateEmpty.addActionListener(listChooseDB);
+	
+		//Show Dialog
+		jd.setVisible(true);
     }
 
 
@@ -559,20 +621,7 @@ public class Guess
      */
     private static boolean existingChooser() {
 	try {
-	    String toLoad = ".";
-	    try {
-		toLoad = System.getProperty("gHome");
-		if (toLoad == null) { 
-		    toLoad = ".";
-		} else {
-		    File testF = new File(toLoad);
-		    if (!(testF.exists()) || !(testF.isDirectory())) {
-			toLoad = ".";
-		    }
-		}
-	    } catch (Exception hde) {
-		toLoad = ".";
-	    }
+	    String toLoad = userPrefs.get("OpenDatabasePath", ".");
 	    JFileChooser chooser = 
 		new JFileChooser(new File(toLoad).getCanonicalPath());
 	    SunFileFilter filter = new SunFileFilter();
@@ -584,7 +633,9 @@ public class Guess
 		String fileName = 
 		    chooser.getSelectedFile().getAbsolutePath();
 		fileName = fileName.substring(0,fileName.length()-11);
-		//System.out.println("using database: " + fileName);
+
+		// Save Path
+		userPrefs.put("OpenDatabasePath", chooser.getSelectedFile().getAbsolutePath());
 		StorageFactory.useDBServer(fileName);
 		return(true);
 	    }
@@ -727,7 +778,7 @@ public class Guess
         UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
         Options.setGlobalFontSizeHints(FontSizeHints.MIXED);
         Options.setDefaultIconSize(new Dimension(18, 18));
-
+        
         String lafName =
             LookUtils.IS_OS_WINDOWS_XP
                 ? Options.getCrossPlatformLookAndFeelClassName()
@@ -991,8 +1042,24 @@ public class Guess
 		textMode = true;
 	    } else {
 		if (enableMainUI) {
-		    tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
+			tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
 		    myWin.dock(tpjc);
+		    
+			Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
+			
+			// Show console?
+			if (!userPrefsMenu.getBoolean("openConsole", true)) {
+				getMainUIWindow().close(tpjc);
+			}
+			// show information window?
+			if (userPrefsMenu.getBoolean("openInformationWindow", false)) {
+				InfoWindow.create();
+			}
+			// run in fullscreen?
+			if (userPrefsMenu.getBoolean("openFullscreen", false)) {
+				Guess.getMainUIWindow().setFullScreenMode(true);
+			}
+			
 		}
 	    }
 	    //LabNotebook.createNotebook((PythonInterpreter)interp);

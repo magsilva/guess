@@ -30,8 +30,6 @@ public abstract class EditorPopup extends JPopupMenu {
     protected Collection selected = null;
     protected Object currentH = null;
 
-    public abstract String getHeader();
-
     protected boolean sep = false;
 
     public static EditorPopup getPopup() {
@@ -41,11 +39,6 @@ public abstract class EditorPopup extends JPopupMenu {
     protected EditorPopup(InterpreterAbstraction jython) {
 	super("Options");
 	this.jython = jython;
-	setBackground(Color.white);
-	JMenuItem header = new JMenuItem("<HTML><B>"+getHeader()+"</B></HTML>");
-	header.setForeground(Color.white);
-	header.setBackground(Color.black);
-	add(header);
     }
 
     public void show(Component inv, int x, int y, 

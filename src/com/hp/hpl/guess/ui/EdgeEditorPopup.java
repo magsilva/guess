@@ -36,10 +36,6 @@ public class EdgeEditorPopup extends GraphElementEditorPopup {
 
     public static EditorPopup singleton = null;
 
-    public String getHeader() {
-	return("Edge Options");
-    }
-
     public static JMenuItem addItem(String s) {
 	EditorPopup ep = getPopup();
 

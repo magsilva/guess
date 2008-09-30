@@ -824,130 +824,124 @@ public class StateGraph extends Graph {
 	this.centerAfter = state;
     }
 
-    /**
-     * runs the layout for some number of iterations (mi).  If 
-     * mi == Integer.MAX_VALUE this will run until the layout
-     * completes or if it is iterative it will ask every 30 seconds
-     * if you want to continue
-     * @param lay the layout to run
-     * @param mi the maximum iterations
-     */
-    public void layout(Layout lay, int mi)
-    {
-	final Graph gt = this;
-	final Layout layout = lay;
-	StatusBar.runProgressBar(true);
-	final int maxIters = mi;
+	/**
+	 * runs the layout for some number of iterations (mi). If mi ==
+	 * Integer.MAX_VALUE this will run until the layout completes or 
+     * the user cancels it. 
+	 * 
+	 * @param lay the layout to run
+	 * @param mi the maximum iterations
+	 */
+	public void layout(Layout lay, int mi) {
+		final Graph gt = this;
+		final Layout layout = lay;
+		final int maxIters = mi;
 
-	final boolean ca = centerAfter;
+		final boolean ca = centerAfter;
+		
+		// Create new status dialog
+		final StatusDialog dialogLayoutStatus = new StatusDialog();
+		dialogLayoutStatus.setIndeterminate(true);
+		dialogLayoutStatus.setTitle("Running Layout");
+		dialogLayoutStatus.setDescription("A layout is currently being executed.");
 
-	Thread thrd = new Thread(new Runnable() {
-		public void run() {
-		    interp.freeze(true);
+		Thread thrd = new Thread(new Runnable() {
+			public void run() {
 
-		    GoneIn30 g30 = null;
-		    try {
+				// Freeze Console and show Status Dialog
+				interp.freeze(true);
+				dialogLayoutStatus.show();
 
-			layout.initialize(new Dimension(1000, 1000));
-			if (layout.isIncremental()) {
-			    int incCounter = 0;
-			    long curTime = System.currentTimeMillis();
-			    while (!layout.incrementsAreDone()) {
-				incCounter++;
-				//System.out.println(layout.getStatus());
-				layout.advancePositions();
-				// prevent runaway layouts
-				long test = System.currentTimeMillis()-
-				    curTime;
-				if (maxIters == Integer.MAX_VALUE) {
-				    // user launched this on a
-				    // "infinite" run, so we're
-				    // going to ask them every
-				    // 30 seconds if they want
-				    // to keep going
-				    if (incCounter == 1) {
-					g30 = GoneIn30.getWindow();
-					g30.start();
-				    }
-				    if ((System.currentTimeMillis() -
-					 curTime) > 30000) {
-					update();
-					int yn = 
-					    JOptionPane.showConfirmDialog(null, 
-									  "Ran " +
-									  incCounter + " loops, Continue?","Continue?",JOptionPane.YES_NO_OPTION);
-					if (yn == JOptionPane.NO_OPTION) {
-					    if (g30 != null) {
-						g30.stopTimer();
-					    }
-					    break;
+				try {
+					layout.initialize(new Dimension(1000, 1000));
+					if (layout.isIncremental()) {
+						int incCounter = 0;
+						long curTime = System.currentTimeMillis();
+						while (!layout.incrementsAreDone()) {
+							incCounter++;
+							layout.advancePositions();
+							long test = System.currentTimeMillis() - curTime;
+
+							if ((System.currentTimeMillis() - curTime) > 1000) {
+								// Update status Dialog and Graphframe
+								dialogLayoutStatus.setDescription("Ran " + incCounter
+										+ " loops.");
+								update();
+								curTime = System.currentTimeMillis();
+							}
+
+							if (incCounter >= maxIters) {
+								break;
+							}
+						}
 					} else {
-					    g30 = 
-						GoneIn30.getWindow();
-					    g30.start();
+						layout.advancePositions();
 					}
-					curTime = System.currentTimeMillis();
-				    }
-				} else {
-				    if (incCounter >= maxIters) {
-					break;
-				    }
-				    if ((System.currentTimeMillis() -
-					 curTime) > 30000) {
-					StatusBar.setStatus("Ran " + incCounter + " loops");
-					System.out.println("Ran " + incCounter + " loops");
-					curTime = System.currentTimeMillis();
-				    }
-				}
-			    }
-			} else {
-				layout.advancePositions();
-			}
-			
-			update();
-		    } catch (Exception e) {
-			ExceptionWindow.getExceptionWindow(e);
-		    }
-		    if (g30 != null) {
-			g30.stopTimer();
-		    }
-		    StatusBar.runProgressBar(false);
-		    interp.freeze(false);
-		}
 
-		public void update() {
-		    try {
-			Iterator nodes = getNodes().iterator();
-			while (nodes.hasNext())
-			    {
-				Node node = (Node)nodes.next();
-				if (!((Boolean)node.__getattr__("fixed")).booleanValue())
-				    {
-					
-					node.__setattr__("x", 
-							 new Double(layout.getX((Node)node)));
-					node.__setattr__("y", 
-							 new Double(layout.getY((Node)node)));
-				    } 
-			    }
-		    } catch (Exception ex) {
-			ExceptionWindow.getExceptionWindow(ex);
-		    }
-		    if (ca) {
-			if (display instanceof GFrame) {
-			    ((GFrame)display).centerFast();
-			} else {
-			    display.center();
+					update();
+				} catch (Exception e) {
+					ExceptionWindow.getExceptionWindow(e);
+				}
+
+				dialogLayoutStatus.hide();
+				interp.freeze(false);
 			}
-		    }
+
+			public void update() {
+				double minX = Double.MAX_VALUE;
+				double minY = Double.MAX_VALUE;
+				double maxX = Double.MIN_VALUE;
+				double maxY = Double.MIN_VALUE;
+				try {
+
+					Iterator nodes = getNodes().iterator();
+					while (nodes.hasNext()) {
+						Node node = (Node) nodes.next();
+						if (!((Boolean) node.__getattr__("fixed"))
+								.booleanValue()) {
+
+							double x = layout.getX((Node) node);
+							double y = layout.getY((Node) node);
+							node.__setattr__("x", new Double(x));
+							node.__setattr__("y", new Double(y));
+							if (x < minX) {
+								minX = x;
+							}
+							if (y < minY) {
+								minY = y;
+							}
+							if ((y + node.getHeight()) > maxY) {
+								maxY = y + node.getHeight();
+							}
+							if ((x + node.getWidth()) > maxX) {
+								maxX = x + node.getWidth();
+							}
+						}
+					}
+				} catch (Exception ex) {
+					ExceptionWindow.getExceptionWindow(ex);
+				}
+				if (ca) {
+					// System.out.println("trying to center");
+					if (display instanceof GFrame) {
+						// System.out.println("center fast");\
+						((GFrame) display).center(minX, minY, maxX, maxY, 500);
+						// System.out.println("post center fast");
+					} else {
+						// System.out.println("center");
+						display.center();
+					}
+				}
+			}
+		});
+
+		dialogLayoutStatus.setThread(thrd);
+		if (!Guess.getSynchronous()) {
+			thrd.start();
+		} else {
+			thrd.run();
 		}
-	    });
-	if (!sync) {
-	    thrd.start();
-	} else {
-	    thrd.run();
 	}
-    }
 
     /**
      * do Bi-Component Clustering

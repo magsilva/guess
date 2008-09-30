@@ -22,10 +22,17 @@ public class GuessJFrame extends JFrame {
     }
 
     public GuessJFrame(Dockable d) {
-	super(d.getTitle());
+	super(d.getTitle() + " - GUESS");
 	initMenus();
 	getContentPane().add((Component)d);
 	d.setWindow(this);
+	
+	// Set window icon
+	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit()
+			.getImage(ClassLoader.getSystemResource("images/guess-icon.png")));
+	setIconImage(imageIcon.getImage());
+	
+	// Set Menu
 	JMenu fileMenu = new JMenu("Window");
 	JMenuItem jmi = new JMenuItem("Dock");
 	this.dockable = d;
@@ -85,7 +92,7 @@ public class GuessJFrame extends JFrame {
 		    }
 		}
 	    });
-    }			      
+    }
 
     public void exportGIF(String filename) {
 	HEPWriter.export(filename,getContentPane(),HEPWriter.GIF);

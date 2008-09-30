@@ -1,401 +1,476 @@
 package com.hp.hpl.guess.ui;
 
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 import java.util.*;
 import com.hp.hpl.guess.*;
+
 import java.sql.Types;
 
-public class FieldModWindow extends JFrame implements TreeSelectionListener {
+public class FieldModWindow extends JDialog {
 
-    final DefaultListModel model = new DefaultListModel();
-    JTree attributeTree = new JTree(getTreeRoot());
-    JTextField newValue = new JTextField();
-    JList applyList = new JList(model);
-    JButton okB = new JButton();
-    JButton cancelB = new JButton();
-    JButton selectB = new JButton();
-    Collection nodes = null;
-    Collection edges = null;
+	private static final long serialVersionUID = 6283357632411659577L;
 
-    boolean showingNodes = false;
-    boolean showingEdges = false;
+	/**
+	 * Labels
+	 */
+	private JLabel edgesFieldsLabel = new JLabel();
+	private JLabel newValueEdgesLabel = new JLabel();
+	private JLabel applyToEdgesLabel = new JLabel();
+	private JLabel nodesFieldsLabel = new JLabel();
+	private JLabel newValueNodeLabel = new JLabel();
+	private JLabel applyToNodeLabel = new JLabel();
 
-    Field selectedField = null;
+	/**
+	 * Textfields, ComboBoxes and Lists
+	 */
 
-    private static FieldModWindow singleton = null;
-    
-    public static FieldModWindow getFieldModWindow() {
-	if (singleton == null) {
-	    singleton = new FieldModWindow();
-	} else {
-	    singleton.setNE(Guess.getGraph().getNodes(),
-			    Guess.getGraph().getEdges());
-	}
-	return(singleton);
-    }
+	private JTextField newValueEdgesText = new JTextField();
+	private JTextField newValueNodesText = new JTextField();
+	private JComboBox edgesFieldsComboBox = new JComboBox();
+	private JComboBox nodesFieldsComboBox = new JComboBox();
+	private DefaultListModel modelEdges = new DefaultListModel();
+	private DefaultListModel modelNodes = new DefaultListModel();
+	private JList applyEdgesList = new JList(modelEdges);
+	private JList applyNodesList = new JList(modelNodes);
+	
 
-    public static FieldModWindow getFieldModWindow(Collection n, 
-						   Collection e) {
-	if (singleton == null) {
-	    singleton = new FieldModWindow(n,e);
-	} else {
-	    singleton.setNE(n,e);
-	}
-	return(singleton);
-    }
 
-    public void setNE(Collection nodes, Collection edges) {
-	this.nodes = nodes;
-	this.edges = edges;
-	model.removeAllElements();
-	if (selectedField != null) {
-	    showingNodes = false;
-	    showingEdges = false;
-	    valueChanged(null);
-	}
-    }
+	/**
+	 * Other GUI stuff
+	 */
+	private JPanel panelEdges = new JPanel();
+	private JTabbedPane tabbedpane = new JTabbedPane();
+	private JPanel panelNodes = new JPanel();
+	private JScrollPane nodesItemsScrollpane = new JScrollPane();
+	private JScrollPane edgesItemsScrollpane = new JScrollPane();
 
-    private FieldModWindow() {
-	this(Guess.getGraph().getNodes(),Guess.getGraph().getEdges());
-    }
+	/**
+	 * Buttons
+	 */
+	private JButton selectAllNodesButton = new JButton();
+	private JButton selectAllEdgesButton = new JButton();
+	private JButton applyButton = new JButton();
+	private JButton closeButton = new JButton();
 
-    /**
-     * Default constructor
-     */
-    private FieldModWindow(Collection nodes, Collection edges)
-    {
-	super("Field Editor");
-	setNE(nodes,edges);
-	setSize(440, 220);
-	setLocation(100, 100);
-	initializePanel();
-	//frame.getContentPane().add(new FieldModWindow());
-	setVisible(true);
-	getRootPane().setDefaultButton(cancelB);
-	okB.setEnabled(false);
+	Collection nodes = null;
+	Collection edges = null;
 
-	attributeTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+	boolean showingNodes = false;
+	boolean showingEdges = false;
 
-	attributeTree.addTreeSelectionListener(this);
+	Field selectedFieldEdges = null;
+	Field selectedFieldNodes = null;
 
-	addWindowListener( new WindowAdapter()
-	    {
-		public void windowClosing( WindowEvent evt )
-		{
-		    singleton = null;
-		    dispose();
+	private static FieldModWindow singleton = null;
+
+	public static FieldModWindow getFieldModWindow() {
+		if (singleton == null) {
+			singleton = new FieldModWindow();
+		} else {
+			singleton.setNE(Guess.getGraph().getNodes(), Guess.getGraph()
+					.getEdges());
 		}
-	    });
-	applyList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-
-	okB.addActionListener(new AbstractAction() {
-		public void actionPerformed(ActionEvent ev) {
-		    applyToList();
-		}
-	    });
-
-	cancelB.addActionListener(new AbstractAction() {
-		public void actionPerformed(ActionEvent ev) {
-		    singleton = null;
-		    dispose();
-		}
-	    });
-
-	selectB.addActionListener(new AbstractAction() {
-		public void actionPerformed(ActionEvent ev) {
-		    applyList.getSelectionModel().setSelectionInterval(0,
-								       model.getSize());    
-		    applyList.repaint();
-		}
-	    });
-    }
-    
-    public Object newValueData() {
-	if ((selectedField.getSQLType() == Types.INTEGER) ||
-	    (selectedField.getSQLType() == Types.TINYINT) ||
-	    (selectedField.getSQLType() == Types.SMALLINT) ||
-	    (selectedField.getSQLType() == Types.BIGINT)) {
-	    return(new Integer((String)newValue.getText()));
-	} else if (selectedField.getSQLType() == Types.BOOLEAN) {
-	    return(new Boolean((String)newValue.getText()));
-	} else if (selectedField.isNumeric()) {
-	    return(new Double((String)newValue.getText()));
-	} else {
-	    return(newValue.getText());
-	}
-    }
-
-    public void applyToList() {
-
-	int start = -1;
-	int end = -1;
-	try {
-	    start = applyList.getSelectionModel().getMinSelectionIndex();
-	    end = applyList.getSelectionModel().getMaxSelectionIndex();
-	    if (end >= model.getSize()) {
-		end = model.getSize() - 1;
-	    }
-	    if ((start == -1) || (end == -1)) {
-		return;
-	    }
-	    for (int i = start ; i <= end ; i++) {
-		if (applyList.isSelectedIndex(i)) {
-		    GraphElement o = (GraphElement)model.getElementAt(i);
-		    o.__setattr__(selectedField.getName(),newValueData());
-		    //System.out.println(o);
-		}
-	    }
-	    VisFactory.getFactory().getDisplay().repaint();
-	} catch (Throwable e) {
-	    JOptionPane.showMessageDialog(this,
-					  "Error setting value " + 
-					  e.toString() + " range: ("+start + 
-					  "-" + end + ")",
-					  "Error",
-					  JOptionPane.ERROR_MESSAGE);
-
-	    ExceptionWindow.getExceptionWindow(e);
-	}
-    }
-
-   /**
-    * Main method for panel
-    */
-   public static void main(String[] args)
-   {
-      // JFrame frame = new JFrame();
-//       frame.setSize(600, 400);
-//       frame.setLocation(100, 100);
-//       frame.getContentPane().add(new FieldModWindow());
-//       frame.setVisible(true);
-
-//       frame.addWindowListener( new WindowAdapter()
-//       {
-//          public void windowClosing( WindowEvent evt )
-//          {
-//             System.exit(0);
-//          }
-//       });
-   }
-
-   /**
-    * Adds fill components to empty cells in the first row and first
-    * column of the grid.  This ensures that the grid spacing will be
-    * the same as shown in the designer.
-    * @param cols an array of column indices in the first row where
-    * fill components should be added.
-    * @param rows an array of row indices in the first column where
-    * fill components should be added.
-    */
-   void addFillComponents( Container panel, int[] cols, int[] rows )
-   {
-      Dimension filler = new Dimension(10,10);
-
-      boolean filled_cell_11 = false;
-      CellConstraints cc = new CellConstraints();
-      if ( cols.length > 0 && rows.length > 0 )
-      {
-         if ( cols[0] == 1 && rows[0] == 1 )
-         {
-            /** add a rigid area  */
-            panel.add( Box.createRigidArea( filler ), cc.xy(1,1) );
-            filled_cell_11 = true;
-         }
-      }
-
-      for( int index = 0; index < cols.length; index++ )
-      {
-         if ( cols[index] == 1 && filled_cell_11 )
-         {
-            continue;
-         }
-         panel.add( Box.createRigidArea( filler ), cc.xy(cols[index],1) );
-      }
-
-      for( int index = 0; index < rows.length; index++ )
-      {
-         if ( rows[index] == 1 && filled_cell_11 )
-         {
-            continue;
-         }
-         panel.add( Box.createRigidArea( filler ), cc.xy(1,rows[index]) );
-      }
-
-   }
-
-   /**
-    * Helper method to load an image file from the CLASSPATH
-    * @param imageName the package and name of the file to load
-    * relative to the CLASSPATH
-    * @return an ImageIcon instance with the specified image file
-    * @throws IllegalArgumentException if the image resource cannot be loaded.
-    */
-   public ImageIcon loadImage( String imageName )
-   {
-      try
-      {
-         ClassLoader classloader = getClass().getClassLoader();
-         java.net.URL url = classloader.getResource( imageName );
-         if ( url != null )
-         {
-            ImageIcon icon = new ImageIcon( url );
-            return icon;
-         }
-      }
-      catch( Exception e )
-      {
-         e.printStackTrace();
-      }
-      throw new IllegalArgumentException( "Unable to load image: " + imageName );
-   }
-
-    public void valueChanged(TreeSelectionEvent e) {
-	DefaultMutableTreeNode node =
-	    (DefaultMutableTreeNode)attributeTree.getLastSelectedPathComponent();
-
-	selectedField = null;
-	okB.setEnabled(false);
-
-	if (node == null)
-	    return;
-
-	Object o = node.getUserObject();
-	if (o instanceof Field) {
-	    if (((Field)o).getType() == Field.NODE) {
-		if (!showingNodes) {
-		    loadData(nodes);
-		}
-		showingNodes = true;
-		showingEdges = false;
-	    } else {
-		if (!showingEdges) {
-		    loadData(edges);
-		}
-		showingNodes = false;
-		showingEdges = true;
-	    }
-	    selectedField = (Field)o;
-	    okB.setEnabled(true);
-	}
-    }
-    
-    public void loadData(Collection c) {
-	model.removeAllElements();
-	Iterator it = c.iterator();
-	int last = 0;
-	while(it.hasNext()) {
-	    model.addElement(it.next());
-	    last++;
-	}
-	applyList.getSelectionModel().setSelectionInterval(0,
-							   model.getSize());
-	applyList.repaint();
-    }
-
-    public DefaultMutableTreeNode getTreeRoot() {
-	DefaultMutableTreeNode dmtn = new DefaultMutableTreeNode("Fields");
-	DefaultMutableTreeNode nodeB = new DefaultMutableTreeNode("Node");
-
-	ArrayList al = new ArrayList();
-	al.addAll(Guess.getGraph().getNodeSchema().allFields());
-	Collections.sort(al);
-	Iterator it = al.iterator();
-	while(it.hasNext()) {
-	    Field f = (Field)it.next();
-	    DefaultMutableTreeNode t = 
-		new DefaultMutableTreeNode(f.getName());
-	    t.setUserObject(f);
-	    nodeB.add(t);
+		return (singleton);
 	}
 
-	DefaultMutableTreeNode edgeB = new DefaultMutableTreeNode("Edge");
-	Collection nEs = Guess.getGraph().getEdgeSchema().fieldNames();
-	al = new ArrayList();
-	al.addAll(Guess.getGraph().getEdgeSchema().allFields());
-	Collections.sort(al);
-	it = al.iterator();
-	while(it.hasNext()) {
-	    Field f = (Field)it.next();
-	    DefaultMutableTreeNode t = 
-		new DefaultMutableTreeNode(f.getName());
-	    t.setUserObject(f);
-	    edgeB.add(t);
+	public static FieldModWindow getFieldModWindow(Collection n, Collection e) {
+		if (singleton == null) {
+			singleton = new FieldModWindow(n, e);
+		} else {
+			singleton.setNE(n, e);
+		}
+		return (singleton);
 	}
 
-	dmtn.add(nodeB);
-	dmtn.add(edgeB);
-	return(dmtn);
-    }
+	public void setNE(Collection nodes, Collection edges) {
+		tabbedpane.setEnabledAt(0, true);
+		tabbedpane.setEnabledAt(1, true);
+		
+		this.nodes = nodes;
+		setNodesList();
+		loadNodesData(nodes);
+		if (nodes.size()==0) {
+			tabbedpane.setSelectedIndex(0);
+			tabbedpane.setEnabledAt(1, false);
+		}
+		
+		this.edges = edges;
+		setEdgesList();
+		loadEdgesData(edges);
+		if (edges.size()==0) {
+			tabbedpane.setSelectedIndex(1);
+			tabbedpane.setEnabledAt(0, false);
+		}		
+	}
 
-   public JPanel createPanel()
-   {
-      JPanel jpanel1 = new JPanel();
-      FormLayout formlayout1 = new FormLayout("FILL:DEFAULT:NONE,FILL:71PX:NONE,FILL:4DLU:NONE,FILL:153PX:NONE,FILL:4DLU:NONE,FILL:69PX:NONE,FILL:4DLU:NONE,FILL:88PX:NONE,FILL:DEFAULT:NONE","CENTER:DEFAULT:NONE,CENTER:DEFAULT:NONE,CENTER:88PX:NONE,CENTER:4DLU:NONE,CENTER:DEFAULT:NONE,CENTER:2DLU:NONE,CENTER:4DLU:NONE,CENTER:DEFAULT:NONE,CENTER:DEFAULT:NONE");
-      CellConstraints cc = new CellConstraints();
-      jpanel1.setLayout(formlayout1);
+	private FieldModWindow() {
+		this(Guess.getGraph().getNodes(), Guess.getGraph().getEdges());
+	}
 
-      attributeTree.setName("attributeTree");
-      JScrollPane jscrollpane1 = new JScrollPane();
-      jscrollpane1.setViewportView(attributeTree);
-      jscrollpane1.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-      jscrollpane1.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      jpanel1.add(jscrollpane1,cc.xywh(2,3,3,3));
+	/**
+	 * Default constructor
+	 */
+	private FieldModWindow(Collection nodes, Collection edges) {
 
-      JLabel jlabel1 = new JLabel();
-      jlabel1.setText("Select Field...");
-      jpanel1.add(jlabel1,cc.xy(2,2));
+		createPanel();
 
-      JLabel jlabel2 = new JLabel();
-      jlabel2.setText("New value:");
-      jlabel2.setHorizontalAlignment(JLabel.RIGHT);
-      jpanel1.add(jlabel2,cc.xy(2,8));
+		setNE(nodes, edges);
+		setSize(344, 307);
+		setLocation(100, 100);
 
-      newValue.setName("newValue");
-      jpanel1.add(newValue,cc.xy(4,8));
+		setVisible(true);
+	}
 
-      JLabel jlabel3 = new JLabel();
-      jlabel3.setText("Apply to...");
-      jpanel1.add(jlabel3,cc.xy(6,2));
+	public Object newValueEdgesData() {
+		if ((selectedFieldEdges.getSQLType() == Types.INTEGER)
+				|| (selectedFieldEdges.getSQLType() == Types.TINYINT)
+				|| (selectedFieldEdges.getSQLType() == Types.SMALLINT)
+				|| (selectedFieldEdges.getSQLType() == Types.BIGINT)) {
+			return (new Integer((String) newValueEdgesText.getText()));
+		} else if (selectedFieldEdges.getSQLType() == Types.BOOLEAN) {
+			return (new Boolean((String) newValueEdgesText.getText()));
+		} else if (selectedFieldEdges.isNumeric()) {
+			return (new Double((String) newValueEdgesText.getText()));
+		} else {
+			return (newValueEdgesText.getText());
+		}
+	}
 
-      applyList.setName("applyList");
-      JScrollPane jscrollpane2 = new JScrollPane();
-      jscrollpane2.setViewportView(applyList);
-      jscrollpane2.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-      jscrollpane2.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      jpanel1.add(jscrollpane2,cc.xywh(6,3,3,1));
+	public Object newValueNodesData() {
+		if ((selectedFieldNodes.getSQLType() == Types.INTEGER)
+				|| (selectedFieldNodes.getSQLType() == Types.TINYINT)
+				|| (selectedFieldNodes.getSQLType() == Types.SMALLINT)
+				|| (selectedFieldNodes.getSQLType() == Types.BIGINT)) {
+			return (new Integer((String) newValueNodesText.getText()));
+		} else if (selectedFieldNodes.getSQLType() == Types.BOOLEAN) {
+			return (new Boolean((String) newValueNodesText.getText()));
+		} else if (selectedFieldNodes.isNumeric()) {
+			return (new Double((String) newValueNodesText.getText()));
+		} else {
+			return (newValueNodesText.getText());
+		}
+	}
+	
+	
+	/**
+	 * Set the value to all elements in the nodes list
+	 */
+	public void applyToNodesList() {
+		int start = -1;
+		int end = -1;
+		try {
+			start = applyNodesList.getSelectionModel().getMinSelectionIndex();
+			end = applyNodesList.getSelectionModel().getMaxSelectionIndex();
+			if (end >= modelNodes.getSize()) {
+				end = modelNodes.getSize() - 1;
+			}
+			if ((start == -1) || (end == -1)) {
+				return;
+			}
+			for (int i = start; i <= end; i++) {
+				if (applyNodesList.isSelectedIndex(i)) {
+					GraphElement o = (GraphElement) modelNodes.getElementAt(i);
+					o.__setattr__(selectedFieldNodes.getName(), newValueNodesData());
+				}
+			}
+			VisFactory.getFactory().getDisplay().repaint();
+		} catch (Throwable e) {
+			JOptionPane.showMessageDialog(this, "Error setting value "
+					+ e.toString() + " range: (" + start + "-" + end + ")",
+					"Error", JOptionPane.ERROR_MESSAGE);
 
-      okB.setActionCommand("Apply");
-      okB.setName("okB");
-      okB.setText("Apply");
-      jpanel1.add(okB,cc.xy(6,8));
+			ExceptionWindow.getExceptionWindow(e);
+		}
+	}
+	
+	/**
+	 * Set the value to all elements in the edges list
+	 */
+	public void applyToEdgesList() {
+		int start = -1;
+		int end = -1;
+		try {
+			start = applyEdgesList.getSelectionModel().getMinSelectionIndex();
+			end = applyEdgesList.getSelectionModel().getMaxSelectionIndex();
+			if (end >= modelEdges.getSize()) {
+				end = modelEdges.getSize() - 1;
+			}
+			if ((start == -1) || (end == -1)) {
+				return;
+			}
+			for (int i = start; i <= end; i++) {
+				if (applyEdgesList.isSelectedIndex(i)) {
+					GraphElement o = (GraphElement) modelEdges.getElementAt(i);
+					o.__setattr__(selectedFieldEdges.getName(), newValueEdgesData());
+				}
+			}
+			VisFactory.getFactory().getDisplay().repaint();
+		} catch (Throwable e) {
+			JOptionPane.showMessageDialog(this, "Error setting value "
+					+ e.toString() + " range: (" + start + "-" + end + ")",
+					"Error", JOptionPane.ERROR_MESSAGE);
 
-      cancelB.setActionCommand("Done");
-      cancelB.setName("cancelB");
-      cancelB.setText("Done");
-      jpanel1.add(cancelB,cc.xy(8,8));
+			ExceptionWindow.getExceptionWindow(e);
+		}
+	}
 
-      selectB.setActionCommand("Select All");
-      selectB.setText("Select All");
-      jpanel1.add(selectB,cc.xywh(6,5,3,1));
 
-      addFillComponents(jpanel1,new int[]{ 1,2,3,4,5,6,7,8,9 },new int[]{ 1,2,3,4,5,6,7,8,9 });
-      return jpanel1;
-   }
+	/**
+	 * Fills the list of Nodes with data
+	 * @param Nodes
+	 */
+	public void loadNodesData(Collection c) {
+		modelNodes.removeAllElements();
+		Iterator it = c.iterator();
+		while (it.hasNext()) {
+			modelNodes.addElement(it.next());
+		}
+		applyNodesList.getSelectionModel().setSelectionInterval(0, modelNodes.getSize());
+		applyNodesList.repaint();
+	}
+	
+	
+	/**
+	 * Fills the list of Edges with data
+	 * @param Edges
+	 */
+	public void loadEdgesData(Collection c) {
+		modelEdges.removeAllElements();
+		Iterator it = c.iterator();
+		while (it.hasNext()) {
+			modelEdges.addElement(it.next());
+		}
+		applyEdgesList.getSelectionModel().setSelectionInterval(0, modelEdges.getSize());
+		applyEdgesList.repaint();
+	}
 
-   /**
-    * Initializer
-    */
-   protected void initializePanel()
-   {
-      getContentPane().setLayout(new BorderLayout());
-      getContentPane().add(createPanel(), BorderLayout.CENTER);
-   }
+	/**
+	 * Fills the combobox of fields for the nodes
+	 */
+	public void setNodesList() {
+		nodesFieldsComboBox.removeAllItems();
+		ArrayList al = new ArrayList();
+		al.addAll(Guess.getGraph().getNodeSchema().allFields());
+		Collections.sort(al);
+		Iterator it = al.iterator();
+		while (it.hasNext()) {
+			Field f = (Field) it.next();
+			nodesFieldsComboBox.addItem(f);
+		}
+		nodesFieldsComboBox.setSelectedIndex(0);
+	}
+	
+	/**
+	 * Fills the combobox of fields for the edges
+	 */
+	public void setEdgesList() {
+		edgesFieldsComboBox.removeAllItems();
+		ArrayList al = new ArrayList();
+		al.addAll(Guess.getGraph().getEdgeSchema().allFields());
+		Collections.sort(al);
+		Iterator it = al.iterator();
+		while (it.hasNext()) {
+			Field f = (Field) it.next();
+			edgesFieldsComboBox.addItem(f);
+		}
+		edgesFieldsComboBox.setSelectedIndex(0);		
+	}
 
+	
+	/**
+	 * Create the panel for the tab "Nodes"
+	 * @return The panel for the nodes
+	 */
+	public JPanel createPanelNodes() {
+
+		panelNodes.setOpaque(false);
+		panelNodes.setBounds(0, 0, 322, 260);
+		panelNodes.setLayout(null);
+
+		nodesFieldsLabel.setDisplayedMnemonic(KeyEvent.VK_S);
+		nodesFieldsLabel.setText("Select Node Field:");
+		nodesFieldsLabel.setBounds(10, 9, 105, 16);
+		panelNodes.add(nodesFieldsLabel);
+
+		newValueNodeLabel.setDisplayedMnemonic(KeyEvent.VK_N);
+		newValueNodeLabel.setText("New Value:");
+		newValueNodeLabel.setBounds(10, 165, 90, 16);
+		panelNodes.add(newValueNodeLabel);
+
+		newValueNodeLabel.setLabelFor(newValueNodesText);
+		newValueNodesText.setBounds(122, 163, 186, 20);
+		panelNodes.add(newValueNodesText);
+
+		applyToNodeLabel.setDisplayedMnemonic(KeyEvent.VK_A);
+		applyToNodeLabel.setText("Apply To:");
+		applyToNodeLabel.setBounds(10, 37, 54, 16);
+		panelNodes.add(applyToNodeLabel);
+
+
+		nodesItemsScrollpane.setBounds(122, 36, 186, 121);
+		nodesItemsScrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		nodesItemsScrollpane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+
+		panelNodes.add(nodesItemsScrollpane);
+
+		applyToNodeLabel.setLabelFor(applyNodesList);
+		nodesItemsScrollpane.setViewportView(applyNodesList);
+
+		selectAllNodesButton.setMnemonic(KeyEvent.VK_L);
+		selectAllNodesButton.setText("Select All");
+		selectAllNodesButton.setBounds(23, 132, 90, 25);
+		panelNodes.add(selectAllNodesButton);
+
+		nodesFieldsLabel.setLabelFor(nodesFieldsComboBox);
+		nodesFieldsComboBox.setBounds(122, 5, 186, 25);
+		nodesFieldsComboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (nodesFieldsComboBox.getSelectedIndex()>=0) {
+				selectedFieldNodes = (Field) nodesFieldsComboBox.getSelectedItem();
+				}
+			}
+			});
+		
+		panelNodes.add(nodesFieldsComboBox);
+		
+		selectAllNodesButton.addActionListener(new AbstractAction() {
+			public void actionPerformed(ActionEvent ev) {
+				applyNodesList.setSelectionInterval(0, applyNodesList.getModel().getSize());
+				applyNodesList.repaint();
+			}
+		});		
+		
+		return panelNodes;
+	}
+	
+	/**
+	 * Create the panel for the tab "Edges"
+	 * @return The panel for the edges
+	 */
+	public JPanel createPanelEdges() {
+
+		panelEdges.setOpaque(false);
+		panelEdges.setBounds(0, 0, 322, 260);
+		panelEdges.setLayout(null);
+		
+		edgesFieldsLabel.setDisplayedMnemonic(KeyEvent.VK_S);
+		edgesFieldsLabel.setBounds(10, 9, 105, 16);
+		edgesFieldsLabel.setText("Select Edge Field:");
+		panelEdges.add(edgesFieldsLabel);
+
+		newValueEdgesLabel.setDisplayedMnemonic(KeyEvent.VK_N);
+		newValueEdgesLabel.setBounds(10, 165, 105, 16);
+		newValueEdgesLabel.setText("New Value:");
+		panelEdges.add(newValueEdgesLabel);
+
+		newValueEdgesText.setName("newValue");
+		newValueEdgesLabel.setLabelFor(newValueEdgesText);
+		newValueEdgesText.setBounds(122, 163, 186, 20);
+		panelEdges.add(newValueEdgesText);
+
+		applyToEdgesLabel.setDisplayedMnemonic(KeyEvent.VK_A);
+		applyToEdgesLabel.setBounds(10, 37, 54, 16);
+		applyToEdgesLabel.setText("Apply To:");
+		panelEdges.add(applyToEdgesLabel);
+
+		edgesItemsScrollpane.setBounds(122, 36, 186, 121);
+		edgesItemsScrollpane
+				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		edgesItemsScrollpane
+				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		panelEdges.add(edgesItemsScrollpane);
+
+		applyToEdgesLabel.setLabelFor(applyEdgesList);
+		edgesItemsScrollpane.setViewportView(applyEdgesList);
+
+		selectAllEdgesButton.setActionCommand("Select All");
+		selectAllEdgesButton.setMnemonic(KeyEvent.VK_E);
+		selectAllEdgesButton.setBounds(23, 132, 90, 25);
+		selectAllEdgesButton.setText("Select All");
+		panelEdges.add(selectAllEdgesButton);
+
+		edgesFieldsLabel.setLabelFor(edgesFieldsComboBox);
+		edgesFieldsComboBox.setBounds(122, 5, 186, 25);
+		edgesFieldsComboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (edgesFieldsComboBox.getSelectedIndex()>=0) {
+				selectedFieldEdges = (Field) edgesFieldsComboBox.getSelectedItem();
+				}
+			}
+			});		
+		panelEdges.add(edgesFieldsComboBox);
+
+		selectAllEdgesButton.addActionListener(new AbstractAction() {
+			public void actionPerformed(ActionEvent ev) {
+				applyEdgesList.setSelectionInterval(0, applyEdgesList.getModel().getSize());
+				applyEdgesList.repaint();
+			}
+		});
+		
+		return panelEdges;
+	}
+
+	private void createPanel() {
+
+
+		getRootPane().setDefaultButton(applyButton);
+		closeButton.setMnemonic(KeyEvent.VK_C);
+		closeButton.setBounds(240, 247, 90, 25);
+		getContentPane().add(closeButton);
+		applyButton.setMnemonic(KeyEvent.VK_P);
+		applyButton.setBounds(144, 247, 90, 25);
+		getContentPane().add(applyButton);
+
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent evt) {
+				singleton = null;
+				dispose();
+			}
+		});
+		
+		getContentPane().setLayout(null);
+		setTitle("Field Editor - GUESS");
+		setResizable(false);
+		
+
+		applyButton.addActionListener(new AbstractAction() {
+			public void actionPerformed(ActionEvent ev) {
+				if (tabbedpane.getSelectedComponent().equals(panelEdges)) {
+					applyToEdgesList();
+				} else {
+					applyToNodesList();
+				}
+			}
+		});
+
+		closeButton.addActionListener(new AbstractAction() {
+			public void actionPerformed(ActionEvent ev) {
+				singleton = null;
+				dispose();
+			}
+		});
+
+		applyButton.setActionCommand("Apply");
+		applyButton.setName("okB");
+		applyButton.setText("Apply");
+
+		closeButton.setActionCommand("Done");
+		closeButton.setName("cancelB");
+		closeButton.setText("Close");
+
+		tabbedpane.setBounds(10, 10, 320, 218);
+
+		tabbedpane.addTab("Edges", createPanelEdges());
+		tabbedpane.addTab("Nodes", createPanelNodes());
+		
+		getContentPane().add(tabbedpane);
+		
+	}
 
 }
