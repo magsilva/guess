@@ -1,3 +1,11 @@
 python.jj
 .AppleDouble
 *.class
+PythonGrammarTokenManager.java
+PythonGrammarTreeConstants.java
+python.java
+Node.java
+PythonGrammarConstants.java
+Token.java
+PythonGrammar.java
+JJTPythonGrammarState.java
