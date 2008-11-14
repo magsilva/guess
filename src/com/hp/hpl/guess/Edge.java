@@ -1,5 +1,7 @@
 package com.hp.hpl.guess;
 
+import com.hp.hpl.guess.animation.AnimationFactory;
+import com.hp.hpl.guess.animation.GAnimation;
 import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.prefuse.*;
 import com.hp.hpl.guess.tg.*;
@@ -10,6 +12,7 @@ import edu.umd.cs.piccolo.*;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolo.nodes.*;
 import java.util.*;
+
 import org.python.core.*;
 import edu.uci.ics.jung.graph.impl.*;
 import com.hp.hpl.guess.storage.StorageFactory;
@@ -65,6 +68,31 @@ public abstract class Edge extends AbstractSparseEdge implements GraphElement
 	this(maxID+1,node1,node2);
     }
 
+    private Set<GAnimation> runningAnimations = new HashSet<GAnimation>();
+    
+    public void animate(String animationName) {
+    	GAnimation anim = AnimationFactory.getFactory()
+    		.generateEdgeAnimation(animationName, this);
+    	anim.start();
+    	   	
+    	runningAnimations.add(anim);
+    }
+    
+    public void animate(String animationName, int loops) {
+    	GAnimation anim = AnimationFactory.getFactory()
+			.generateEdgeAnimation(animationName, this);
+    	anim.start(loops);
+	   	
+    	runningAnimations.add(anim);
+    }
+    
+    public void animationStopAll() {
+    	Iterator<GAnimation> runningAnimIterator = runningAnimations.iterator();
+    	while (runningAnimIterator.hasNext()) {
+    		runningAnimIterator.next().stop();
+    	}
+    }
+    
     public PyObject __getitem__(int key) {
 	if (StorageFactory.getSL().containsEdge(this, ""+key)) {
 	    return new PyJavaInstance(new StateQuery(this,""+key));
@@ -174,24 +202,22 @@ public abstract class Edge extends AbstractSparseEdge implements GraphElement
 	}
 
 	//may need to show/hide connected edges
-	if (name.equals("visible"))
-	    {
+	if (name.equals("visible")) {
 		if (value == Boolean.TRUE) {
 		    // if I'm visible, make the two end points visible
 		    Node a = getNode1();
 		    Node b = getNode2();
-		    if ((Boolean)a.__getattr__("visible") 
-			!= Boolean.TRUE) {
-			a.__setattr__("visible",Boolean.TRUE);
+		    if ((Boolean)a.__getattr__("visible") != Boolean.TRUE) {
+		    	a.__setattr__("visible",Boolean.TRUE);
 		    }
 		    if (b != a) {
-			if ((Boolean)b.__getattr__("visible") 
-			    != Boolean.TRUE) {
-			    b.__setattr__("visible",Boolean.TRUE);
-			}
+				if ((Boolean)b.__getattr__("visible") 
+				    != Boolean.TRUE) {
+				    b.__setattr__("visible",Boolean.TRUE);
+				}
 		    }
-		} 
-	    }
+		}
+	}
 	
 	//need to update database regardless.
 	updateColumn(name, value);
