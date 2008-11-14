@@ -1,0 +1,2036 @@
+### Eclipse Workspace Patch 1.0
+#P guess-cvs
+Index: src/com/hp/hpl/guess/Node.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Node.java,v
+retrieving revision 1.5
+diff -u -r1.5 Node.java
+--- src/com/hp/hpl/guess/Node.java	5 Oct 2006 04:56:55 -0000	1.5
++++ src/com/hp/hpl/guess/Node.java	23 Oct 2008 16:01:03 -0000
+@@ -1,26 +1,17 @@
+ package com.hp.hpl.guess;
+ 
+-import com.hp.hpl.guess.piccolo.*;
+-import com.hp.hpl.guess.prefuse.*;
+-import com.hp.hpl.guess.tg.*;
+ import com.hp.hpl.guess.ui.*;
+-import com.hp.hpl.guess.db.DBServer;
++import com.hp.hpl.guess.animation.AnimationFactory;
++import com.hp.hpl.guess.animation.GAnimation;
+ import com.hp.hpl.guess.storage.StorageFactory;
+ 
+-import java.awt.geom.*;
+ import java.awt.*;
+-import java.io.*;
+ import java.sql.*;
+ import java.util.*;
+ 
+ import edu.uci.ics.jung.algorithms.shortestpath.*;
+-
+ import edu.uci.ics.jung.graph.impl.*;
+ 
+-import edu.umd.cs.piccolo.*;
+-import edu.umd.cs.piccolo.util.PPaintContext;
+-import edu.umd.cs.piccolo.nodes.*;
+-
+ import org.python.core.*;
+ 
+ public class Node extends SparseVertex implements Comparable, GraphElement
+@@ -62,6 +53,33 @@
+ 						   this);
+     }
+ 
++    private Set<GAnimation> runningAnimations = new HashSet<GAnimation>();
++        
++    public void animate(String animationName) {
++    	GAnimation anim = AnimationFactory.getFactory()
++    		.generateNodeAnimation(animationName, this);
++    	anim.start();
++    	   	
++    	runningAnimations.add(anim);
++    }
++    
++    public void animate(String animationName, int loops) {
++    	GAnimation anim = AnimationFactory.getFactory()
++			.generateNodeAnimation(animationName, this);
++    	anim.start(loops);
++	   	
++    	runningAnimations.add(anim);
++    }
++    
++    public void animationStopAll() {
++    	Iterator<GAnimation> runningAnimIterator = runningAnimations.iterator();
++    	while (runningAnimIterator.hasNext()) {
++    		runningAnimIterator.next().stop();
++    	}
++    }
++    
++    
++    
+     public String toString()
+     {
+ 	//Thread.dumpStack();
+Index: src/com/hp/hpl/guess/Guess.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Guess.java,v
+retrieving revision 1.24
+diff -u -r1.24 Guess.java
+--- src/com/hp/hpl/guess/Guess.java	30 Sep 2008 11:29:19 -0000	1.24
++++ src/com/hp/hpl/guess/Guess.java	23 Oct 2008 16:01:01 -0000
+@@ -22,6 +22,8 @@
+ import com.hp.hpl.guess.storage.*;
+ import com.hp.hpl.guess.ui.*;
+ import gnu.getopt.*;
++
++import com.hp.hpl.guess.animation.AnimationFactory;
+ import com.hp.hpl.guess.r.R;
+ import com.hp.hpl.guess.util.GuessPyStringMap;
+ import java.applet.AppletContext;
+@@ -901,7 +903,7 @@
+ 
+ 	//System.out.println("after");
+ 	final int uiMode2 = uiMode;
+-
++	
+ 	try {
+ 	    javax.swing.SwingUtilities.invokeAndWait(new Runnable() { 
+ 		    public void run() {
+@@ -912,7 +914,9 @@
+ 	    exceptionHandle(e);
+ 	}
+ 	  
+-
++	// Set animation factory
++	AnimationFactory.setFactory(uiMode);
++	
+ 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
+ 	myF = myFrame;
+ 	myF.setDisplayBackground(Color.black);
+Index: src/com/hp/hpl/guess/Edge.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Edge.java,v
+retrieving revision 1.5
+diff -u -r1.5 Edge.java
+--- src/com/hp/hpl/guess/Edge.java	9 Aug 2007 18:22:08 -0000	1.5
++++ src/com/hp/hpl/guess/Edge.java	23 Oct 2008 16:00:57 -0000
+@@ -1,5 +1,7 @@
+ package com.hp.hpl.guess;
+ 
++import com.hp.hpl.guess.animation.AnimationFactory;
++import com.hp.hpl.guess.animation.GAnimation;
+ import com.hp.hpl.guess.piccolo.*;
+ import com.hp.hpl.guess.prefuse.*;
+ import com.hp.hpl.guess.tg.*;
+@@ -10,6 +12,7 @@
+ import edu.umd.cs.piccolo.util.PPaintContext;
+ import edu.umd.cs.piccolo.nodes.*;
+ import java.util.*;
++
+ import org.python.core.*;
+ import edu.uci.ics.jung.graph.impl.*;
+ import com.hp.hpl.guess.storage.StorageFactory;
+@@ -65,6 +68,31 @@
+ 	this(maxID+1,node1,node2);
+     }
+ 
++    private Set<GAnimation> runningAnimations = new HashSet<GAnimation>();
++    
++    public void animate(String animationName) {
++    	GAnimation anim = AnimationFactory.getFactory()
++    		.generateEdgeAnimation(animationName, this);
++    	anim.start();
++    	   	
++    	runningAnimations.add(anim);
++    }
++    
++    public void animate(String animationName, int loops) {
++    	GAnimation anim = AnimationFactory.getFactory()
++			.generateEdgeAnimation(animationName, this);
++    	anim.start(loops);
++	   	
++    	runningAnimations.add(anim);
++    }
++    
++    public void animationStopAll() {
++    	Iterator<GAnimation> runningAnimIterator = runningAnimations.iterator();
++    	while (runningAnimIterator.hasNext()) {
++    		runningAnimIterator.next().stop();
++    	}
++    }
++    
+     public PyObject __getitem__(int key) {
+ 	if (StorageFactory.getSL().containsEdge(this, ""+key)) {
+ 	    return new PyJavaInstance(new StateQuery(this,""+key));
+Index: src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java,v
+retrieving revision 1.3
+diff -u -r1.3 GraphElementEditorPopup.java
+--- src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java	30 Sep 2008 11:29:18 -0000	1.3
++++ src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java	23 Oct 2008 16:01:09 -0000
+@@ -1,197 +1,161 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import org.python.core.*;
+-import org.python.util.PythonInterpreter;
+-
+ import java.awt.Color;
+-import java.awt.Component;
+ import java.awt.Font;
+-import java.awt.event.ActionEvent;
+-import java.awt.event.KeyEvent;
+-
+-import java.io.File;
+-import java.io.FilenameFilter;
+-import java.io.Writer;
++import java.awt.event.*;
+ 
+ import java.util.*;
+ 
+ import javax.swing.*;
+-import javax.swing.text.AttributeSet;
+-import javax.swing.text.BadLocationException;
+-import javax.swing.text.DefaultStyledDocument;
+-import javax.swing.text.Element;
+-import javax.swing.text.JTextComponent;
+-import javax.swing.text.Keymap;
+-import javax.swing.text.Style;
+-import javax.swing.text.StyleConstants;
+-import javax.swing.text.StyleContext;
+-import java.awt.event.*;
+-import java.awt.Point;
+-import java.awt.datatransfer.*;
+-import java.awt.Toolkit;
+-import javax.swing.text.html.HTMLEditorKit;
+-import com.hp.hpl.guess.util.intervals.*;
++
+ import com.hp.hpl.guess.*;
+ 
+ public class GraphElementEditorPopup extends EditorPopup {
+ 
++	private static final long serialVersionUID = 1L;
++
++	String[] menuItems = new String[] { "Center On", "Color...", "Remove",
++			"Add", "Modify Field...", "Copy as Variable..." };
+ 
+-    String[ ] menuItems = new String[ ] { "Center On",
+-					  "Color...",
+-					  "Remove",
+-					  "Add",
+-					  "Modify Field...",
+-					  "Copy as Variable..."};
+-
+-    public static EditorPopup singleton = null;
+-
+-    public static JMenuItem addItem(String s) {
+-	EditorPopup ep = getPopup();
+-
+-	if (!ep.sep) {
+-	    ep.addSeparator();
+-	    ep.sep = true;
+-	}
+-
+-	JMenuItem jmi = ep.createJMI(s);
+-	ep.add(jmi);
+-	return(jmi);
+-    }
+-
+-    public static EditorPopup getPopup() {
+-	if (singleton == null) {
+-	    singleton = new GraphElementEditorPopup(Guess.getInterpreter());
+-	}
+-	return(singleton);
+-    }
+-
+-    protected GraphElementEditorPopup(InterpreterAbstraction jython) {
+-	super(jython);
+-	setLabel("Graph Element Menu");
+-
+-	ActionListener al = new ActionListener(  ) {
+-		public void actionPerformed(ActionEvent event) {
+-		    String ac = event.getActionCommand();
+-		    if (ac.equals("Center On")) {
+-			centerOn();
+-		    } else if (ac.equals("Color...")) {
+-			colorSelected();
+-		    } else if (ac.equals("Copy as Variable...")) {
+-			copyAsVariable();
+-		    } else if (ac.equals("Add")) {
+-			addSelected();
+-		    } else if (ac.equals("Remove")) {
+-			removeSelected();
+-		    } else if (ac.equals("Modify Field...")) {
+-			modifyWindow();
+-		    }
+-		} 
+-	    };
+-
+-	for (int i = 0 ; i < menuItems.length ; i++) {
+-	    JMenuItem jmi1 = add(menuItems[i]);
+-	    jmi1.addActionListener(al);
+-	    
+-	    // Makes the first item the default menuitem
+-	    // see http://java.sun.com/products/jlf/at/book/Menus9.html
+-	    if (i==0) {
+-	    	Font DefaultFont = jmi1.getFont();
+-	    	jmi1.setFont(DefaultFont.deriveFont(Font.BOLD));
+-	    }
+-	}
+-    }
+-
+-    public void modifyWindow() {
+-	HashSet nodes = new HashSet();
+-	HashSet edges = new HashSet();
+-	Iterator it = selected.iterator();
+-	while(it.hasNext()) {
+-	    GraphElement ge = (GraphElement)it.next();
+-	    if (ge instanceof Node)
+-		nodes.add(ge);
+-	    else if (ge instanceof Edge)
+-		edges.add(ge);
+-	}
+-	FieldModWindow.getFieldModWindow(nodes,edges);
+-    }
+-
+-    public void addSelected() {
+-	if (selected != null) {
+-	    Iterator it = selected.iterator();
+-	    while(it.hasNext()) {
+-		GraphElement ge = (GraphElement)it.next();
+-		if (ge instanceof Node)
+-		    Guess.getGraph().addNode((Node)ge);
+-		else if (ge instanceof Edge)
+-		    Guess.getGraph().addEdge((Edge)ge);
+-	    }
+-	}
+-    }
+-
+-    public void removeSelected() {
+-	if (selected != null) {
+-	    Iterator it = selected.iterator();
+-	    while(it.hasNext()) {
+-		GraphElement ge = (GraphElement)it.next();
+-		if (ge instanceof Node)
+-		    Guess.getGraph().removeNode((Node)ge);
+-		else if (ge instanceof Edge)
+-		    Guess.getGraph().removeEdge((Edge)ge);
+-	    }
+-	}
+-    }
+-
+-    public void copyAsVariable() {
+-
+-	if (currentH == null)
+-	    return;
+-
+-	String ch = currentH.toString();
+-	if (ch.length() > 60) {
+-	    ch = ch.substring(0,60)+"...";
+-	}
+-
+-	String s = 
+-	    (String)JOptionPane.showInputDialog(null,
+-						"Please enter a variable name for:\n"
+-						+ ch,
+-						"Customized Dialog",
+-						JOptionPane.PLAIN_MESSAGE,
+-						UIManager.getIcon("OptionPane.questionIcon"),
+-						null,
+-						"");
+-	
+-	if ((s != null) && (s.length() > 0)) {
+-	    jython.set(s,currentH);
+-	    StatusBar.setStatus(s + " = " + currentH);
+-	}
+-    }
+-
+-
+-    public void colorSelected() {
+-	Color c = 
+-	    JColorChooser.showDialog(null,
+-				     "Please pick a color - GUESS",
+-				     Color.yellow);
+-	if (selected == null)
+-	    return;
+-
+-	if (c != null) {
+-	    Object col = c.getRed()+","+
+-		c.getGreen()+","+
+-		c.getBlue();
+-	    Iterator it = selected.iterator();
+-	    while(it.hasNext()) {
+-		GraphElement ge = (GraphElement)it.next();
+-		ge.__setattr__("color",col);
+-	    }
+-	}
+-    }
+-
+-    public void centerOn() {
+-	if (selected == null)
+-	    return;
++	public static EditorPopup singleton = null;
+ 
+-	VisFactory.getFactory().getDisplay().center(selected);
+-    }
++	public static JMenuItem addItem(String s) {
++		EditorPopup ep = getPopup();
++
++		if (!ep.sep) {
++			ep.addSeparator();
++			ep.sep = true;
++		}
++
++		JMenuItem jmi = ep.createJMI(s);
++		ep.add(jmi);
++		return (jmi);
++	}
++
++	public static EditorPopup getPopup() {
++		if (singleton == null) {
++			singleton = new GraphElementEditorPopup(Guess.getInterpreter());
++		}
++		return (singleton);
++	}
++
++	protected GraphElementEditorPopup(InterpreterAbstraction jython) {
++		super(jython);
++		setLabel("Graph Element Menu");
++
++		ActionListener al = new ActionListener() {
++			public void actionPerformed(ActionEvent event) {
++				String ac = event.getActionCommand();
++				if (ac.equals("Center On")) {
++					centerOn();
++				} else if (ac.equals("Color...")) {
++					colorSelected();
++				} else if (ac.equals("Copy as Variable...")) {
++					copyAsVariable();
++				} else if (ac.equals("Add")) {
++					addSelected();
++				} else if (ac.equals("Remove")) {
++					removeSelected();
++				} else if (ac.equals("Modify Field...")) {
++					modifyWindow();
++				}
++			}
++		};
++
++		for (int i = 0; i < menuItems.length; i++) {
++			JMenuItem jmi1 = add(menuItems[i]);
++			jmi1.addActionListener(al);
++
++			// Makes the first item the default menuitem
++			// see http://java.sun.com/products/jlf/at/book/Menus9.html
++			if (i == 0) {
++				Font DefaultFont = jmi1.getFont();
++				jmi1.setFont(DefaultFont.deriveFont(Font.BOLD));
++			}
++		}
++	}
++
++	public void modifyWindow() {
++		HashSet<Node> nodes = new HashSet<Node>();
++		HashSet<Edge> edges = new HashSet<Edge>();
++		Iterator<GraphElement> it = selected.iterator();
++		while (it.hasNext()) {
++			GraphElement ge = (GraphElement) it.next();
++			if (ge instanceof Node)
++				nodes.add((Node) ge);
++			else if (ge instanceof Edge)
++				edges.add((Edge) ge);
++		}
++		FieldModWindow.getFieldModWindow(nodes, edges);
++	}
++
++	public void addSelected() {
++		if (selected != null) {
++			Iterator<GraphElement> it = selected.iterator();
++			while (it.hasNext()) {
++				GraphElement ge = (GraphElement) it.next();
++				if (ge instanceof Node)
++					Guess.getGraph().addNode((Node) ge);
++				else if (ge instanceof Edge)
++					Guess.getGraph().addEdge((Edge) ge);
++			}
++		}
++	}
++
++	public void removeSelected() {
++		if (selected != null) {
++			Iterator<GraphElement> it = selected.iterator();
++			while (it.hasNext()) {
++				GraphElement ge = (GraphElement) it.next();
++				if (ge instanceof Node)
++					Guess.getGraph().removeNode((Node) ge);
++				else if (ge instanceof Edge)
++					Guess.getGraph().removeEdge((Edge) ge);
++			}
++		}
++	}
++
++	public void copyAsVariable() {
++
++		if (currentH == null)
++			return;
++
++		String ch = currentH.toString();
++		if (ch.length() > 60) {
++			ch = ch.substring(0, 60) + "...";
++		}
++
++		String s = (String) JOptionPane.showInputDialog(null,
++				"Please enter a variable name for:\n" + ch,
++				"Customized Dialog", JOptionPane.PLAIN_MESSAGE, UIManager
++						.getIcon("OptionPane.questionIcon"), null, "");
++
++		if ((s != null) && (s.length() > 0)) {
++			jython.set(s, currentH);
++			StatusBar.setStatus(s + " = " + currentH);
++		}
++	}
++
++	public void colorSelected() {
++		Color c = JColorChooser.showDialog(null, "Please pick a color - GUESS",
++				Color.yellow);
++		if (selected == null)
++			return;
++
++		if (c != null) {
++			Object col = c.getRed() + "," + c.getGreen() + "," + c.getBlue();
++			Iterator<GraphElement> it = selected.iterator();
++			while (it.hasNext()) {
++				GraphElement ge = (GraphElement) it.next();
++				ge.__setattr__("color", col);
++			}
++		}
++	}
++
++	public void centerOn() {
++		if (selected == null)
++			return;
++
++		VisFactory.getFactory().getDisplay().center(selected);
++	}
+ }
+Index: src/com/hp/hpl/guess/ui/EditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/EditorPopup.java,v
+retrieving revision 1.2
+diff -u -r1.2 EditorPopup.java
+--- src/com/hp/hpl/guess/ui/EditorPopup.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/EditorPopup.java	23 Oct 2008 16:01:09 -0000
+@@ -1,59 +1,50 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import org.python.core.*;
+-import org.python.util.PythonInterpreter;
+-
+-import java.awt.Color;
+ import java.awt.Component;
+-import java.awt.event.ActionEvent;
+-import java.awt.event.KeyEvent;
++import java.util.Collection;
++
++import javax.swing.JMenuItem;
++import javax.swing.JPopupMenu;
+ 
+-import java.io.File;
+-import java.io.FilenameFilter;
+-import java.io.Writer;
+-
+-import java.util.*;
+-
+-import javax.swing.*;
+-import javax.swing.text.*;
+-import java.awt.event.*;
+-import java.awt.Point;
+-import java.awt.datatransfer.*;
+-import java.awt.Toolkit;
+-import javax.swing.text.html.HTMLEditorKit;
+-import com.hp.hpl.guess.util.intervals.*;
+-import com.hp.hpl.guess.*;
++import com.hp.hpl.guess.GraphElement;
++import com.hp.hpl.guess.InterpreterAbstraction;
+ 
+ public abstract class EditorPopup extends JPopupMenu {
+     
+-    InterpreterAbstraction jython = null;
+-    protected Collection selected = null;
++	private static final long serialVersionUID = 1L;
++	
++	InterpreterAbstraction jython = null;
++    protected static Collection<GraphElement> selected = null;
+     protected Object currentH = null;
+ 
+     protected boolean sep = false;
+ 
+     public static EditorPopup getPopup() {
+-	return(null);
++    	return(null);
+     }
+ 
++    public static Collection<GraphElement> getSelected() {
++    	return selected;
++    }
++    
+     protected EditorPopup(InterpreterAbstraction jython) {
+-	super("Options");
+-	this.jython = jython;
++		super("Options");
++		this.jython = jython;
+     }
+ 
+     public void show(Component inv, int x, int y, 
+-		     Collection selected, Object currentH) {
+-	this.selected = selected;
+-	this.currentH = currentH;
+-	show(inv,x,y);
++		     Collection<GraphElement> selected, Object currentH) {
++		EditorPopup.selected = selected;
++		this.currentH = currentH;
++		show(inv,x,y);
+     }
+ 
+     public JMenuItem createJMI(String s) {
+-	return(new UserMenuItem(s,this));
++    	return(new UserMenuItem(s,this));
+     }
+     
+-    public void cacheContent(Collection selected, Object currentH) {
+-	this.selected = selected;
+-	this.currentH = currentH;
++    public void cacheContent(Collection<GraphElement> selected, Object currentH) {
++		EditorPopup.selected = selected;
++		this.currentH = currentH;
+     }
+ }
+Index: src/com/hp/hpl/guess/ui/NodeEditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/NodeEditorPopup.java,v
+retrieving revision 1.2
+diff -u -r1.2 NodeEditorPopup.java
+--- src/com/hp/hpl/guess/ui/NodeEditorPopup.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/NodeEditorPopup.java	23 Oct 2008 16:01:09 -0000
+@@ -1,41 +1,36 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import org.python.core.*;
+-import org.python.util.PythonInterpreter;
++import javax.swing.JMenu;
++import javax.swing.JMenuItem;
+ 
+-import java.awt.Color;
+-import java.awt.Component;
+-import java.awt.event.ActionEvent;
+-import java.awt.event.KeyEvent;
+-
+-import java.io.File;
+-import java.io.FilenameFilter;
+-import java.io.Writer;
+-
+-import java.util.*;
+-
+-import javax.swing.*;
+-import javax.swing.text.AttributeSet;
+-import javax.swing.text.BadLocationException;
+-import javax.swing.text.DefaultStyledDocument;
+-import javax.swing.text.Element;
+-import javax.swing.text.JTextComponent;
+-import javax.swing.text.Keymap;
+-import javax.swing.text.Style;
+-import javax.swing.text.StyleConstants;
+-import javax.swing.text.StyleContext;
+-import java.awt.event.*;
+-import java.awt.Point;
+-import java.awt.datatransfer.*;
+-import java.awt.Toolkit;
+-import javax.swing.text.html.HTMLEditorKit;
+-import com.hp.hpl.guess.util.intervals.*;
+-import com.hp.hpl.guess.*;
++import com.hp.hpl.guess.Guess;
++import com.hp.hpl.guess.InterpreterAbstraction;
+ 
+ public class NodeEditorPopup extends GraphElementEditorPopup {
+ 
+-    public static EditorPopup singleton = null;
++	private static final long serialVersionUID = 3633040646227588067L;
++	public static EditorPopup singleton = null;
+ 
++    private static JMenu animMenu = null;
++	public static JMenuItem addItemToAnimation(String s) {
++		EditorPopup ep = getPopup();
++
++		if (!ep.sep) {
++			ep.addSeparator();
++			ep.sep = true;
++		}
++
++		JMenuItem jmi = ep.createJMI(s);
++
++		if (animMenu == null) {
++			animMenu = new JMenu("Animations");
++			ep.add(animMenu);
++		}
++
++		animMenu.add(jmi);
++		return (jmi);
++	}
++    
+     public static JMenuItem addItem(String s) {
+ 	EditorPopup ep = getPopup();
+ 
+Index: src/com/hp/hpl/guess/ui/EdgeListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/EdgeListener.java,v
+retrieving revision 1.1
+diff -u -r1.1 EdgeListener.java
+--- src/com/hp/hpl/guess/ui/EdgeListener.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/EdgeListener.java	23 Oct 2008 16:01:09 -0000
+@@ -1,8 +1,5 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import java.awt.Color;
+-import java.awt.Shape;
+-import java.awt.Paint;
+ 
+ public interface EdgeListener extends GraphElementListener {
+ 
+Index: src/com/hp/hpl/guess/ui/EdgeEditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/EdgeEditorPopup.java,v
+retrieving revision 1.2
+diff -u -r1.2 EdgeEditorPopup.java
+--- src/com/hp/hpl/guess/ui/EdgeEditorPopup.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/EdgeEditorPopup.java	23 Oct 2008 16:01:09 -0000
+@@ -1,66 +1,62 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import org.python.core.*;
+-import org.python.util.PythonInterpreter;
++import javax.swing.JMenu;
++import javax.swing.JMenuItem;
+ 
+-import java.awt.Color;
+-import java.awt.Component;
+-import java.awt.event.ActionEvent;
+-import java.awt.event.KeyEvent;
+-
+-import java.io.File;
+-import java.io.FilenameFilter;
+-import java.io.Writer;
+-
+-import java.util.*;
+-
+-import javax.swing.*;
+-import javax.swing.text.AttributeSet;
+-import javax.swing.text.BadLocationException;
+-import javax.swing.text.DefaultStyledDocument;
+-import javax.swing.text.Element;
+-import javax.swing.text.JTextComponent;
+-import javax.swing.text.Keymap;
+-import javax.swing.text.Style;
+-import javax.swing.text.StyleConstants;
+-import javax.swing.text.StyleContext;
+-import java.awt.event.*;
+-import java.awt.Point;
+-import java.awt.datatransfer.*;
+-import java.awt.Toolkit;
+-import javax.swing.text.html.HTMLEditorKit;
+-import com.hp.hpl.guess.util.intervals.*;
+-import com.hp.hpl.guess.*;
++import com.hp.hpl.guess.Guess;
++import com.hp.hpl.guess.InterpreterAbstraction;
+ 
+ public class EdgeEditorPopup extends GraphElementEditorPopup {
+ 
+-    public static EditorPopup singleton = null;
++	private static final long serialVersionUID = 1L;
++	public static EditorPopup singleton = null;
+ 
+-    public static JMenuItem addItem(String s) {
+-	EditorPopup ep = getPopup();
++	
++	private static JMenu animMenu = null;
++	public static JMenuItem addItemToAnimation(String s) {
++		EditorPopup ep = getPopup();
++
++		if (!ep.sep) {
++			ep.addSeparator();
++			ep.sep = true;
++		}
++
++		JMenuItem jmi = ep.createJMI(s);
++
++		if (animMenu == null) {
++			animMenu = new JMenu("Animations");
++			ep.add(animMenu);
++		}
+ 
+-	if (!ep.sep) {
+-	    ep.addSeparator();
+-	    ep.sep = true;
++		animMenu.add(jmi);
++		return (jmi);
+ 	}
++	
++	public static JMenuItem addItem(String s) {
++		EditorPopup ep = getPopup();
+ 
+-	JMenuItem jmi = ep.createJMI(s);
+-	ep.add(jmi);
+-	return(jmi);
+-    }
+-
+-    public static EditorPopup getPopup() {
+-	if (singleton == null) {
+-	    singleton = new EdgeEditorPopup(Guess.getInterpreter());
++		if (!ep.sep) {
++			ep.addSeparator();
++			ep.sep = true;
++		}
++
++		JMenuItem jmi = ep.createJMI(s);
++		ep.add(jmi);
++		return (jmi);
+ 	}
+-	return(singleton);
+-    }
+ 
+-    protected EdgeEditorPopup(InterpreterAbstraction jython) {
+-	super(jython);
+-	setLabel("Edge Menu");
+-	
+-	// add functions here
++	public static EditorPopup getPopup() {
++		if (singleton == null) {
++			singleton = new EdgeEditorPopup(Guess.getInterpreter());
++		}
++		return (singleton);
++	}
+ 
+-    }
++	protected EdgeEditorPopup(InterpreterAbstraction jython) {
++		super(jython);
++		setLabel("Edge Menu");
++
++		// add functions here
++
++	}
+ }
+Index: src/com/hp/hpl/guess/ui/UserMenuItem.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/UserMenuItem.java,v
+retrieving revision 1.1
+diff -u -r1.1 UserMenuItem.java
+--- src/com/hp/hpl/guess/ui/UserMenuItem.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/UserMenuItem.java	23 Oct 2008 16:01:10 -0000
+@@ -1,52 +1,33 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import org.python.core.*;
+-import org.python.util.PythonInterpreter;
+-
+-import java.awt.Color;
+-import java.awt.Component;
+ import java.awt.event.ActionEvent;
+-import java.awt.event.KeyEvent;
++import java.awt.event.ActionListener;
++import java.util.Vector;
+ 
+-import java.io.File;
+-import java.io.FilenameFilter;
+-import java.io.Writer;
+-
+-import java.util.*;
+-
+-import javax.swing.*;
+-import javax.swing.text.*;
+-import java.awt.event.*;
+-import java.awt.Point;
+-import java.awt.datatransfer.*;
+-import java.awt.Toolkit;
+-import javax.swing.text.html.HTMLEditorKit;
+-import com.hp.hpl.guess.util.intervals.*;
+-import com.hp.hpl.guess.*;
++import javax.swing.JMenuItem;
+ 
+ public class UserMenuItem extends JMenuItem implements ActionListener {
+ 
+-    private Vector menuListeners = new Vector();
++	private static final long serialVersionUID = 1L;
+ 
+-    private EditorPopup ep = null;
++	private Vector<MenuListener> menuListeners = new Vector<MenuListener>();
+ 
+     public UserMenuItem(String s, EditorPopup ep) {
+-	super(s);
+-	addActionListener(this);
+-	this.ep = ep;
++		super(s);
++		addActionListener(this);
+     }
+ 
+     public void addUIListener(MenuListener al) {
+-	menuListeners.addElement(al);
++    	menuListeners.addElement(al);
+     }
+     
+     public void notifyEvent() {
+-	for (int i = 0 ; i < menuListeners.size() ; i++) {
+-	    ((MenuListener)menuListeners.elementAt(i)).menuEvent(ep.selected);
+-	}
++		for (int i = 0 ; i < menuListeners.size() ; i++) {
++		    ((MenuListener)menuListeners.elementAt(i)).menuEvent(EditorPopup.selected);
++		}
+     }
+ 
+     public void actionPerformed(ActionEvent e) {
+-	notifyEvent();
++    	notifyEvent();
+     }
+ }
+Index: src/com/hp/hpl/guess/ui/NodeListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/NodeListener.java,v
+retrieving revision 1.1
+diff -u -r1.1 NodeListener.java
+--- src/com/hp/hpl/guess/ui/NodeListener.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/NodeListener.java	23 Oct 2008 16:01:09 -0000
+@@ -1,12 +1,9 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import java.awt.Color;
+-import java.awt.Paint;
+-import java.awt.Shape;
+-
+ public interface NodeListener extends GraphElementListener {
+     
+     public void setLocation(double x, double y);
+     
+     public void setLocation(double x, double y, double width, double height);
++
+ }
+Index: src/org/python/core/PySequence.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/org/python/core/PySequence.java,v
+retrieving revision 1.4
+diff -u -r1.4 PySequence.java
+--- src/org/python/core/PySequence.java	14 Mar 2007 19:12:02 -0000	1.4
++++ src/org/python/core/PySequence.java	23 Oct 2008 16:01:13 -0000
+@@ -5,6 +5,7 @@
+ import com.hp.hpl.guess.ui.*;
+ import java.util.HashSet;
+ import java.util.Collection;
++import java.util.Iterator;
+ 
+ class SeqFuncs extends PyBuiltinFunctionSet
+ {
+@@ -692,6 +693,56 @@
+ 	{
+ 		__setattr__("visible", new PyInteger(0));
+ 	}
++	
++   
++    public void animate(String animationName, int loops){
++		Iterator<Edge> edgeIterator = findEdges().iterator();
++		while (edgeIterator.hasNext()) {
++			edgeIterator.next().animate(animationName, loops);
++		}
++		Iterator<Node> nodeIterator = findNodes().iterator();
++		while (nodeIterator.hasNext()) {
++			nodeIterator.next().animate(animationName, loops);
++		}
++    }
++    
++    public void animationStopAll() {
++		Iterator<Edge> edgeIterator = findEdges().iterator();
++		while (edgeIterator.hasNext()) {
++			edgeIterator.next().animationStopAll();
++		}
++		Iterator<Node> nodeIterator = findNodes().iterator();
++		while (nodeIterator.hasNext()) {
++			nodeIterator.next().animationStopAll();
++		}
++    }
++	
++    public void animate(String animationName) {
++		Iterator<Edge> edgeIterator = findEdges().iterator();
++		while (edgeIterator.hasNext()) {
++			edgeIterator.next().animate(animationName);
++		}
++		Iterator<Node> nodeIterator = findNodes().iterator();
++		while (nodeIterator.hasNext()) {
++			nodeIterator.next().animate(animationName);
++		}
++    }
++		
++	public void addFieldToLabel(String aField)
++	{
++		Iterator<Node> nodeIterator = findNodes().iterator();
++		while (nodeIterator.hasNext()) {
++			nodeIterator.next().addFieldToLabel(aField);
++		}
++	}
++	
++	public void removeFieldFromLabel(String aField)
++	{
++		Iterator<Node> nodeIterator = findNodes().iterator();
++		while (nodeIterator.hasNext()) {
++			nodeIterator.next().removeFieldFromLabel(aField);
++		}
++	}
+ 
+ 	public PyObject __sub__(PyObject object)
+ 	{
+Index: src/com/hp/hpl/guess/piccolo/GuessShapeNode.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessShapeNode.java,v
+retrieving revision 1.9
+diff -u -r1.9 GuessShapeNode.java
+--- src/com/hp/hpl/guess/piccolo/GuessShapeNode.java	6 Feb 2008 18:31:48 -0000	1.9
++++ src/com/hp/hpl/guess/piccolo/GuessShapeNode.java	23 Oct 2008 16:01:07 -0000
+@@ -15,6 +15,8 @@
+ import com.hp.hpl.guess.Guess;
+ import com.hp.hpl.guess.ui.*;
+ import com.hp.hpl.guess.Node;
++import com.hp.hpl.guess.animation.AnimationFactory;
++import com.hp.hpl.guess.animation.GAnimation;
+ import com.hp.hpl.guess.piccolo.GFrame;
+ 
+ public class GuessShapeNode extends PPath implements GuessPNode {
+@@ -396,6 +398,9 @@
+ 	g2.setStroke(linestroke);
+     }
+ 
++    
++    PPulseGAnimation test = null;
++    
+     public void paint(PPaintContext apc) {
+ 	paintOverload(apc);
+ 	super.paint(apc);
+Index: src/com/hp/hpl/guess/piccolo/GuessPEdge.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessPEdge.java,v
+retrieving revision 1.8
+diff -u -r1.8 GuessPEdge.java
+--- src/com/hp/hpl/guess/piccolo/GuessPEdge.java	24 Aug 2007 00:25:13 -0000	1.8
++++ src/com/hp/hpl/guess/piccolo/GuessPEdge.java	23 Oct 2008 16:01:06 -0000
+@@ -1,15 +1,10 @@
+ package com.hp.hpl.guess.piccolo;
+ 
+-import edu.umd.cs.piccolo.*;
+ import edu.umd.cs.piccolo.util.PPaintContext;
+ import edu.umd.cs.piccolo.nodes.*;
+-import edu.umd.cs.piccolox.nodes.*;
+ import edu.umd.cs.piccolo.event.*;
+-import edu.umd.cs.piccolo.util.*;
+-import java.awt.event.*;
+ import java.awt.*;
+ import java.awt.geom.*;
+-import edu.umd.cs.piccolo.activities.*;
+ import java.util.*;
+ 
+ import com.hp.hpl.guess.Guess;
+@@ -19,7 +14,9 @@
+ 
+ public class GuessPEdge extends PPath implements EdgeListener {
+     
+-    private Edge owner = null;
++	private static final long serialVersionUID = 1L;
++
++	private Edge owner = null;
+     
+     private GFrame frame = null;
+ 
+Index: src/com/hp/hpl/guess/animation/AnimationFactory.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/animation/AnimationFactory.java
+diff -N src/com/hp/hpl/guess/animation/AnimationFactory.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/animation/AnimationFactory.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,190 @@
++package com.hp.hpl.guess.animation;
++
++import java.awt.event.ActionEvent;
++import java.awt.event.ActionListener;
++import java.util.HashMap;
++import java.util.Iterator;
++import java.util.Map;
++
++import com.hp.hpl.guess.Edge;
++import com.hp.hpl.guess.GraphElement;
++import com.hp.hpl.guess.Node;
++import com.hp.hpl.guess.piccolo.PAnimationFactory;
++import com.hp.hpl.guess.ui.EdgeEditorPopup;
++import com.hp.hpl.guess.ui.NodeEditorPopup;
++
++
++public abstract class AnimationFactory {
++	
++	private static AnimationFactory singleton = null;
++	
++	private static Map<String, GAnimation> animNodeMap = new HashMap<String, GAnimation>();
++	private static Map<String, GAnimation> animEdgeMap = new HashMap<String, GAnimation>();
++	
++	
++    public static final int PICCOLO = 1;
++    public static final int PREFUSE = 2;
++    public static final int TOUCHGRAPH = 3;
++    public static final int NOVIS = 4;
++    public static final int JUNG = 5;
++	
++    /**
++     * Set the AnimationFactory type. Currently only PICCOLO is supported.
++     * @param type
++     */
++	public static void setFactory(int type) {
++		if (singleton!=null) {
++			throw new Error("AnimationFactory.setFactory() called twice");
++		}
++		
++		if (type == PICCOLO) {
++		    singleton = new PAnimationFactory();
++		} else {
++			throw new Error("Only the Piccolo AnimationFactory is implemented yet.");
++		}
++		
++	}
++	
++	public AnimationFactory() {
++		// Add stop menu items to contextmenus
++		EdgeEditorPopup.addItemToAnimation("Stop").addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++			    	if (EdgeEditorPopup.getSelected() == null)
++			    	    return;
++
++			    	Iterator<GraphElement> it = EdgeEditorPopup.getSelected().iterator();
++			    	while(it.hasNext()) {
++			    		GraphElement ge = (GraphElement)it.next();
++			    		if (ge instanceof Edge) {
++			    			((Edge) ge).animationStopAll();
++			    		}
++			    	}
++			        
++			}
++		});
++		NodeEditorPopup.addItemToAnimation("Stop").addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++			    	if (NodeEditorPopup.getSelected() == null)
++			    	    return;
++
++			    	Iterator<GraphElement> it = NodeEditorPopup.getSelected().iterator();
++			    	while(it.hasNext()) {
++			    		GraphElement ge = (GraphElement)it.next();
++			    		if (ge instanceof Node) {
++			    			((Node) ge).animationStopAll();
++			    		}
++			    	}
++			        
++			}
++		});
++		
++	}
++	
++	/**
++	 * Returns the AnimationFactory type
++	 * @return
++	 */
++	public static AnimationFactory getFactory() {
++		return singleton;
++	}
++	
++	/**
++	 * Generates a new animation for a node
++	 * @param animationName
++	 * @param aNode
++	 * @return
++	 */
++	public abstract GAnimation generateNodeAnimation(String animationName, Node aNode); 
++	
++	/**
++	 * Generates a new animation for a edge
++	 * @param animationName
++	 * @param aNode
++	 * @return
++	 */
++	public abstract GAnimation generateEdgeAnimation(String animationName, Edge aEdge); 
++	
++	
++	/**
++	 * Returns a copy of a animation object for a node
++	 * @param animationName
++	 * @return
++	 */
++	protected GAnimation getNodeAnimation(String animationName) {
++		try {
++			return (GAnimation)animNodeMap.get(animationName).clone();
++		} catch (CloneNotSupportedException e) {
++			e.printStackTrace();
++		}
++		return null;
++	}
++	
++	/**
++	 * Returns a copy of a animation object for a edge
++	 * @param animationName
++	 * @return
++	 */
++	protected GAnimation getEdgeAnimation(String animationName) {
++		try {
++			return (GAnimation)animEdgeMap.get(animationName).clone();
++		} catch (CloneNotSupportedException e) {
++			e.printStackTrace();
++		}
++		return null;
++	}
++	
++	/**
++	 * Registers a new animation for a node
++	 * @param animationName
++	 * @param aAnimation
++	 */
++	public void registerNodeAnimation(final String animationName, GAnimation aAnimation) {
++		// Add animation to library
++		animNodeMap.put(animationName, aAnimation);
++		
++		// Add menu item to context menu
++		NodeEditorPopup.addItemToAnimation(animationName).addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++			    	if (NodeEditorPopup.getSelected() == null)
++			    	    return;
++
++			    	Iterator<GraphElement> it = NodeEditorPopup.getSelected().iterator();
++			    	while(it.hasNext()) {
++			    		GraphElement ge = (GraphElement)it.next();
++			    		if (ge instanceof Node) {
++			    			((Node) ge).animate(animationName);
++			    		}
++			    	}
++			        
++			}
++		});
++		}
++	
++	/**
++	 * Registers a new animation for a edge
++	 * @param animationName
++	 * @param aAnimation
++	 */
++	public void registerEdgeAnimation(final String animationName, GAnimation aAnimation) {
++		// Add animation to library
++		animEdgeMap.put(animationName, aAnimation);
++		
++		// Add menu item to context menu
++		EdgeEditorPopup.addItemToAnimation(animationName).addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++			    	if (EdgeEditorPopup.getSelected() == null)
++			    	    return;
++
++			    	Iterator<GraphElement> it = EdgeEditorPopup.getSelected().iterator();
++			    	while(it.hasNext()) {
++			    		GraphElement ge = (GraphElement)it.next();
++			    		if (ge instanceof Edge) {
++			    			((Edge) ge).animate(animationName);
++			    		}
++			    	}
++			        
++			}
++		});
++	}
++	
++}
+Index: src/com/hp/hpl/guess/piccolo/PRingGAnimation.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/piccolo/PRingGAnimation.java
+diff -N src/com/hp/hpl/guess/piccolo/PRingGAnimation.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/piccolo/PRingGAnimation.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,235 @@
++package com.hp.hpl.guess.piccolo;
++
++import java.awt.Color;
++import java.awt.geom.Ellipse2D;
++
++import javax.naming.directory.InvalidAttributeIdentifierException;
++
++import com.hp.hpl.guess.Node;
++import com.hp.hpl.guess.animation.GAnimation;
++import com.hp.hpl.guess.ui.VisFactory;
++
++import edu.umd.cs.piccolo.PCanvas;
++
++import edu.umd.cs.piccolo.activities.PActivity;
++import edu.umd.cs.piccolo.activities.PInterpolatingActivity;
++import edu.umd.cs.piccolo.activities.PActivity.PActivityDelegate;
++import edu.umd.cs.piccolo.nodes.PPath;
++
++
++public class PRingGAnimation extends GAnimation {
++
++	/**
++	 * piccolos canvas where the elements are painted 
++	 */
++	private PCanvas canvas = (PCanvas) VisFactory.getFactory().getDisplay();
++	
++	/**
++	 * the animation objects
++	 */
++	private PActivity animationSizeActivity = null;
++	private PActivity animationOpacityActivity = null;
++	
++	/**
++	 * the graphical representation of the ring
++	 */
++	private PPath ring = null;
++	
++	/**
++	 * the size of the ring
++	 */
++	private double size = 10;
++	
++	/**
++	 * the time a step needs to complete in ms
++	 */
++	private int stepDuration = 1000;
++	
++	/**
++	 * attribute for the direction of the ring. 
++	 * possible values are "in" and "out".
++	 */
++	private String direction = "out";
++	private final String ANIMATION_DIRECTION_OUT = "out";
++	private final String ANIMATION_DIRECTION_IN = "in";
++	
++	/**
++	 * Constructor for ring animation. set the 
++	 * avaible attributes. 
++	 */
++	public PRingGAnimation() {
++		super.addAvailableAttributes("direction", "out");
++	}
++	
++	/**
++	 * if the node is set create the graphical 
++	 * representation of the ring
++	 */
++	public void setNode(Node node) {
++		super.setNode(node);
++		createRing();
++	}
++
++	/**
++	 * create and (re)set the graphical
++	 * representation of the ring
++	 */
++	private void createRing() {
++		
++		try {
++			direction = super.getAttribute("direction");
++		} catch (NumberFormatException e) {
++			e.printStackTrace();
++		} catch (InvalidAttributeIdentifierException e) {
++			e.printStackTrace();
++		}
++		
++		double x = getNode().getX();
++		double y = getNode().getY();
++		double width = getNode().getWidth();
++		double height = getNode().getHeight();
++		
++		// get the max size we need for the ring
++		size = Math.abs(canvas.getRoot().getX() - x);
++		if (Math.abs(canvas.getRoot().getY() - y)>size) {
++			size = Math.abs(canvas.getRoot().getY() - y);
++		}
++		if (Math.abs((canvas.getRoot().getX() + canvas.getRoot().getWidth()) - x)>size) {
++			size = Math.abs((canvas.getRoot().getX() + canvas.getRoot().getWidth()) - x);
++		}		
++		if (Math.abs((canvas.getRoot().getY() + canvas.getRoot().getHeight()) - y)>size) {
++			size = Math.abs((canvas.getRoot().getY() + canvas.getRoot().getHeight()) - y);
++		}
++		if (ring==null) {
++			if (direction==ANIMATION_DIRECTION_OUT) {
++				ring = new PPath(new Ellipse2D.Double(x,y,width,height));
++			} else if (direction==ANIMATION_DIRECTION_IN) {
++				ring = new PPath(new Ellipse2D.Double(getNode().getX()-size, 
++						getNode().getY()-size, getNode().getWidth()+size*2, getNode().getHeight()+size*2));
++			}
++		} else {
++			if (direction==ANIMATION_DIRECTION_OUT) {
++				ring.setBounds(x,y,width,height);
++			} else if (direction==ANIMATION_DIRECTION_IN) {
++				ring.setBounds(ring.getX()-size, 
++						ring.getY()-size, ring.getWidth()+size*2, ring.getHeight()+size*2);
++			}
++		}
++		
++		ring.setPaint(null);
++		ring.setStroke(((PPath)getNode().getRep()).getStroke());
++		ring.setStrokePaint(Color.WHITE);
++		if (direction==ANIMATION_DIRECTION_OUT) {
++			ring.setTransparency(1);
++		} else if (direction==ANIMATION_DIRECTION_IN) {
++			ring.setTransparency(0);
++		}
++		
++		canvas.getLayer().addChild(ring);
++		canvas.getRoot().invalidatePaint();
++	}
++	
++	/**
++	 * create the animation for the fading out effect
++	 * @param loopCount
++	 * @return
++	 */
++	private PActivity createOpacityActivity(int loopCount) {
++		float opacity = 0;
++		if (direction==ANIMATION_DIRECTION_OUT) {
++			opacity = 0;
++		} else if (direction==ANIMATION_DIRECTION_IN) {
++			opacity = 1;
++		}
++		
++		PInterpolatingActivity opacityActivity = ring.animateToTransparency(opacity, stepDuration);
++		opacityActivity.setMode(PInterpolatingActivity.SOURCE_TO_DESTINATION);
++		opacityActivity.setSlowInSlowOut(true);
++		opacityActivity.setLoopCount(loopCount);
++		opacityActivity.setDelegate(new PActivityDelegate() {
++			public void activityFinished(PActivity arg0) {
++				createRing();
++			}
++			public void activityStarted(PActivity arg0) {}
++			public void activityStepped(PActivity arg0) {}
++		});
++		
++		return opacityActivity;
++	}
++	
++	/**
++	 * create the animation for the ring to become bigger
++	 * @param loopCount
++	 * @return
++	 */
++	private PActivity createSizeAcitvity(int loopCount) {
++		PInterpolatingActivity sizeActivity = null;
++		
++		if (direction==ANIMATION_DIRECTION_OUT) {
++			sizeActivity = ring.animateToBounds(ring.getX()-size, 
++				ring.getY()-size, ring.getWidth()+size*2, ring.getHeight()+size*2, stepDuration);
++		} else if (direction==ANIMATION_DIRECTION_IN) {
++			sizeActivity = ring.animateToBounds(getNode().getX(), 
++					getNode().getY(), getNode().getWidth(), getNode().getHeight(), stepDuration);
++		}
++		
++		sizeActivity.setMode(PInterpolatingActivity.SOURCE_TO_DESTINATION);
++		sizeActivity.setSlowInSlowOut(true);
++		sizeActivity.setLoopCount(loopCount);
++	
++		sizeActivity.setDelegate(new PActivityDelegate() {
++			public void activityFinished(PActivity arg0) {
++				createRing();
++			}
++			public void activityStarted(PActivity arg0) {}
++			public void activityStepped(PActivity arg0) {}
++		});
++		
++		return sizeActivity;
++	}
++
++	/**
++	 * Start the animation
++	 */
++	public void start(int loops) {
++
++		if (animationSizeActivity==null) {
++			animationSizeActivity = createSizeAcitvity(loops);
++		}
++		// Schedule the activity.
++		canvas.getRoot().addActivity(animationSizeActivity);
++		
++
++		if (animationOpacityActivity==null) {
++			animationOpacityActivity = createOpacityActivity(loops);
++		}
++		// Schedule the activity.
++		canvas.getRoot().addActivity(animationOpacityActivity);
++	}
++
++	/**
++	 * Stop the animation
++	 */
++	public void stop() {
++		if (animationSizeActivity!=null) {
++			animationSizeActivity.terminate();
++			animationSizeActivity = null;
++		}
++		if (animationOpacityActivity!=null) {
++			animationOpacityActivity.terminate();
++			animationOpacityActivity = null;
++		}
++		removeRing();
++	}
++	
++	/**
++	 * Remove the ring object from the canvas
++	 */
++	private void removeRing() {
++		if (canvas.getLayer().isAncestorOf(ring)) {
++			canvas.getLayer().removeChild(ring);
++		}
++	}
++
++}
++
+Index: src/com/hp/hpl/guess/piccolo/PAnimationFactory.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/piccolo/PAnimationFactory.java
+diff -N src/com/hp/hpl/guess/piccolo/PAnimationFactory.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/piccolo/PAnimationFactory.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,67 @@
++package com.hp.hpl.guess.piccolo;
++
++import javax.naming.directory.InvalidAttributeIdentifierException;
++
++import com.hp.hpl.guess.Edge;
++import com.hp.hpl.guess.Node;
++import com.hp.hpl.guess.animation.AnimationFactory;
++import com.hp.hpl.guess.animation.GAnimation;
++
++public class PAnimationFactory extends AnimationFactory {
++
++	
++	public PAnimationFactory() {
++		
++		// Register simple node animation
++		registerNodeAnimation("pulse", new PPulseGAnimation());
++		
++		// Register node animation and set some parameters
++		try {
++			GAnimation ringOut = new PRingGAnimation();
++			ringOut.setAttribute("direction", "out");
++			registerNodeAnimation("ring-out", ringOut);
++		} catch (InvalidAttributeIdentifierException e) {
++			e.printStackTrace();
++		}
++		
++		try {
++			GAnimation ringIn = new PRingGAnimation();
++			ringIn.setAttribute("direction", "in");
++			registerNodeAnimation("ring-in", ringIn);
++		} catch (InvalidAttributeIdentifierException e) {
++			e.printStackTrace();
++		}		
++
++		// Register simple edge animation
++		registerEdgeAnimation("arrows", new PArrowsGAnimation());
++		
++		
++	}
++	
++	
++	public GAnimation generateEdgeAnimation(String animationName, Edge edge) {
++		GAnimation anim = null;
++		try {
++			anim = (GAnimation) getEdgeAnimation(animationName).clone();
++			anim.setEdge(edge);
++		} catch (CloneNotSupportedException e) {
++			e.printStackTrace();
++		}
++		
++		return anim;
++	}
++
++	public GAnimation generateNodeAnimation(String animationName, Node node) {
++		GAnimation anim = null;
++		try {
++			anim = (GAnimation) getNodeAnimation(animationName).clone();
++			anim.setNode(node);
++		} catch (CloneNotSupportedException e) {
++			e.printStackTrace();
++		}
++		
++		return anim;
++	}
++
++
++}
+Index: src/com/hp/hpl/guess/piccolo/PArrowsGAnimation.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/piccolo/PArrowsGAnimation.java
+diff -N src/com/hp/hpl/guess/piccolo/PArrowsGAnimation.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/piccolo/PArrowsGAnimation.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,158 @@
++package com.hp.hpl.guess.piccolo;
++
++import java.awt.Color;
++import java.awt.Shape;
++import java.awt.geom.AffineTransform;
++
++import java.util.ArrayList;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.List;
++import java.util.Set;
++
++import com.hp.hpl.guess.animation.GAnimation;
++import com.hp.hpl.guess.ui.VisFactory;
++
++import edu.umd.cs.piccolo.PCanvas;
++import edu.umd.cs.piccolo.PNode;
++import edu.umd.cs.piccolo.activities.PActivity;
++import edu.umd.cs.piccolo.activities.PInterpolatingActivity;
++import edu.umd.cs.piccolo.activities.PActivity.PActivityDelegate;
++import edu.umd.cs.piccolo.nodes.PPath;
++import edu.umd.cs.piccolo.util.PBounds;
++
++
++public class PArrowsGAnimation extends GAnimation {
++
++	/**
++	 * piccolos canvas where the elements are painted
++	 */
++	private PCanvas canvas = (PCanvas) VisFactory.getFactory().getDisplay();
++	
++
++	/**
++	 * unit vectors for the graphical representation of the edge
++	 */
++	private double unitVectorX = 0;
++	private double unitVectorY = 0;
++	
++	/**
++	 * some visual attributes for the arrows
++	 */
++	private double arrowLength = 6;
++	private double arrowWidth = 4;
++	private double arrowSpace = 5;
++
++	/**
++	 * list of all activities (one for each arrow) 
++	 */
++	private Set<PActivity> activitySet = new HashSet<PActivity>();
++	
++	/**
++	 * List of the graphical representation of the nodes
++	 */
++	private Set<PNode> arrowList = new HashSet<PNode>();
++
++
++	/**
++	 * create the animation
++	 * @param loopCount
++	 * @return
++	 */
++	private void createActivities(int loopCount) {
++		arrowSpace = getEdge().getNode1().getWidth() / 2;
++		
++		double x1 = getEdge().getNode1().getX() + (getEdge().getNode1().getWidth()/2);
++		double x2 = getEdge().getNode2().getX() + (getEdge().getNode2().getWidth()/2);
++		double y1 = getEdge().getNode1().getY() + (getEdge().getNode1().getHeight()/2);
++		double y2 = getEdge().getNode2().getY() + (getEdge().getNode2().getHeight()/2);
++	
++		// get length of edge
++		double edgeLength = Math.sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1-y2));
++		
++		unitVectorX = ((x1-x2)/edgeLength);
++		unitVectorY = ((y1-y2)/edgeLength);
++		
++		final List<PBounds> oldBounds = new ArrayList<PBounds>();
++		int i = 0;
++		
++		// Place the arrows behind each other
++		double curY = 4*arrowSpace;
++		while ((curY + 2*arrowSpace) < edgeLength) {
++			
++			AffineTransform at = new AffineTransform();
++			double thetaRadians = Math.atan2(( y1 - y2), (x1 - x2)) + Math.PI;
++			
++			// Set position
++			at.translate(x2 - (-1)*curY*unitVectorX, y2 - (-1)*curY*unitVectorY);
++			at.rotate(thetaRadians);
++			
++			// create a arrow prototype
++			Shape arrowShape = at.createTransformedShape(Arrow.getSleekArrow((int)arrowWidth, (int)arrowLength));
++			final PPath arrow = new PPath(arrowShape);
++			
++			arrowList.add(arrow);
++			
++			// set paint and stroke
++			arrow.setPaint(Color.RED);
++			arrow.setStroke(null);
++			
++			// Add to canvas
++			canvas.getLayer().addChild(arrow);
++
++			curY += arrowLength + arrowSpace;
++			
++			oldBounds.add(i, arrow.getBounds());
++			
++			// Create new activity
++			PInterpolatingActivity arrowActivity = arrow.animateToBounds(arrow.getX() - (arrowLength + arrowSpace)*unitVectorX, 
++					arrow.getY() - (arrowLength + arrowSpace)*unitVectorY, arrow.getWidth(), arrow.getHeight(), 400);
++
++			final int finali = i;
++			arrowActivity.setDelegate(new PActivityDelegate() {
++				public void activityFinished(PActivity arg0) {
++					arrow.setBounds(oldBounds.get(finali));
++				}
++				public void activityStarted(PActivity arg0) {}
++				public void activityStepped(PActivity arg0) {}
++			});
++			
++			arrowActivity.setLoopCount(loopCount);
++
++			// Schedule the activity.
++			canvas.getRoot().addActivity(arrowActivity);
++			activitySet.add(arrowActivity);
++			
++			i++;
++		}
++			
++	}
++
++	
++	/**
++	 * Start the animation
++	 */
++	public void start(int loops) {
++		createActivities(loops);
++	}
++
++	/**
++	 * Stop the animation
++	 */
++	public void stop() {
++
++		Iterator<PActivity> actIterator = activitySet.iterator();
++		while (actIterator.hasNext()) {
++			actIterator.next().terminate();
++		}
++		
++		Iterator<PNode> arrowsIterator = arrowList.iterator();
++		while (arrowsIterator.hasNext()) {
++			PNode nextNode = arrowsIterator.next();
++			if (canvas.getLayer().isAncestorOf(nextNode)) {
++				canvas.getLayer().removeChild(nextNode);
++			}
++		}
++	}
++
++}
+Index: scripts/animhighlight.py
+===================================================================
+RCS file: scripts/animhighlight.py
+diff -N scripts/animhighlight.py
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ scripts/animhighlight.py	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,63 @@
++import java
++
++class animhighlight(java.lang.Object):
++
++	# so we can "unhighlight" nodes
++	_toFix = {}
++	
++	def __init__(self):
++		# add the listeners
++		graphevents.mouseEnterNode = self.mouseEnter
++		graphevents.mouseLeaveNode = self.mouseLeave
++		graphevents.clickNode = self.mouseClick
++		
++		# remove default behaviors
++		vf.defaultNodeHighlights(false)
++		vf.defaultNodeZooming(false)
++
++	def mouseEnter(self,_node):
++		self._toFix[_node] = _node.color
++		StatusBar.setStatus(str(_node))
++		_node.color = yellow
++
++		for _e in _node.getOutEdges():
++			if not (_e in self._toFix.keys()):
++				self._toFix[_e] = _e.color
++				_e.color = orange
++				_e.animate("arrows")
++
++		for _e in _node.getInEdges():
++			if not (_e in self._toFix.keys()):
++				self._toFix[_e] = _e.color
++				_e.color = green
++				_e.animate("arrows")
++
++		for _n in _node.getPredecessors():
++			if (_n != _node):
++				self._toFix[_n] = _n.color
++				_n.color = green
++				_n.animate("pulse")
++
++		for _n in _node.getSuccessors():
++			if (_n != _node):
++				self._toFix[_n] = _n.color
++				_n.color = red
++				_n.animate("pulse")
++
++
++
++	def mouseLeave(self,_node):
++		# put back all the original colors
++		# and stop animations
++		for _elem in self._toFix.keys():
++			_elem.color = self._toFix[_elem]
++			_elem.animationStopAll()
++		self._toFix.clear();
++
++	def mouseClick(self,_node):
++		# zoom to the node AND its neighbors
++		_toCenter = [_node]
++		_toCenter += _node.getNeighbors()
++		center(_toCenter)
++
++animhighlight()
+Index: src/com/hp/hpl/guess/animation/GAnimation.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/animation/GAnimation.java
+diff -N src/com/hp/hpl/guess/animation/GAnimation.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/animation/GAnimation.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,128 @@
++package com.hp.hpl.guess.animation;
++
++import java.util.HashMap;
++import java.util.HashSet;
++import java.util.Map;
++import java.util.Set;
++
++import javax.naming.directory.InvalidAttributeIdentifierException;
++
++import com.hp.hpl.guess.Edge;
++import com.hp.hpl.guess.Node;
++
++public abstract class GAnimation implements Cloneable {
++	
++	private Map<String,String> attributes = new HashMap<String, String>();
++	private Set<String> availableAttributes = new HashSet<String>();
++	private Node node = null;
++	private Edge edge = null;
++	
++	/**
++	 * Start the animation for n loops
++	 */
++	public abstract void start(int loops);
++	
++	/**
++	 * finish the current loop and then stop
++	 * the animation
++	 */
++	public abstract void stop();
++	
++	/**
++	 * Return the node for the animation
++	 * @return
++	 */
++	protected Node getNode() {
++		return node;
++	}
++	
++	/**
++	 * Return the edge for the animation
++	 * @return
++	 */
++	protected Edge getEdge() {
++		return edge;
++	}
++	
++	/**
++	 * Set the node for the animation
++	 */
++	public void setNode(Node aNode) {
++		node = aNode;
++	}
++	
++	/**
++	 * Set the edge for the animation
++	 */
++	public void setEdge(Edge aEdge) {
++		edge = aEdge;
++	}
++	
++	/**
++	 * Add a attribute 
++	 * @param name
++	 * @return 
++	 */
++	protected void addAvailableAttributes(String name, String defaultValue) {
++		availableAttributes.add(name);
++		try {
++			setAttribute(name,defaultValue);
++		} catch (InvalidAttributeIdentifierException e) {
++			// Will not happen !
++		}
++	}
++	
++	
++	/**
++	 * Start the animation for a (nearly) unlimited count of loops.
++	 * Should be overwritten by subclasses to really get an unlimited
++	 * count of loops instead of Integer.MAX_VALUE.
++	 */
++	public void start() {
++		start(Integer.MAX_VALUE);
++	}
++	
++	/**
++	 * Return a list of available Params
++	 * @return
++	 */
++	public Set<String> getAvailableAttributes() {
++		return availableAttributes;
++	}
++	
++	/**
++	 * Set the value of parameter name
++	 * @param name
++	 * @param value
++	 * @throws InvalidAttributeIdentifierException if name is not in getAvaibleAttributes()
++	 */
++	public void setAttribute(String name, String value) throws InvalidAttributeIdentifierException {
++		if (!getAvailableAttributes().contains(name)) {
++			throw new InvalidAttributeIdentifierException();
++		}
++		
++		attributes.put(name, value);
++	}
++	
++	/**
++	 * Return the value of parameter name 
++	 * @param name
++	 * @return
++	 * @throws InvalidAttributeIdentifierException if name is not in getAvaibleAttributes()
++	 */
++	public String getAttribute(String name) throws InvalidAttributeIdentifierException{
++		if (!getAvailableAttributes().contains(name)) {
++			throw new InvalidAttributeIdentifierException();
++		}
++		
++		return attributes.get(name);
++	}
++	
++	/**
++	 * Return a copy of the current object 
++	 * @throws CloneNotSupportedException
++	 */
++	public Object clone() throws CloneNotSupportedException {
++	    return super.clone(); 
++	}
++}
+Index: src/com/hp/hpl/guess/piccolo/PPulseGAnimation.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/piccolo/PPulseGAnimation.java
+diff -N src/com/hp/hpl/guess/piccolo/PPulseGAnimation.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/piccolo/PPulseGAnimation.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,102 @@
++package com.hp.hpl.guess.piccolo;
++
++import javax.naming.directory.InvalidAttributeIdentifierException;
++
++import com.hp.hpl.guess.Node;
++import com.hp.hpl.guess.animation.GAnimation;
++import com.hp.hpl.guess.ui.VisFactory;
++
++import edu.umd.cs.piccolo.PCanvas;
++import edu.umd.cs.piccolo.PNode;
++
++import edu.umd.cs.piccolo.activities.PActivity;
++import edu.umd.cs.piccolo.activities.PInterpolatingActivity;
++
++
++public class PPulseGAnimation extends GAnimation {
++
++	/**
++	 * The graphical representation of the node
++	 */
++	private PNode nodeRep = null;
++	
++	/**
++	 * piccolos canvas where the elements are painted
++	 */
++	private PCanvas canvas = (PCanvas) VisFactory.getFactory().getDisplay();
++	
++	/**
++	 * the piccolo animation object
++	 */
++	private PActivity animationActivity = null;
++	
++	/**
++	 * Constructor, set the size attribute to 10
++	 */
++	public PPulseGAnimation() {
++		super.addAvailableAttributes("size", "10");
++	}
++	
++	/**
++	 * if the current node is set, init the 
++	 * graphical representation.
++	 */
++	public void setNode(Node node) {
++		super.setNode(node);
++		nodeRep = (PNode) node.getRep();
++	}
++
++	/**
++	 * create the size animation
++	 * @param loopCount
++	 * @return
++	 */
++	private PActivity createAcitvity(int loopCount) {
++		int size = 10;
++		try {
++			size = Integer.valueOf(super.getAttribute("size"));
++		} catch (NumberFormatException e) {
++			e.printStackTrace();
++		} catch (InvalidAttributeIdentifierException e) {
++			e.printStackTrace();
++		}
++		
++		PInterpolatingActivity pulseActivity = nodeRep.animateToBounds(nodeRep.getX()-(size/2), 
++				nodeRep.getY()-(size/2), nodeRep.getWidth()+size, nodeRep.getHeight()+size, 1000);
++		
++		pulseActivity.setMode(PInterpolatingActivity.SOURCE_TO_DESTINATION_TO_SOURCE);
++		pulseActivity.setSlowInSlowOut(true);
++		pulseActivity.setLoopCount(loopCount);
++	
++		return pulseActivity;
++	}
++	
++	/**
++	 * Return the name of the animation 
++	 */
++	public String getName() {
++		return "Pulse";
++	}
++
++	/**
++	 * Start the animation
++	 */
++	public void start(int loops) {
++		if (animationActivity==null) {
++			animationActivity = createAcitvity(loops);
++		}
++		// Schedule the activity.
++		canvas.getRoot().addActivity(animationActivity);
++	}
++
++	/**
++	 * Stop the animation
++	 */
++	public void stop() {
++		if (animationActivity!=null) {
++			animationActivity.terminate();
++			animationActivity = null;
++		}
++	}
++
++}

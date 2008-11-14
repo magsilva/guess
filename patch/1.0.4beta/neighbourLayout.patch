@@ -1,0 +1,581 @@
+### Eclipse Workspace Patch 1.0
+#P guess-cvs
+Index: scripts/Main.py
+===================================================================
+RCS file: /cvsroot/guess/guess/scripts/Main.py,v
+retrieving revision 1.21
+diff -u -r1.21 Main.py
+--- scripts/Main.py	10 Aug 2007 18:50:27 -0000	1.21
++++ scripts/Main.py	24 Oct 2008 09:28:43 -0000
+@@ -369,6 +369,9 @@
+ def radialLayout(center):
+ 	g.radialLayout(center)
+ 
++def neighbourLayout(start):
++	g.neighbourLayout(start)
++
+ def density():
+ 	return g.density()
+ 
+Index: scripts/Main-applet.py
+===================================================================
+RCS file: /cvsroot/guess/guess/scripts/Main-applet.py,v
+retrieving revision 1.21
+diff -u -r1.21 Main-applet.py
+--- scripts/Main-applet.py	10 Aug 2007 18:50:27 -0000	1.21
++++ scripts/Main-applet.py	24 Oct 2008 09:28:39 -0000
+@@ -361,6 +361,9 @@
+ def radialLayout(center):
+ 	g.radialLayout(center)
+ 
++def neighbourLayout(start):
++	g.neighbourLayout(start)
++
+ def density():
+ 	return g.density()
+ 
+Index: src/com/hp/hpl/guess/Node.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Node.java,v
+retrieving revision 1.5
+diff -u -r1.5 Node.java
+--- src/com/hp/hpl/guess/Node.java	5 Oct 2006 04:56:55 -0000	1.5
++++ src/com/hp/hpl/guess/Node.java	24 Oct 2008 09:28:56 -0000
+@@ -454,8 +454,8 @@
+ 			Node b = edge.getNode2();
+ 			if ((a.__getattr__("visible").equals(Boolean.TRUE)) &&
+ 			    (b.__getattr__("visible").equals(Boolean.TRUE))) {
+-			    if (edge.__getattr__("visible").equals(Boolean.FALSE)) 
+-				edge.__setattr__("visible", Boolean.TRUE);
++			    //if (edge.__getattr__("visible").equals(Boolean.FALSE)) 
++				//edge.__setattr__("visible", Boolean.TRUE);
+ 			    
+ 			} else {
+ 			    if (edge.__getattr__("visible").equals(Boolean.TRUE))
+Index: src/com/hp/hpl/guess/Graph.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Graph.java,v
+retrieving revision 1.20
+diff -u -r1.20 Graph.java
+--- src/com/hp/hpl/guess/Graph.java	30 Sep 2008 11:29:19 -0000	1.20
++++ src/com/hp/hpl/guess/Graph.java	24 Oct 2008 09:28:50 -0000
+@@ -1,6 +1,8 @@
+ package com.hp.hpl.guess;
+ 
+ import java.awt.*;
++import java.awt.event.ActionEvent;
++import java.awt.event.ActionListener;
+ import java.sql.*;
+ import java.util.*;
+ 
+@@ -164,6 +166,7 @@
+ 
+ 		nodeSchemaInt = new NodeSchema(this);
+ 		edgeSchemaInt = new EdgeSchema(this);
++
+ 	}
+ 
+     /**
+@@ -831,7 +834,22 @@
+     {
+ 		layout(new Rescale(this, xpercent, ypercent));
+ 	}
++    
++    
++    /**
++     * Shows only the neighbours of the node, or
++     * specify a dept.
++     */
++    public void neighbourLayout(Node center)
++    {
++		layout(new Neighbour(this, center, 1));
++	}
+ 
++    public void neighbourLayout(Node center, int dept)
++    {
++		layout(new Neighbour(this, center, dept));
++	}
++    
+     /**
+      * places all nodes in a growing radius around center
+      * @param center the node to put in the center
+Index: src/com/hp/hpl/guess/Guess.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Guess.java,v
+retrieving revision 1.24
+diff -u -r1.24 Guess.java
+--- src/com/hp/hpl/guess/Guess.java	30 Sep 2008 11:29:19 -0000	1.24
++++ src/com/hp/hpl/guess/Guess.java	24 Oct 2008 09:28:54 -0000
+@@ -21,7 +21,11 @@
+ import edu.uci.ics.jung.graph.*;
+ import com.hp.hpl.guess.storage.*;
+ import com.hp.hpl.guess.ui.*;
++
+ import gnu.getopt.*;
++
++import com.hp.hpl.guess.layout.Neighbour;
++import com.hp.hpl.guess.layout.Radial;
+ import com.hp.hpl.guess.r.R;
+ import com.hp.hpl.guess.util.GuessPyStringMap;
+ import java.applet.AppletContext;
+@@ -950,6 +954,62 @@
+ 	if (g.containsDirected()) {
+ 	    VisFactory.getFactory().setDirected(true);
+ 	}
++	
++	
++	
++	// set context menu layouts
++	NodeEditorPopup.addLayoutItem("Neighbour (Level 1)").addActionListener(new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			Iterator nodeIterator = NodeEditorPopup.getSelected().iterator();
++			while (nodeIterator.hasNext()) {
++				GraphElement next = (GraphElement) nodeIterator.next();
++				if (next instanceof Node) {
++					Guess.getGraph().layout(new Neighbour(Guess.getGraph(), (Node) next, 1));
++				}
++			}
++			
++		}
++	});
++	
++	NodeEditorPopup.addLayoutItem("Neighbour (Level 2)").addActionListener(new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			Iterator nodeIterator = NodeEditorPopup.getSelected().iterator();
++			while (nodeIterator.hasNext()) {
++				GraphElement next = (GraphElement) nodeIterator.next();
++				if (next instanceof Node) {
++					Guess.getGraph().layout(new Neighbour(Guess.getGraph(), (Node) next, 2));
++				}
++			}
++			
++		}
++	});
++	
++	NodeEditorPopup.addLayoutItem("Neighbour (Level 3)").addActionListener(new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			Iterator nodeIterator = NodeEditorPopup.getSelected().iterator();
++			while (nodeIterator.hasNext()) {
++				GraphElement next = (GraphElement) nodeIterator.next();
++				if (next instanceof Node) {
++					Guess.getGraph().layout(new Neighbour(Guess.getGraph(), (Node) next, 3));
++				}
++			}
++			
++		}
++	});
++	
++	NodeEditorPopup.addLayoutItem("Radial").addActionListener(new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			Iterator nodeIterator = NodeEditorPopup.getSelected().iterator();
++			while (nodeIterator.hasNext()) {
++				GraphElement next = (GraphElement) nodeIterator.next();
++				if (next instanceof Node) {
++					Guess.getGraph().layout(new Radial(Guess.getGraph(), (Node) next));
++				}
++			}
++			
++		}
++	});
++	
+     }
+ 
+     public static void initRest(int uiMode, boolean guiMode, boolean textMode) 
+Index: src/com/hp/hpl/guess/Edge.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Edge.java,v
+retrieving revision 1.5
+diff -u -r1.5 Edge.java
+--- src/com/hp/hpl/guess/Edge.java	9 Aug 2007 18:22:08 -0000	1.5
++++ src/com/hp/hpl/guess/Edge.java	24 Oct 2008 09:28:44 -0000
+@@ -174,24 +174,22 @@
+ 	}
+ 
+ 	//may need to show/hide connected edges
+-	if (name.equals("visible"))
+-	    {
++	if (name.equals("visible")) {
+ 		if (value == Boolean.TRUE) {
+ 		    // if I'm visible, make the two end points visible
+ 		    Node a = getNode1();
+ 		    Node b = getNode2();
+-		    if ((Boolean)a.__getattr__("visible") 
+-			!= Boolean.TRUE) {
+-			a.__setattr__("visible",Boolean.TRUE);
++		    if ((Boolean)a.__getattr__("visible") != Boolean.TRUE) {
++		    	a.__setattr__("visible",Boolean.TRUE);
+ 		    }
+ 		    if (b != a) {
+-			if ((Boolean)b.__getattr__("visible") 
+-			    != Boolean.TRUE) {
+-			    b.__setattr__("visible",Boolean.TRUE);
+-			}
++				if ((Boolean)b.__getattr__("visible") 
++				    != Boolean.TRUE) {
++				    b.__setattr__("visible",Boolean.TRUE);
++				}
+ 		    }
+-		} 
+-	    }
++		}
++	}
+ 	
+ 	//need to update database regardless.
+ 	updateColumn(name, value);
+Index: src/com/hp/hpl/guess/piccolo/GuessTextNode.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessTextNode.java,v
+retrieving revision 1.7
+diff -u -r1.7 GuessTextNode.java
+--- src/com/hp/hpl/guess/piccolo/GuessTextNode.java	6 Feb 2008 18:31:48 -0000	1.7
++++ src/com/hp/hpl/guess/piccolo/GuessTextNode.java	24 Oct 2008 09:29:07 -0000
+@@ -352,7 +352,12 @@
+ 		setVisible(((Boolean)o).booleanValue());
+ 	    } else if (field.equals("labelsize")) {
+ 		setLabelSize(((Integer)o).intValue());
+-	    }
++	    } else if (field.equals("opacity")) {
++			if (o instanceof Float) {
++				setTransparency((Float)o);
++			}
++		}
++	    
+ 	    if (Guess.getMTF()) 
+ 		moveToFront();
+ 	} catch (Exception e) {
+Index: src/com/hp/hpl/guess/piccolo/GuessShapeNode.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessShapeNode.java,v
+retrieving revision 1.9
+diff -u -r1.9 GuessShapeNode.java
+--- src/com/hp/hpl/guess/piccolo/GuessShapeNode.java	6 Feb 2008 18:31:48 -0000	1.9
++++ src/com/hp/hpl/guess/piccolo/GuessShapeNode.java	24 Oct 2008 09:29:02 -0000
+@@ -71,6 +71,10 @@
+ 	    } else {
+ 		setStrokePaint((Colors.getColor((String)o,(Color)getPaint())));
+ 	    }
++	} else if (field.equals("opacity")) {
++		if (o instanceof Float) {
++			setTransparency((Float)o);
++		}
+ 	}
+ 
+ 	if (Guess.getMTF()) 
+Index: src/com/hp/hpl/guess/piccolo/GuessPEdge.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessPEdge.java,v
+retrieving revision 1.8
+diff -u -r1.8 GuessPEdge.java
+--- src/com/hp/hpl/guess/piccolo/GuessPEdge.java	24 Aug 2007 00:25:13 -0000	1.8
++++ src/com/hp/hpl/guess/piccolo/GuessPEdge.java	24 Oct 2008 09:29:01 -0000
+@@ -61,7 +61,12 @@
+ 		    labelColor = 
+ 			(Colors.getColor((String)o,(Color)getColor()));
+ 		}
+-	    }
++	    } else if (field.equals("opacity")) {
++			if (o instanceof Float) {
++				setTransparency((Float)o);
++			}
++		}
++	    
+ 	    if (Guess.getMTF()) 
+ 		moveToFront();
+ 	} catch (Exception e) {
+Index: src/com/hp/hpl/guess/piccolo/GuessImageNode.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessImageNode.java,v
+retrieving revision 1.4
+diff -u -r1.4 GuessImageNode.java
+--- src/com/hp/hpl/guess/piccolo/GuessImageNode.java	6 Feb 2008 18:31:47 -0000	1.4
++++ src/com/hp/hpl/guess/piccolo/GuessImageNode.java	24 Oct 2008 09:28:58 -0000
+@@ -69,7 +69,12 @@
+ 	    } else {
+ 		setLabelPaint((Colors.getColor((String)o,(Color)getPaint())));
+ 	    }
+-	} 
++	}  else if (field.equals("opacity")) {
++		if (o instanceof Float) {
++			setTransparency((Float)o);
++		}
++	}
++	
+ 	if (Guess.getMTF()) 
+ 	    moveToFront();
+     
+Index: src/com/hp/hpl/guess/ui/EditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/EditorPopup.java,v
+retrieving revision 1.2
+diff -u -r1.2 EditorPopup.java
+--- src/com/hp/hpl/guess/ui/EditorPopup.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/EditorPopup.java	24 Oct 2008 09:29:08 -0000
+@@ -27,11 +27,15 @@
+ public abstract class EditorPopup extends JPopupMenu {
+     
+     InterpreterAbstraction jython = null;
+-    protected Collection selected = null;
++    protected static Collection selected = null;
+     protected Object currentH = null;
+ 
+     protected boolean sep = false;
+ 
++    public static Collection getSelected() {
++    	return selected;
++    }
++    
+     public static EditorPopup getPopup() {
+ 	return(null);
+     }
+Index: src/com/hp/hpl/guess/ui/NodeEditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/NodeEditorPopup.java,v
+retrieving revision 1.2
+diff -u -r1.2 NodeEditorPopup.java
+--- src/com/hp/hpl/guess/ui/NodeEditorPopup.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/NodeEditorPopup.java	24 Oct 2008 09:29:09 -0000
+@@ -34,33 +34,54 @@
+ 
+ public class NodeEditorPopup extends GraphElementEditorPopup {
+ 
+-    public static EditorPopup singleton = null;
++	public static EditorPopup singleton = null;
+ 
+-    public static JMenuItem addItem(String s) {
+-	EditorPopup ep = getPopup();
++	private static JMenu layoutMenu = null;
+ 
+-	if (!ep.sep) {
+-	    ep.addSeparator();
+-	    ep.sep = true;
+-	}
+-	
+-	JMenuItem jmi = ep.createJMI(s);
+-	ep.add(jmi);
+-	return(jmi);
++	public static JMenuItem addLayoutItem(String s) {
++    	EditorPopup ep = getPopup();
++
++    	if (!ep.sep) {
++    	    ep.addSeparator();
++    	    ep.sep = true;
++    	}
++    	
++    	if (layoutMenu==null) {
++    		layoutMenu = new JMenu("Layout");
++    		ep.add(layoutMenu);
++    	}
++    	
++    	JMenuItem jmi = ep.createJMI(s);
++    	layoutMenu.add(jmi);
++    	
++    	return(jmi);
+     }
+ 
+-    public static EditorPopup getPopup() {
+-	if (singleton == null) {
+-	    singleton = new NodeEditorPopup(Guess.getInterpreter());
++	public static JMenuItem addItem(String s) {
++		EditorPopup ep = getPopup();
++
++		if (!ep.sep) {
++			ep.addSeparator();
++			ep.sep = true;
++		}
++
++		JMenuItem jmi = ep.createJMI(s);
++		ep.add(jmi);
++		return (jmi);
+ 	}
+-	return(singleton);
+-    }
+ 
+-    protected NodeEditorPopup(InterpreterAbstraction jython) {
+-	super(jython);
+-	setLabel("Node Menu");
+-	
+-	// add functions here
++	public static EditorPopup getPopup() {
++		if (singleton == null) {
++			singleton = new NodeEditorPopup(Guess.getInterpreter());
++		}
++		return (singleton);
++	}
+ 
+-    }
++	protected NodeEditorPopup(InterpreterAbstraction jython) {
++		super(jython);
++		setLabel("Node Menu");
++
++		// add functions here
++
++	}
+ }
+Index: src/com/hp/hpl/guess/ui/GMenuBar.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GMenuBar.java,v
+retrieving revision 1.9
+diff -u -r1.9 GMenuBar.java
+--- src/com/hp/hpl/guess/ui/GMenuBar.java	30 Sep 2008 11:29:18 -0000	1.9
++++ src/com/hp/hpl/guess/ui/GMenuBar.java	24 Oct 2008 09:29:09 -0000
+@@ -321,6 +321,22 @@
+ 												+ centerN);
+ 							}
+ 						}
++					} else if (command.equals("Neighbour...")) {
++						String startN = getInputFromUser(
++								"Please enter a node to set the start",
++								"User input", "");
++						if (startN != null) {
++							Node x = Guess.getGraph().getNodeByName(startN);
++							if (x != null) {
++								Guess.getGraph().neighbourLayout(x);
++								StatusBar.setStatus("neighbourLayout(" + startN
++										+ ")");
++							} else {
++								StatusBar
++										.setErrorStatus("Can't find node named "
++												+ startN);
++							}
++						}
+ 					} else if (command.equals("Circular")) {
+ 						Guess.getGraph().circleLayout();
+ 						StatusBar.setStatus("circleLayout()");
+Index: src/com/hp/hpl/guess/layout/Neighbour.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/layout/Neighbour.java
+diff -N src/com/hp/hpl/guess/layout/Neighbour.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/layout/Neighbour.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,131 @@
++package com.hp.hpl.guess.layout;
++
++import java.util.HashMap;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Set;
++
++import com.hp.hpl.guess.Edge;
++import com.hp.hpl.guess.GraphElement;
++import com.hp.hpl.guess.Guess;
++import com.hp.hpl.guess.Node;
++
++import com.hp.hpl.guess.Graph;
++import edu.uci.ics.jung.graph.Vertex;
++import edu.uci.ics.jung.visualization.AbstractLayout;
++import edu.umd.cs.piccolo.PNode;
++
++public class Neighbour extends AbstractLayout {
++
++	private Map<GraphElement, Integer> elementLevel = new HashMap<GraphElement, Integer>();
++	private int maxDept = 1;
++	
++	public Neighbour(Graph g, Node center, int dept) {
++		super(g);
++		elementLevel.put(center, 0);
++		maxDept = dept;
++		getNeighbours(center, 1);
++		colorizeGraphElements(g);
++	}
++
++	public boolean incrementsAreDone() {
++		return false;
++	}
++
++	public boolean isIncremental() {
++		return false;
++	}
++	
++	/**
++	 * Runs recursivly, as a result we get the groups map.
++	 * @param startNode
++	 * @param deptLevel
++	 */
++	private void getNeighbours(Node startNode, int deptLevel) {	
++		Set<Node> nextNodes = new HashSet<Node>();
++		Iterator<GraphElement> directNeighbours = startNode.getNeighbors().iterator();
++		while (directNeighbours.hasNext()) {
++			GraphElement next = directNeighbours.next();
++			if (!elementLevel.containsKey(next)) {
++				elementLevel.put(next, deptLevel);
++				if (next instanceof Node) {
++					nextNodes.add((Node)next);
++				}
++			}
++		}
++		
++		Iterator<GraphElement> directInEdges = startNode.getInEdges().iterator();
++		while (directInEdges.hasNext()) {
++			GraphElement next = directInEdges.next();
++			if (!elementLevel.containsKey(next)) {
++				Node node1 = ((Edge)next).getNode1();
++				Node node2 = ((Edge)next).getNode2();
++				if ((!node1.equals(startNode) && elementLevel.get(node1)!=elementLevel.get(startNode)) ||
++						(!node2.equals(startNode) && elementLevel.get(node2)!=elementLevel.get(startNode))) {
++					elementLevel.put(next, deptLevel);
++				}
++			}
++		}
++		
++		Iterator<GraphElement> directOutEdges = startNode.getOutEdges().iterator();
++		while (directOutEdges.hasNext()) {
++			GraphElement next = directOutEdges.next();
++			if (!elementLevel.containsKey(next)) {
++				Node node1 = ((Edge)next).getNode1();
++				Node node2 = ((Edge)next).getNode2();
++				if ((!node1.equals(startNode) && elementLevel.get(node1)!=elementLevel.get(startNode)) ||
++						(!node2.equals(startNode) && elementLevel.get(node2)!=elementLevel.get(startNode))) {
++					elementLevel.put(next, deptLevel);
++				}
++			}
++		}
++		
++		
++		// Get the further neighbours
++		if (deptLevel==maxDept) {
++			return;
++		} else {
++			Iterator<Node> nodeIterator = nextNodes.iterator();
++			while (nodeIterator.hasNext()) {
++				getNeighbours(nodeIterator.next(), deptLevel + 1);
++			}
++		}
++	}
++
++	private void colorizeGraphElements(Graph tree) {
++		Iterator<GraphElement> nodeIterator = tree.getNodes().iterator();
++		while(nodeIterator.hasNext()) {
++			GraphElement next = nodeIterator.next();
++			if (!elementLevel.containsKey(next)) {
++				next.hide();
++			} else {
++				next.show();
++				float level = 1.0f;
++				if (elementLevel.get(next)!=0) {
++					level = 1.0f / elementLevel.get(next);
++				}
++				next.getRep().set("opacity", level);
++			}
++		}
++		
++		Iterator<GraphElement> edgeIterator = Guess.getGraph().getEdges().iterator();
++		while(edgeIterator.hasNext()) {
++			GraphElement next = edgeIterator.next();
++			if (elementLevel.containsKey(next)) {
++				next.show();
++				float level = 1.0f / elementLevel.get(next);
++				next.getRep().set("opacity", level);
++			} else {
++				next.hide();
++			}
++		}	
++	}
++
++	/**
++	 * unused
++	 */
++	public void advancePositions() {}
++	protected void initialize_local_vertex(Vertex arg0) {}
++
++}

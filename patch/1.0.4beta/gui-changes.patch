@@ -1,0 +1,6137 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/piccolo/GFrame.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GFrame.java,v
+retrieving revision 1.6
+diff -u -r1.6 GFrame.java
+--- src/com/hp/hpl/guess/piccolo/GFrame.java	6 Oct 2006 01:06:06 -0000	1.6
++++ src/com/hp/hpl/guess/piccolo/GFrame.java	30 Oct 2008 11:05:31 -0000
+@@ -3,10 +3,12 @@
+ import edu.umd.cs.piccolo.*;
+ import edu.umd.cs.piccolo.event.*;
+ import edu.umd.cs.piccolo.nodes.*;
+-import edu.umd.cs.piccolox.nodes.P3DRect;
+ import com.hp.hpl.guess.*;
++
++import java.awt.event.MouseAdapter;
++import java.awt.event.MouseEvent;
++import java.awt.event.MouseListener;
+ import java.awt.geom.*;
+-import java.awt.BasicStroke;
+ import edu.umd.cs.piccolo.util.PBounds;
+ import edu.umd.cs.piccolox.event.MySelectionHandler;
+ import edu.umd.cs.piccolox.handles.PHandle;
+@@ -15,15 +17,13 @@
+ 
+ import com.hp.hpl.guess.ui.FrameListener;
+ import com.hp.hpl.guess.ui.Colors;
+-import com.hp.hpl.guess.ui.StatusBar;
+ import com.hp.hpl.guess.ui.ExceptionWindow;
++import com.hp.hpl.guess.ui.VisFactory;
+ import com.hp.hpl.guess.freehep.HEPWriter;
+ 
+ import javax.swing.SwingUtilities;
+-import javax.swing.JPanel;
+ 
+ import org.python.core.PySequence;
+-import org.python.core.PyObject;
+ import org.python.core.PyInstance;
+ 
+ import com.sun.image.codec.jpeg.*;
+@@ -32,9 +32,7 @@
+ import java.io.*;
+ 
+ import java.awt.print.*;
+-import edu.umd.cs.piccolo.util.PPaintContext;
+ 
+-import org.freehep.graphicsio.ImageGraphics2D;
+ 
+ /**
+  * The frame for the Piccolo interface.  This provides the high level
+@@ -44,29 +42,42 @@
+  */
+ public class GFrame extends PCanvas implements FrameListener {
+ 
+-    boolean frozen = false;
++	private static final long serialVersionUID = 1L;
++
++	boolean frozen = false;
+ 
+     JpegImagesToMovie jitm = null;
+ 
+-    Vector frameBuffer = new Vector();
++    Vector<byte[]> frameBuffer = new Vector<byte[]>();
+ 
+     public int fileCounter = 0;
+ 
+-    private boolean auto = true;
+-
+     private boolean movieMode = false;
+ 
+     public GFrame() {
+ 	super(); 
+-	//initialize();
+-	//repaint();
++
+ 	SwingUtilities.invokeLater(new Runnable() {
+ 		public void run() {
+-		    //		    System.out.println("run...");
+ 		    initialize();
+ 		    repaint();
+ 		}
+ 	    });
++	
++	// Show overview
++	this.addMouseListener(new MouseAdapter() {
++		public void mouseClicked(MouseEvent e) {
++			if (e.getButton() == MouseEvent.BUTTON2) {
++				PreviewPopup overview = new PreviewPopup((GFrame) 
++						VisFactory.getFactory().getDisplay(), true);
++				overview.showUpInCorner((GFrame) 
++						VisFactory.getFactory().getDisplay(), "", 
++						e.getX(), 
++						e.getY());
++			}
++		}
++	});
++	
+     }
+ 
+ 
+@@ -74,9 +85,9 @@
+ 	//	System.out.println("frozen: " + state);
+ 	this.frozen = state;
+ 	if (state == false) {
+-	    Iterator it = hulls.getChildrenIterator();
++	    Iterator<ConvexHullNode> it = hulls.getChildrenIterator();
+ 	    while(it.hasNext()) {
+-		ConvexHullNode chn = (ConvexHullNode)it.next();
++		ConvexHullNode chn = it.next();
+ 		chn.setFrozen(state);
+ 	    }
+ 	    repaint();
+@@ -124,7 +135,6 @@
+ 	if (movieMode = true) {
+ 	    stopMovie();
+ 	}
+-	this.auto = auto;
+ 	movieMode = true;
+ 	Rectangle b = getBounds();
+ 	jitm = new JpegImagesToMovie((int)b.width,(int)b.height,fps,filename);
+@@ -154,7 +164,7 @@
+      */
+     public void flushBuffer() {
+ 	for (int i = 0 ; i < frameBuffer.size() ; i++) {
+-	    byte[] b = (byte[])frameBuffer.elementAt(i);
++	    byte[] b = frameBuffer.elementAt(i);
+ 	    if (jitm != null) {
+ 		jitm.getISS().loadBuffer(b);
+ 	    }
+@@ -366,10 +376,10 @@
+ 	if (o instanceof Integer) {
+ 	    int tcount = 0;
+ 	    if (((Integer)o).intValue() == 1) {
+-		ListIterator li = 
+-		    (ListIterator)nodes.getChildrenIterator();
++		ListIterator<ConvexHullNode> li = 
++		    (ListIterator<ConvexHullNode>)nodes.getChildrenIterator();
+ 		while (li.hasNext()) {
+-		    PNode n = (PNode)li.next();
++		    PNode n = li.next();
+ 		    if (!n.getVisible()) {
+ 			continue;
+ 		    }
+@@ -585,11 +595,7 @@
+ 	} else {
+ 	    javax.swing.SwingUtilities.invokeLater(new Runnable() { 
+ 		    public void run() { 
+-			//System.out.println("anim 2");
+-			PTransformActivity pta = 
+-			    getGCamera().animateViewToCenterBounds(r2d,
+-								   true,
+-								   tm);
++		    	getGCamera().animateViewToCenterBounds(r2d, true, tm);
+ 		    } 
+ 		}); 
+ 	}
+Index: src/com/hp/hpl/guess/piccolo/PreviewCorner.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/piccolo/PreviewCorner.java
+diff -N src/com/hp/hpl/guess/piccolo/PreviewCorner.java
+--- src/com/hp/hpl/guess/piccolo/PreviewCorner.java	5 Oct 2005 20:19:40 -0000	1.1
++++ /dev/null	1 Jan 1970 00:00:00 -0000
+@@ -1,322 +0,0 @@
+-package com.hp.hpl.guess.piccolo;
+-
+-/*
+- * originally by:
+- * David Bismut, david.bismut@gmail.com
+- * Intern, SETLabs, Infosys Technologies Ltd. May 2004 - Jul 2004
+- * http://www.infosys.com/instepweb
+- * Ecole des Mines de Nantes, France
+- */
+-
+-import java.awt.*;
+-import java.awt.event.ActionEvent;
+-import java.awt.event.ActionListener;
+-import java.awt.event.MouseEvent;
+-import java.awt.event.MouseListener;
+-import java.awt.event.MouseMotionListener;
+-import java.awt.image.BufferedImage;
+-
+-import javax.swing.BorderFactory;
+-import javax.swing.ImageIcon;
+-import javax.swing.JButton;
+-import javax.swing.JComponent;
+-import javax.swing.JLabel;
+-import javax.swing.JLayeredPane;
+-import javax.swing.JPopupMenu;
+-import javax.swing.JScrollPane;
+-import javax.swing.JViewport;
+-
+-import edu.umd.cs.piccolo.*;
+-import edu.umd.cs.piccolo.event.*;
+-import edu.umd.cs.piccolo.nodes.*;
+-import edu.umd.cs.piccolo.util.PBounds;
+-import java.awt.geom.Point2D;
+-import java.awt.geom.Rectangle2D;
+-
+- /**
+-  * This is a button which is designed to be the corner component of a
+-  * <code>JScrollPane</code>. It triggers a popup menu which holds a 
+-  * scaled image of the component contained inside the 
+-  * <code>JScrollPane</code>.
+-  */
+-  
+-public class PreviewCorner extends JButton implements MouseListener {
+-    
+-    private String _corner;
+-    private PreviewPopup _previewPopup;
+-
+-    public PreviewCorner(GFrame myF,
+-			 ImageIcon zoomIcon,
+-			 boolean doCloseAfterClick,
+-			 String corner) {
+-	
+-	super(zoomIcon);
+-	this._corner = corner;
+-	
+-	_previewPopup = new PreviewPopup(myF, doCloseAfterClick);
+-	
+-	setToolTipText("View a miniature of scrollpane content and navigate");
+-	
+-	// The action listener is used to trigger the popup menu.
+-	addMouseListener(this);
+-	setBorder(null);
+-    }
+-	
+-    public PreviewCorner(GFrame myF,
+-			 ImageIcon zoomIcon,
+-			 String corner) {
+-	
+-	this(myF, zoomIcon, false, corner);
+-    }
+-
+-    public void mouseClicked(MouseEvent e) {
+-	_previewPopup.showUpInCorner(this, _corner,
+-				     e.getX(),
+-				     e.getY());
+-    }
+-
+-    public void mouseEntered(MouseEvent e) {
+-    }
+-
+-    public void mouseExited(MouseEvent e) {
+-    }
+-
+-    public void mousePressed(MouseEvent e) {
+-    }
+-
+-    public void mouseReleased(MouseEvent e) {
+-    }
+-
+-}
+-
+-class PreviewPopup
+-    extends JPopupMenu
+-    implements MouseListener, MouseMotionListener {
+-
+-    //    private static Robot robot = null;
+-    
+-    private PCamera _camera;
+-    
+-    private JLabel _zoomWindow; // the JLabel containing the scaled image
+-    
+-    private JLabel _cursorLabel; // the JLabel mimicking the fake rectangle cursor
+-    
+-    // This component will hold both JLabels _zoomWindow and _cursorLabel, 
+-    // the latter on top of the other.
+-    private JLayeredPane _layeredPane;
+-    
+-    private int _iconWidth;
+-    private int _iconHeight;
+-    
+-    private boolean _doCloseAfterClick;
+-
+-    private Rectangle2D _origin = null;
+-
+-    double _ratio;
+-    
+-    // DELTA is the space between the scroll pane and the preview popup menu.
+-    private static int DELTA = 5;
+-    
+-    // SCALEFACTOR is the scale factor between the previewed component 
+-    // and the viewport.
+-    private static double SCALEFACTOR = 4;
+-    
+-    private GFrame _gf = null;
+-
+-    public PreviewPopup(GFrame gf, boolean doCloseAfterClick) {
+-	_camera = gf.getGCamera();
+-	_gf = gf;
+-	this.setBorder(BorderFactory.createEtchedBorder());
+-	
+-	_doCloseAfterClick = doCloseAfterClick;
+-	
+-	//_scrollPane = scrollPane;
+-	//_viewPort = _scrollPane.getViewport();
+-	
+-	_zoomWindow = new JLabel();
+-	_cursorLabel = createCursor();
+-	
+-	_layeredPane = new JLayeredPane();
+-	
+-	_layeredPane.add(_zoomWindow, new Integer(0));
+-	_layeredPane.add(_cursorLabel, new Integer(1));
+-	
+-	
+-	// Creates a blank transparent cursor to be used as the cursor of
+-	// the popup menu.
+-	BufferedImage bim =
+-	    new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+-	setCursor(
+-		  getToolkit().createCustomCursor(bim, (new Point(0, 0)), "HiddenM"));
+-	
+-	this.add(_layeredPane);
+-	
+-	// Adds the mouse input listeners to the _layeredPane to scroll the
+-	// viewport and to move the fake cursor (_cursorLabel).
+-	_layeredPane.addMouseListener(this);
+-	_layeredPane.addMouseMotionListener(this);
+-
+-	//try {
+-	//   robot = new Robot();
+-	//} catch (Exception ex) {};
+-
+-    }
+-
+-
+-    private Image componentImage = null;
+-    
+-    private long lastUpdate = System.currentTimeMillis();
+-    
+-    /**
+-     * By default, the right corner of a popup menu is positionned at the right
+-     * of a mouse click. What we want is to have the preview popup menu 
+-     * positionned <i>inside</i> the scroll pane, near the corner component. 
+-     * The purpose of this method is to display the scaled image of
+-     * the component of the scroll pane, and to calculate the correct position
+-     * of the preview popup menu.
+-     */
+-    
+-    public void showUpInCorner(Component c, String corner,
+-			       int mouseX, int mouseY) {
+-
+-	Image original = null;
+-	if ((componentImage == null) || 
+-	    (lastUpdate < PFactory.getLastUpdate())) {
+-	    lastUpdate = System.currentTimeMillis();
+-	    _origin = _gf.getFullImageSize();
+-	    original = _gf.getFullImage(_origin,200,200);
+-	    //System.out.println("image size: " + original.getWidth(this) + " " + original.getHeight(this));
+-	    SCALEFACTOR = (1/Math.min(200/_origin.getWidth(),
+-				      200/_origin.getHeight()));
+-	    //System.out.println("scalefactor: " + SCALEFACTOR);
+-	    if (original == null)
+-		return;
+-	}
+-
+-	_ratio = 1 / SCALEFACTOR;
+-
+-	if (original != null) {
+-	    componentImage = original;
+-	}
+-
+-	// Converts the Image to an ImageIcon to be used with a JLabel.
+-	ImageIcon componentIcon = new ImageIcon(componentImage);
+-	
+-	_iconWidth = componentIcon.getIconWidth();
+-	_iconHeight = componentIcon.getIconHeight();
+-	
+-	_zoomWindow.setIcon(componentIcon);
+-	
+-	_zoomWindow.setBounds(0, 0, _iconWidth, _iconHeight);
+-	
+-	PBounds pb = _camera.getViewBounds();
+-
+-	double cursorWidth = pb.getWidth() * _ratio;
+-	double cursorHeight = pb.getHeight() * _ratio;
+-
+-	//System.out.println("image size: " + _iconWidth + " " + _iconHeight);
+-	//System.out.println("SCALEFACTOR: " + SCALEFACTOR);
+-	//System.out.println("ratio: " + _ratio);
+-	//System.out.println("cursor width: " + cursorWidth + " " + cursorHeight);
+-	_cursorLabel.setBounds(0, 0, (int)cursorWidth, (int)cursorHeight);
+-	//_cursorLabel.setBounds(0, 0, 50,50);
+-	
+-	_layeredPane.setPreferredSize(new Dimension(_iconWidth, _iconHeight));
+-
+-	//System.out.println("click at: " + mouseX + " " + mouseY);
+-
+-	//double startX = Math.max(0,(pb.getX() - _origin.getX()) * _ratio);
+-	//double startY = Math.max(0,(pb.getY() - _origin.getY()) * _ratio);
+-	//System.out.println("cursor should be at: " + startX + " " + startY);
+-
+-	int dx = componentIcon.getIconWidth() + DELTA;
+-	int dy = componentIcon.getIconHeight() + DELTA;
+-	
+-	// Shows the popup menu at the right place.
+-	this.show(c, dx, dy);
+-	
+-	//int origx = c.getX() + c.getWidth() + DELTA;
+-	//int origy = c.getY() + c.getHeight() + DELTA;
+-	//System.out.println(origx + " " + origy); 
+-	//robot.mouseMove(origx + 10, origy + 10);
+-    }
+-    
+-    public JLabel createCursor() {
+-	JLabel label = new JLabel();
+-	label.setBorder(BorderFactory.createLineBorder(Color.black));
+-	label.setVisible(false);
+-	return label;
+-    }
+-    
+-    public void mouseClicked(MouseEvent e) {
+-    }
+-    
+-    public void mouseEntered(MouseEvent e) {
+-	// When the mouse enters the preview popup menu, set the visibility
+-	// of the fake cursor to true.
+-	_cursorLabel.setVisible(true);
+-    }
+-    
+-    public void mouseExited(MouseEvent e) {
+-	// When the mouse exits the preview popup menu, set the visibility
+-	// of the fake cursor to false.
+-	_cursorLabel.setVisible(false);
+-    }
+-    
+-    public void mousePressed(MouseEvent e) {
+-    }
+-    
+-    public void mouseReleased(MouseEvent e) {
+-	// When the mouse is released, set the visibility of the preview
+-	// popup menu to false only if doCloseAfterClick is set to true.
+-	if(_doCloseAfterClick) {
+-	    this.setVisible(false);
+-	    _cursorLabel.setVisible(false);
+-	}
+-    }
+-    
+-    public void mouseDragged(MouseEvent e) {
+-	moveCursor(e.getX(), e.getY());
+-	scrollViewPort();
+-    }
+-    
+-    public void mouseMoved(MouseEvent e) {
+-	moveCursor(e.getX(), e.getY());
+-	scrollViewPort();
+-    }
+-    
+-    /**
+-     * Centers the fake cursor (_cursorLabel) position on the coordinates
+-     * specified in the parameters. 
+-     */
+-    private void moveCursor(int x, int y) {
+-	int dx = x - _cursorLabel.getWidth() / 2;
+-	int dy = y - _cursorLabel.getHeight() / 2;
+-	_cursorLabel.setLocation(dx, dy);
+-    }
+-    
+-    /**
+-     * Scrolls the viewport according to the fake cursor position in the
+-     * preview popup menu.
+-     */
+-    private void scrollViewPort() {
+-	Point cursorLocation = _cursorLabel.getLocation();
+-	double dx = cursorLocation.getX();
+-	double dy = cursorLocation.getY();
+-
+-	dx = dx / _ratio + _origin.getX();
+-	dy = dy / _ratio + _origin.getY();
+-
+-	PBounds pb = _camera.getViewBounds();
+-	Rectangle2D r2d = new Rectangle2D.Double(dx,dy,
+-					       pb.getWidth(),
+-					       pb.getHeight());
+-
+-	//System.out.println(r2d);
+-
+-	_camera.animateViewToPanToBounds(r2d,0);
+-	//System.out.println(dx + " " + dy);
+-	//	((JComponent) _gf).scrollRectToVisible(
+-	//							     new Rectangle(dx, dy, (int)_camera.getWidth(), (int)_camera.getHeight()));
+-    }
+-}
+Index: src/com/hp/hpl/guess/piccolo/KeyBoardManager.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/KeyBoardManager.java,v
+retrieving revision 1.1
+diff -u -r1.1 KeyBoardManager.java
+--- src/com/hp/hpl/guess/piccolo/KeyBoardManager.java	5 Oct 2005 20:19:40 -0000	1.1
++++ src/com/hp/hpl/guess/piccolo/KeyBoardManager.java	30 Oct 2008 11:05:31 -0000
+@@ -73,11 +73,10 @@
+ 
+ 	
+ 	//System.out.println(event.getKeyCode());
+-
+ 	if (event.getKeyCode() == 90) {
+-	    AffineTransform af = new AffineTransform();
+-	    af.scale(scale*.8,scale*.8);
+-	    cam.animateToTransform(af,200);
++	    //AffineTransform af = new AffineTransform();
++	    //af.scale(scale*.8,scale*.8);
++	    //cam.animateToTransform(af,200);
+ 	    //cam.setScale(scale*.8);
+ 	} else if (event.getKeyCode() == 88) {
+ 	    AffineTransform af = new AffineTransform();
+Index: src/com/hp/hpl/guess/piccolo/PFactory.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/PFactory.java,v
+retrieving revision 1.6
+diff -u -r1.6 PFactory.java
+--- src/com/hp/hpl/guess/piccolo/PFactory.java	6 Feb 2008 18:31:48 -0000	1.6
++++ src/com/hp/hpl/guess/piccolo/PFactory.java	30 Oct 2008 11:05:31 -0000
+@@ -2,16 +2,24 @@
+ 
+ import java.awt.*;
+ import java.awt.geom.*;
++
++import com.hp.hpl.guess.action.GStateAction;
++import com.hp.hpl.guess.storage.StorageEventListener;
++import com.hp.hpl.guess.storage.StorageFactory;
+ import com.hp.hpl.guess.ui.*;
+ import com.hp.hpl.guess.*;
++
+ import edu.umd.cs.piccolo.PNode;
+-import org.python.core.PySequence;
++import edu.umd.cs.piccolo.nodes.PText;
++
+ import java.util.Collection;
+ 
+ public class PFactory extends VisFactory implements UIListener {
+ 
+     private GFrame curFrame = null;
+-
++    PText titleText = new PText();
++    Thread titleThread = null;
++    
+     private static long lastModTime = System.currentTimeMillis();
+     
+     public static void updateTime() {
+@@ -22,10 +30,35 @@
+ 	return(lastModTime);
+     }
+ 
++    private void initTitleText() {
++    	titleText.setConstrainHeightToTextHeight(true);
++    	titleText.setConstrainWidthToTextWidth(true);
++    	titleText.scale(2);
++    	titleText.setPaint(new Color(100,100,100,210));
++    	titleText.setTextPaint(Color.WHITE);
++    	titleText.setOffset(25, 25);
++    }
++    
+     public PFactory() {
+ 	init();
+ 	GraphEvents.getGraphEvents().addGraphMouseListener(this);
+-    }
++	
++	// Show the name of the state when a statechange occurs
++	StorageFactory.getSL().addStorageEventListener(new StorageEventListener() {
++			int time = 5000;
++			public void stateLoaded(String state) {
++				showTitle(state, time);
++			}
++
++		    public void stateSaved(String state) {
++		    	showTitle(state, time);
++		    }
++	});
++	initTitleText();
++	curFrame.getCamera().addChild(titleText);
++	
++	}
++
+ 
+     public GFrame init() {
+ 	//	System.out.println("init called...");
+@@ -322,6 +355,65 @@
+     public Collection getConvexHulls() {
+ 	return(hulls);
+     }
++    
++    /**
++     * Shows a title in the frame
++     * @param title the title to show
++     * @param time time in ms till title is removed
++     */
++    public void showTitle(final String title, final long timeout) {
++    	if (title.charAt(0)==GStateAction.delimiter.charAt(0)) {
++    		return;
++    	}
++    	
++    	if (titleThread!=null) {
++    		titleThread.stop();
++    	}
++    	
++    	titleThread = new Thread(new Runnable() {
++
++    		public void run() {
++    			// Show title
++    			titleText.setText(title);
++    	    	titleText.setTransparency(1.0f);
++    	    	titleText.validateFullPaint();
++    	    	
++    	    	// Wait
++    	    	synchronized (this) {
++	    	    	try {
++	    	      		   wait(timeout);
++	    	      	} catch ( InterruptedException e ) {
++	    	      		e.printStackTrace();
++	    	      	}
++    	    	}
++    	    	
++    			// Fade out and remove title
++    	    	long animationDuration = 5000;
++    	    	titleText.animateToTransparency(0, animationDuration);
++			}
++    			
++    		}
++    	);
++
++    	
++    	if (timeout==-1) {
++			// Just show title
++			titleText.setText(title);
++	    	titleText.setTransparency(1.0f);
++	    	titleText.validateFullPaint();
++    	} else {
++    		// Show title and fade out after timeout
++    		titleThread.start();	
++    	}
++    }
++    
++    /**
++     * Sets the Color of the title text
++     * @param aColor
++     */
++    public void setTitleColor(Color aColor) {
++    	titleText.setPaint(aColor);
++    }
+ 
+     public void shiftClickNode(Node n) {
+     }
+Index: src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java,v
+retrieving revision 1.3
+diff -u -r1.3 GraphElementEditorPopup.java
+--- src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java	30 Sep 2008 11:29:18 -0000	1.3
++++ src/com/hp/hpl/guess/ui/GraphElementEditorPopup.java	30 Oct 2008 11:05:41 -0000
+@@ -97,6 +97,7 @@
+ 	    if (i==0) {
+ 	    	Font DefaultFont = jmi1.getFont();
+ 	    	jmi1.setFont(DefaultFont.deriveFont(Font.BOLD));
++	    	addSeparator();
+ 	    }
+ 	}
+     }
+Index: src/com/hp/hpl/guess/ui/StatusBar.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/StatusBar.java,v
+retrieving revision 1.1
+diff -u -r1.1 StatusBar.java
+--- src/com/hp/hpl/guess/ui/StatusBar.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/StatusBar.java	30 Oct 2008 11:05:44 -0000
+@@ -1,261 +1,97 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+-import java.util.*;
+-import java.awt.GridBagConstraints;
+ 
+ import javax.swing.*;
+-import javax.swing.SwingUtilities;
+-import java.awt.*;
+-import javax.swing.border.LineBorder;
++import javax.swing.border.Border;
+ 
+-import com.hp.hpl.guess.piccolo.*;
+-import com.hp.hpl.guess.storage.*;
+-import com.hp.hpl.guess.*;
++import com.hp.hpl.guess.Guess;
+ 
+-public class StatusBar extends JPanel implements ActionListener {
+ 
+-    protected static JProgressBar progressBar = null;
+-    protected static JLabel label = null;
++public class StatusBar extends JPanel {
+ 
+-    private static StatusBar sb = null;
+-    private static JComboBox stateList = null;
++	private static final long serialVersionUID = 1L;
+ 
+-    private static boolean ignoreChange = false;
+-
+-    private SimpleButton[] sbList = new SimpleButton[5];
+-
+-    private static HashSet states = new HashSet();
+-
+-    public static boolean useButtons = true;
+-
+-    public static boolean buttonsEnabled() {
+-	return(useButtons);
+-    }
+-
+-    public static void enableButtons(boolean state) {
+-	if (sb != null) {
+-	    for (int i = 0 ; i < 5 ;i++) {
+-		sb.sbList[i].setEnabled(state);
+-	    }
+-	}
+-	useButtons = state;
+-    }
+-
+-    public static void setState(String state) {
+-	// we're going to push the new state to the 
+-	// bottom
+-	if (stateList != null) {
+-	    if (!states.contains(state)) {
+-		ignoreChange = true;
+-		stateList.addItem(state);
+-		states.add(state);
+-	    }
+-	    ignoreChange = true;
+-	    stateList.setSelectedItem(state);
+-	    ignoreChange = false;
+-	}
+-    }
+-
+-    public static void repaintNow() {
+-	if (sb != null) {
+-	    sb.repaint();
+-	}
+-    }
+-
+-    public static void setValue(int max, int nv) {
+-	if (progressBar != null) {
+-	    progressBar.setIndeterminate(false);	
+-	    progressBar.setMaximum(max);
+-	    progressBar.setValue(nv);
+-	}
+-    }
++	private static StatusBar sb = null;
++	
++	protected static JLabel label = null;
+ 
+-    public static void setStatus(String status) {
+-	if (label != null) {
+-	    label.setForeground(Color.black);
+-	    label.setText("     "+status);
+-	    label.setToolTipText(null);
+-	}
+-    }
+ 
+-    public static void setErrorStatus(String status) {
+-	if (label != null) {
+-	    //Thread.dumpStack();
+-	    label.setForeground(Color.red);
+-	    label.setText("     "+status);
+-	    label.setToolTipText(status);
+-	}
+-    }
+ 
+-    public static void runProgressBar(boolean state) {
+-	if (progressBar != null) {
+-	    if (state) {
+-		//progressBar.setBackground(Color.red);
+-	    } else {
+-		//progressBar.setBackground(Color.green);
+-	    }
+-	    progressBar.setIndeterminate(state);	
++	private static void onEmptyHide() {
++		if (sb==null) {
++			return;
++		}
++		if (label.getText().trim().equals("")) {
++			sb.setVisible(false);
++		} else {
++			sb.setVisible(true);
++		}
+ 	}
+-    }
+-
+-    public static void setStatus(String status,boolean state) {
+-	runProgressBar(state);
+-	setStatus(status);
+-    }
+-
+-    public StatusBar() {
+-	super();
+-	setPreferredSize(new Dimension(800,25));
+-	setLayout(new GridBagLayout());
+-	GridBagConstraints c = new GridBagConstraints();
+-
+-	label = new JLabel("     Welcome to GUESS");
+-	label.setPreferredSize(new Dimension(200,20));
+-	label.setMaximumSize(new Dimension(200,20));
+-
+-	c.fill = GridBagConstraints.HORIZONTAL;
+-	c.weighty = 1;
+-	c.weightx = 0;
+-	c.gridx = 0;
+-	c.gridy = 0;
+-	c.insets = new Insets(0,5,0,5);
+-
+-	progressBar = (JProgressBar)new ErrorTolerantProgressBar();
+-	progressBar.setPreferredSize(new Dimension(100,18));
+-	progressBar.setMinimumSize(new Dimension(100,18));
+-	progressBar.setMaximumSize(new Dimension(100,18));
+-	//progressBar.setBackground(Color.green);
+-
+-	add(progressBar,c);
+-
+-	c.fill = GridBagConstraints.HORIZONTAL;
+-	c.weighty = 1;
+-	c.gridx = 1;
+-
+-	String[] stateStrings = { "Select a state" };
+-	//Create the combo box, select item at index 4.
+-	//Indices start at 0, so 4 specifies the pig.
+-	stateList = new JComboBox(stateStrings);
+-	stateList.setSelectedIndex(0);
+-	StorageListener sl = StorageFactory.getSL();
+-	Iterator it = sl.getStates().iterator();
+-	while(it.hasNext()) {
+-	    String s = (String)it.next();
+-	    stateList.addItem(s);
+-	    states.add(s);
++	
++	public static void repaintNow() {
++		if (sb != null) {
++			sb.repaint();
++		}
+ 	}
+-	stateList.addActionListener(this);
+-	c.insets = new Insets(0,5,0,10);
+-	add(stateList,c);
+ 
+-	MouseAdapter ma = new MouseAdapter() {
+-		public void mouseClicked(MouseEvent e) {
+-
+-		    if (!buttonsEnabled()) {
+-			return;
+-		    }
+-
+-		    Component c = e.getComponent();
+-		    if (c instanceof SimpleButton) {
+-			for (int i = 0 ; i < sbList.length ; i++) {
+-			    sbList[i].click(false);
+-			}
+-			((SimpleButton)c).click(true);
+-			int bType = ((SimpleButton)c).bType;
+-			FrameListener fl = 
+-			    VisFactory.getFactory().getDisplay();
+-			if (fl instanceof GFrame) {
+-			    ((GFrame)fl).switchHandler(bType - 1);
+-			}
+-		    }
++	public static void setStatus(String status) {
++		if (label != null) {
++			sb.setEmptyIcon();
++			label.setText(status);
+ 		}
+-	    };
+-
+-	c.fill = GridBagConstraints.NONE;
+-	c.weightx = 0;
+-	c.gridx = 2;
+-	c.insets = new Insets(1,1,1,1);
+-	SimpleButton sb = new SimpleButton("browse.gif",1,"Browse");
+-	add(sb,c);
+-	sbList[0] = sb;
+-	sb.click(true);
+-	sb.addMouseListener(ma);
+-
+-	c.gridx = 3;
+-	sb = new SimpleButton("nodeed.gif",2,"Manipulate Nodes");
+-	add(sb,c);
+-	sbList[1] = sb;
+-	sb.addMouseListener(ma);
+-
+-	c.gridx = 4;
+-	sb = new SimpleButton("edgeed.gif",3,"Manipulate Edges");
+-	add(sb,c);
+-	sbList[2] = sb;
+-	sb.addMouseListener(ma);
+-
+-	c.gridx = 5;
+-	sb = new SimpleButton("hulled.gif",4,"Manipulate Hulls");
+-	add(sb,c);
+-	sbList[3] = sb;
+-	sb.addMouseListener(ma);
+-
+-	c.gridx = 6;
+-	sb = new SimpleButton("draw.gif",5,"Draw");
+-	add(sb,c);
+-	sbList[4] = sb;
+-	sb.addMouseListener(ma);
+-
+-	c.fill = GridBagConstraints.HORIZONTAL;
+-	c.weightx = .8;
+-	c.gridx = 7;
+-	add(label,c);
+-
+-	if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
+-	    c.gridx = 8;
+-	    c.weightx = 0;
+-	    ImageIcon previewIcon = 
+-		new ImageIcon(getClass().getResource("/images/previewscroller.png"));
+-	    add(new PreviewCorner((GFrame)VisFactory.getFactory().getDisplay(),
+-				  previewIcon,
+-				  true,
+-				  "whatever"));
++		onEmptyHide();
++	}
++	
++	public static void setStatus(String status, boolean state) {
++		setStatus(status);
+ 	}
+ 	
+-	StatusBar.sb = this;
+-    }
+ 
+-    public void actionPerformed(ActionEvent e) {
+-	Object newItem = stateList.getSelectedItem();
+-	//System.out.println(newItem);
+-	if ("comboBoxChanged".equals(e.getActionCommand())) {
+-	    if (!((String)newItem).equals("Select a state")) {
+-		if (ignoreChange) {
+-		    //System.out.println("ignoring...");
+-		    ignoreChange = false;
+-		    return;
++	public static void setErrorStatus(String status) {
++		if (label != null) {
++			sb.setErrorIcon();
++			label.setText(status);
+ 		}
+-		setStatus("ls(g,"+newItem+")");
+-		StorageFactory.getSL().loadState(Guess.getGraph(),
+-						 (String)newItem);
+-	    }
++		onEmptyHide();
+ 	}
+-    }
+-
+-    class ErrorTolerantProgressBar extends JProgressBar {
+-
+-	public ErrorTolerantProgressBar() {
+-	    super();
++	
++	private void setErrorIcon() {
++		label.setIcon(new ImageIcon(getClass().getResource("/images/dialog-error.png")));
+ 	}
+ 	
+-	public void paint(Graphics g) {
+-	    try {
+-		super.paint(g);
+-	    } catch (Exception e) {
+-	    }
++	private void setEmptyIcon() {
++		label.setIcon(null);
+ 	}
+-    }
+ 
++	
++	public StatusBar() {
++		super();
++
++		setLayout(new GridBagLayout());
++		GridBagConstraints c = new GridBagConstraints();
++		c.anchor = GridBagConstraints.SOUTHWEST;
++		
++		
++		label = new JLabel();
++		label.setHorizontalAlignment(SwingConstants.LEFT);
++		
++		Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 1, new Color(180,188,197));
++		Border b2 = BorderFactory.createEmptyBorder(2, 6, 2, 6);
++		label.setBorder(BorderFactory.createCompoundBorder(b1, b2));
++		
++		label.setForeground(new Color(68, 70, 72));
++		
++		label.setBackground(new Color(227, 235, 250));
++		
++		add(label, c);
++		
++		setOpaque(false);
++		label.setOpaque(true);
++		
++		StatusBar.sb = this;
++		
++		onEmptyHide();
++	}
+ 
+ }
+Index: src/com/hp/hpl/guess/ui/TextPaneJythonConsole.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/TextPaneJythonConsole.java,v
+retrieving revision 1.17
+diff -u -r1.17 TextPaneJythonConsole.java
+--- src/com/hp/hpl/guess/ui/TextPaneJythonConsole.java	30 Sep 2008 11:29:18 -0000	1.17
++++ src/com/hp/hpl/guess/ui/TextPaneJythonConsole.java	30 Oct 2008 11:05:49 -0000
+@@ -7,6 +7,7 @@
+ import java.awt.Component;
+ import java.awt.event.ActionEvent;
+ import java.awt.event.KeyEvent;
++import java.awt.event.MouseEvent;
+ 
+ import java.util.*;
+ import javax.swing.*;
+@@ -77,6 +78,13 @@
+ 	super();
+ 	itp = new InternalTextPane(jython);
+ 	setViewportView(itp);
++	
++	setBorder(BorderFactory.createEmptyBorder(8, 8, 23, 8));
++	itp.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
++	
++	itp.setBackground(Guess.getMainUIWindow().getBgColor());
++	setOpaque(false);
++	
+     }
+     
+     public void create() {
+@@ -270,20 +278,21 @@
+ 
+ 	public EditorPopup getMenu(Object o) {
+ 	    if (o instanceof PyInstance) {
+-		if (((PyInstance)o).isNodeProxy()) {
+-		    return(NodeEditorPopup.getPopup());
+-		}
+-		if (((PyInstance)o).isEdgeProxy()) {
+-		    return(EdgeEditorPopup.getPopup());
+-		}
++			if (((PyInstance)o).isNodeProxy()) {
++			    return(NodeEditorPopup.getPopup());
++			}
++			if (((PyInstance)o).isEdgeProxy()) {
++			    return(EdgeEditorPopup.getPopup());
++			}
+ 	    } else if (o instanceof PyString) {
+-		return(null);
++	    	return(null);
+ 	    } else if (o instanceof PySequence) {
+-		return(GraphElementEditorPopup.getPopup());
++	    	return(GraphElementEditorPopup.getPopup());
+ 	    } else if (o instanceof Throwable) {
+-		return(ThrowableEditorPopup.getPopup());
++	    	return(ThrowableEditorPopup.getPopup());
+ 	    }
+-	    return(null);
++	    
++	    return null;
+ 	}
+ 
+ 	/**
+@@ -381,14 +390,18 @@
+ 			    // if we right click figure out what menu
+ 			    // to display
+ 			    if (e.getButton() == MouseEvent.BUTTON3) {
+-				JEditorPane editor = 
+-				    (JEditorPane) e.getSource();
+-				EditorPopup mpup = getMenu(currentH);
+-				if (mpup != null) {
+-				    mpup.show(editor,e.getX(),e.getY(),
+-					      (HashSet)currentHighlights.clone(),
+-					      currentH);
+-				}
++			    	JEditorPane editor = (JEditorPane) e.getSource();
++					EditorPopup mpup = getMenu(currentH);
++					if (mpup != null) {
++					    mpup.show(editor,e.getX(),e.getY(),
++						      (HashSet)currentHighlights.clone(), currentH);
++					} else {
++						MouseEvent e2 = new MouseEvent((Component)Guess.getMainUIWindow().getHorizontalTabbedPane(), e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY(), e.getClickCount(), true);
++
++						for (int i = 0; i < Guess.getMainUIWindow().getHorizontalTabbedPane().getMouseListeners().length; i++) {
++							Guess.getMainUIWindow().getHorizontalTabbedPane().getMouseListeners()[i].mousePressed(e2);
++						}
++					}
+ 			    }
+ 			}
+ 
+@@ -624,7 +637,8 @@
+ 	 */
+ 	private PythonInterpreter prepareInterpreter() {
+ 	    jython.exec("ENV = {}");
+-	    setEnvironment("PS1", ">>> ");
++	    
++	    setEnvironment("PS1", "\u00BB ");
+ 	    setEnvironment("PS2", "... ");
+ 	    setEnvironment("PATH_SEPARATOR", System.getProperty("path.separator"));
+ 	    setEnvironment("COLS", "80");
+@@ -793,10 +807,12 @@
+ 		    Guess.getMainUIWindow().getGMenuBar().editMenu;
+ 		JMenuItem copy = new JMenuItem("Copy from Console");
+ 		copy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,
+-			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));		
++			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));	
++		copy.setIcon(new ImageIcon(getClass().getResource("/images/edit-copy.png")));
+ 		JMenuItem paste = new JMenuItem("Paste to Console");
+ 		paste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,
+ 			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
++		paste.setIcon(new ImageIcon(getClass().getResource("/images/edit-paste.png")));
+ 		
+ 		ActionListener cpListener = new ActionListener(  ) {
+ 			public void actionPerformed(ActionEvent event) {
+@@ -814,6 +830,7 @@
+ 		paste.addActionListener(cpListener);
+ 		editMenu.add(copy);
+ 		editMenu.add(paste);
++		
+ 	    }
+ 
+ 	    /**
+Index: src/com/hp/hpl/guess/ui/DrawWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/DrawWindow.java,v
+retrieving revision 1.3
+diff -u -r1.3 DrawWindow.java
+--- src/com/hp/hpl/guess/ui/DrawWindow.java	30 Sep 2008 11:29:18 -0000	1.3
++++ src/com/hp/hpl/guess/ui/DrawWindow.java	30 Oct 2008 11:05:36 -0000
+@@ -2,24 +2,21 @@
+ 
+ import java.awt.*;
+ import java.awt.event.*;
+-import java.util.*;
+ import javax.swing.*;
+-import javax.swing.table.*;
+-import javax.swing.event.TableModelEvent;
+ 
+-import com.hp.hpl.guess.freehep.*;
++
+ import com.hp.hpl.guess.piccolo.GFrame;
+ import com.hp.hpl.guess.*;
+ 
+-import java.sql.Types;
+-import java.net.URL;
+ 
+ /**
+  * @pyobj DrawWindow
+  */
+ public class DrawWindow extends JPanel implements Dockable, ActionListener {
+ 
+-    private static DrawWindow singleton = null;
++	private static final long serialVersionUID = 1L;
++
++	private static DrawWindow singleton = null;
+ 
+     public static final int RECTANGLE = 1;
+     public static final int ELLIPSE = 2;
+@@ -105,11 +102,7 @@
+     }
+ 
+     private GuessJFrame myParent = null;
+-
+-    public Dimension getMinimumSize() {
+-	return(new Dimension(80,200));
+-    }
+-    
++  
+     public Dimension getPreferredSize() {
+ 	return(new Dimension(80,200));
+     }
+@@ -137,12 +130,18 @@
+ 	}
+     }
+ 
++        
+     private DrawWindow(String title) {
+-	//setLayout(new GridLayout(3,1));
+-	setLayout(new GridBagLayout());
++	setLayout(new GridLayout(3,1));
++	//setLayout(new GridBagLayout());
+ 	GridBagConstraints c = new GridBagConstraints();
+ 
++	setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
++	setOpaque(false);
++	
+ 	JPanel stuff = new JPanel();
++	stuff.setOpaque(false);
++	
+ 	stuff.setLayout(new GridLayout(2,1));
+ 	MouseAdapter ma = new MouseAdapter() {
+ 		public void mouseClicked(MouseEvent e) {
+@@ -182,6 +181,7 @@
+ 
+ 	JPanel buttonPanel = new JPanel();
+ 	buttonPanel.setLayout(new GridLayout(3,2));
++	buttonPanel.setOpaque(false);
+ 	
+ 	SimpleButton sb = 
+ 	    new SimpleButton("drawsel.gif",SELECT,"Select objects");
+@@ -219,7 +219,8 @@
+ 
+ 	JPanel selectionPanel = new JPanel();
+ 	selectionPanel.setLayout(new GridLayout(4,1));
+-
++	selectionPanel.setOpaque(false);
++	
+ 	styleJCB = new JComboBox();
+ 	styleJCB.addItem(new ImageIcon(getClass().getResource("/images/linesolid.gif")));
+ 	styleJCB.addItem(new ImageIcon(getClass().getResource("/images/linedash.gif")));
+@@ -274,7 +275,7 @@
+ 	c.fill = GridBagConstraints.BOTH;
+ 	//c.weighty = 1;
+ 	c.weighty = 1;
+-	add(new JPanel(),c);
++	//add(new JPanel(),c);
+     }
+ 
+     public Rectangle getDefaultFrameBounds() {
+Index: src/com/hp/hpl/guess/ui/MenuListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/MenuListener.java,v
+retrieving revision 1.1
+diff -u -r1.1 MenuListener.java
+--- src/com/hp/hpl/guess/ui/MenuListener.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/MenuListener.java	30 Oct 2008 11:05:44 -0000
+@@ -1,8 +1,6 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.util.EventListener;
+-import com.hp.hpl.guess.Node;
+-import com.hp.hpl.guess.Edge;
+ 
+ public interface MenuListener extends EventListener {
+ 
+Index: src/com/hp/hpl/guess/ui/InfoWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/InfoWindow.java,v
+retrieving revision 1.2
+diff -u -r1.2 InfoWindow.java
+--- src/com/hp/hpl/guess/ui/InfoWindow.java	22 May 2008 15:23:36 -0000	1.2
++++ src/com/hp/hpl/guess/ui/InfoWindow.java	30 Oct 2008 11:05:41 -0000
+@@ -1,14 +1,13 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+ import java.util.*;
+ import javax.swing.*;
+ import javax.swing.table.*;
+ import javax.swing.event.TableModelEvent;
+ 
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
++import com.hp.hpl.guess.action.GActionManager;
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.*;
+ 
+ import java.sql.Types;
+@@ -22,8 +21,8 @@
+ 
+     private GuessTableModel gtm = null;
+ 
+-    private JLabel jl = new JLabel("Information Window",
+-				   JLabel.CENTER);
++    private JLabel jl = new JLabel("Element Properties",
++				   JLabel.LEFT);
+ 
+     protected boolean visible = false;
+ 
+@@ -76,7 +75,6 @@
+ 	    } else {
+ 		gtm.details((Edge)n);
+ 	    }
+-	    jl.setText(n.toString());
+ 	}
+     }
+ 
+@@ -114,16 +112,23 @@
+ 
+ 	GraphEvents.getGraphEvents().addGraphMouseListener(this);
+ 
++	setOpaque(false);
++	
+ 	gtm = new GuessTableModel();
+ 	JTable table = new JTable(gtm);
++	table.setBackground(Guess.getMainUIWindow().getBgColor());
++	table.setFillsViewportHeight(true);
++	
+ 	JScrollPane scrollpane = new JScrollPane(table);
++	
++	scrollpane.setOpaque(false);
++	scrollpane.setBorder(BorderFactory.createEmptyBorder(5,8,8,4));
++	
+ 	setLayout(new GridBagLayout());
+ 	GridBagConstraints c = new GridBagConstraints();
+ 
+-	Font fnt = jl.getFont();
+-	fnt = fnt.deriveFont(Font.BOLD,15);
+-	jl.setFont(fnt);
+-
++	jl.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
++	
+ 	c.fill = GridBagConstraints.HORIZONTAL;
+ 	c.weighty = 0;
+ 	c.weightx = 1;
+@@ -261,35 +266,40 @@
+ 	    }
+ 	}
+ 
+-	public void setValueAt(Object value, int row, int col) {
+-	    String f = null;
+-	    Field fld = null;
+-	    if (lastSel != null) {
+-		if (lastSel instanceof Node) {
+-		    f = (String)nFields.elementAt(row);
+-		    fld = Guess.getGraph().getNodeSchema().getField(f);
+-		} else {
+-		    f = (String)eFields.elementAt(row);
+-		    fld = Guess.getGraph().getEdgeSchema().getField(f);
+-		}
+-		try {
+-		    if ((fld.getSQLType() == Types.INTEGER) ||
+-			(fld.getSQLType() == Types.TINYINT) ||
+-			(fld.getSQLType() == Types.SMALLINT) ||
+-			(fld.getSQLType() == Types.BIGINT)) {
+-			lastSel.__setattr__(f,new Integer((String)value));
+-		    } else if (fld.getSQLType() == Types.BOOLEAN) {
+-			lastSel.__setattr__(f,new Boolean((String)value));
+-		    } else if (fld.isNumeric()) {
+-			lastSel.__setattr__(f,new Double((String)value));
+-		    } else {
+-			lastSel.__setattr__(f,value);
+-		    }
+-		} catch (Exception e) {
+-		    ExceptionWindow.getExceptionWindow(e);
+-		}
+-		fireTableCellUpdated(row, col);
+-	    }
++	public void setValueAt(final Object value, final int row, final int col) {
++		GStateAction infoWindowAction = new GStateAction() {
++			public void actionContent() {
++				String f = null;
++			    Field fld = null;
++			    if (lastSel != null) {
++				if (lastSel instanceof Node) {
++				    f = (String)nFields.elementAt(row);
++				    fld = Guess.getGraph().getNodeSchema().getField(f);
++				} else {
++				    f = (String)eFields.elementAt(row);
++				    fld = Guess.getGraph().getEdgeSchema().getField(f);
++				}
++				try {
++				    if ((fld.getSQLType() == Types.INTEGER) ||
++					(fld.getSQLType() == Types.TINYINT) ||
++					(fld.getSQLType() == Types.SMALLINT) ||
++					(fld.getSQLType() == Types.BIGINT)) {
++					lastSel.__setattr__(f,new Integer((String)value));
++				    } else if (fld.getSQLType() == Types.BOOLEAN) {
++					lastSel.__setattr__(f,new Boolean((String)value));
++				    } else if (fld.isNumeric()) {
++					lastSel.__setattr__(f,new Double((String)value));
++				    } else {
++					lastSel.__setattr__(f,value);
++				    }
++				} catch (Exception e) {
++				    ExceptionWindow.getExceptionWindow(e);
++				}
++				fireTableCellUpdated(row, col);
++			    }
++			}
++		};
++		GActionManager.runAction(infoWindowAction, "Edit Properties");
+ 	}
+ 
+     }
+Index: src/com/hp/hpl/guess/ui/FieldModWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/FieldModWindow.java,v
+retrieving revision 1.4
+diff -u -r1.4 FieldModWindow.java
+--- src/com/hp/hpl/guess/ui/FieldModWindow.java	30 Sep 2008 11:29:18 -0000	1.4
++++ src/com/hp/hpl/guess/ui/FieldModWindow.java	30 Oct 2008 11:05:36 -0000
+@@ -1,11 +1,8 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import java.awt.*;
+ import java.awt.event.*;
+ 
+ import javax.swing.*;
+-import javax.swing.event.*;
+-import javax.swing.tree.*;
+ import java.util.*;
+ import com.hp.hpl.guess.*;
+ 
+@@ -57,8 +54,8 @@
+ 	private JButton applyButton = new JButton();
+ 	private JButton closeButton = new JButton();
+ 
+-	Collection nodes = null;
+-	Collection edges = null;
++	Collection<?> nodes = null;
++	Collection<?> edges = null;
+ 
+ 	boolean showingNodes = false;
+ 	boolean showingEdges = false;
+@@ -78,7 +75,7 @@
+ 		return (singleton);
+ 	}
+ 
+-	public static FieldModWindow getFieldModWindow(Collection n, Collection e) {
++	public static FieldModWindow getFieldModWindow(Collection<?> n, Collection<?> e) {
+ 		if (singleton == null) {
+ 			singleton = new FieldModWindow(n, e);
+ 		} else {
+@@ -87,7 +84,7 @@
+ 		return (singleton);
+ 	}
+ 
+-	public void setNE(Collection nodes, Collection edges) {
++	public void setNE(Collection<?> nodes, Collection<?> edges) {
+ 		tabbedpane.setEnabledAt(0, true);
+ 		tabbedpane.setEnabledAt(1, true);
+ 		
+@@ -115,7 +112,7 @@
+ 	/**
+ 	 * Default constructor
+ 	 */
+-	private FieldModWindow(Collection nodes, Collection edges) {
++	private FieldModWindow(Collection<?> nodes, Collection<?> edges) {
+ 
+ 		createPanel();
+ 
+@@ -224,9 +221,9 @@
+ 	 * Fills the list of Nodes with data
+ 	 * @param Nodes
+ 	 */
+-	public void loadNodesData(Collection c) {
++	public void loadNodesData(Collection<?> c) {
+ 		modelNodes.removeAllElements();
+-		Iterator it = c.iterator();
++		Iterator<?> it = c.iterator();
+ 		while (it.hasNext()) {
+ 			modelNodes.addElement(it.next());
+ 		}
+@@ -239,9 +236,9 @@
+ 	 * Fills the list of Edges with data
+ 	 * @param Edges
+ 	 */
+-	public void loadEdgesData(Collection c) {
++	public void loadEdgesData(Collection<?> c) {
+ 		modelEdges.removeAllElements();
+-		Iterator it = c.iterator();
++		Iterator<?> it = c.iterator();
+ 		while (it.hasNext()) {
+ 			modelEdges.addElement(it.next());
+ 		}
+Index: src/com/hp/hpl/guess/ui/SimpleButton.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/SimpleButton.java,v
+retrieving revision 1.1
+diff -u -r1.1 SimpleButton.java
+--- src/com/hp/hpl/guess/ui/SimpleButton.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/SimpleButton.java	30 Oct 2008 11:05:44 -0000
+@@ -1,21 +1,15 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+-import java.util.*;
+-import java.awt.GridBagConstraints;
+ 
+ import javax.swing.*;
+-import javax.swing.SwingUtilities;
+-import java.awt.*;
+-import javax.swing.border.LineBorder;
++
+ 
+ public class SimpleButton extends JButton {
+ 
+-    private static final LineBorder unclicked = new LineBorder(Color.gray,1);
+-    private static final LineBorder clicked = new LineBorder(Color.blue,1);
++	private static final long serialVersionUID = 1L;
+ 
+-    Dimension size = new Dimension(20,20);
++	Dimension size = new Dimension(20,20);
+     
+     public int bType = 0;
+     
+@@ -29,25 +23,20 @@
+ 	this.bType = bType;
+ 	if (tt != null)
+ 	    setToolTipText(tt);
+-	setBorder(unclicked);
+     }
+     
+     public void click(boolean state) {
+-	if(state) {
+-	    setBorder(clicked);
+-	} else {
+-	    setBorder(unclicked);
+-	}
++	    setSelected(state);
+     }
+ 
+     public Dimension getMinimumSize() {
+-	return(size);
++    	return(size);
+     }
+     public Dimension getMaximumSize() {
+-	return(size);
++    	return(size);
+     }
+     
+     public Dimension getPreferredSize() {
+-	return(size);
++    	return(size);
+     }
+-}
++}
+\ No newline at end of file
+Index: src/com/hp/hpl/guess/ui/PickFile.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/PickFile.java,v
+retrieving revision 1.2
+diff -u -r1.2 PickFile.java
+--- src/com/hp/hpl/guess/ui/PickFile.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/PickFile.java	30 Oct 2008 11:05:44 -0000
+@@ -5,21 +5,15 @@
+ import java.awt.Insets;
+ import java.awt.SystemColor;
+ import java.awt.event.*;
+-import java.awt.event.KeyEvent;
+ import javax.swing.*;
+-import javax.swing.JButton;
+-import javax.swing.JComboBox;
+-import javax.swing.JFormattedTextField;
+-import javax.swing.JLabel;
+-import javax.swing.JLayeredPane;
+-import javax.swing.JPanel;
+ import javax.swing.border.EtchedBorder;
++
++import com.jgoodies.looks.Options;
++
+ import java.io.File;
+ import java.io.IOException;
+ import java.util.prefs.*;
+ 
+-import com.jgoodies.looks.*;
+-
+ public class PickFile extends JPanel implements ActionListener {
+ 
+ 	private static final long serialVersionUID = -1782036809617887316L;
+@@ -68,10 +62,9 @@
+ 	 * do some initial setup to the UI look and feel
+ 	 */
+ 	public static void configureUI() {
+-		String lafName = Options.getSystemLookAndFeelClassName();
+-
+ 		try {
+-			UIManager.setLookAndFeel(lafName);
++			UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
++			UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
+ 		} catch (Exception e) {
+ 			ExceptionWindow.getExceptionWindow(e);
+ 			System.err.println("Can't set look & feel:" + e);
+Index: src/com/hp/hpl/guess/ui/FontDialog.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/FontDialog.java,v
+retrieving revision 1.1
+diff -u -r1.1 FontDialog.java
+--- src/com/hp/hpl/guess/ui/FontDialog.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/FontDialog.java	30 Oct 2008 11:05:38 -0000
+@@ -10,7 +10,6 @@
+ import javax.swing.JCheckBox;
+ import javax.swing.JComboBox;
+ import javax.swing.JComponent;
+-import javax.swing.JFrame;
+ import javax.swing.JLabel;
+ import javax.swing.JList;
+ import javax.swing.JPanel;
+@@ -34,7 +33,9 @@
+ public class FontDialog extends StandardDialog implements
+       ListSelectionListener, ActionListener {
+ 
+-    private static final int MIN_SIZE = 6;
++	private static final long serialVersionUID = 1L;
++	
++	private static final int MIN_SIZE = 6;
+     private static final int MAX_SIZE = 72;
+     private static final int DEFAULT_SIZE = 12;
+ 
+@@ -42,10 +43,6 @@
+ 						      12 );
+     public static final Font BOLD_FONT = new Font( "SansSerif", Font.BOLD, 12 );
+     
+-    private static final int DIALOG_ICON_SIZE = 48;
+-    private static final int DIALOG_TEXT_WIDTH = Toolkit.getDefaultToolkit()
+-	.getScreenSize().width / 4;
+-
+     private Font createdFont = DEFAULT_FONT;
+     private boolean antialiased = false;
+     private JLabel info;
+@@ -57,7 +54,9 @@
+     private JCheckBox antialiasBox = new JCheckBox( "Antialiased" );
+     private JTextArea textArea = new JTextArea() {
+ 	    
+-	    public void paint( Graphics g ) {
++		private static final long serialVersionUID = 1L;
++
++		public void paint( Graphics g ) {
+ 		Graphics2D g2 = (Graphics2D) g;
+ 		g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
+ 				     (antialiased ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+@@ -85,7 +84,7 @@
+ 	node = n;
+ 	singleton.apply();
+ 	singleton.setModal(true);
+-	singleton.show();
++	singleton.setVisible(true);
+ 	return(singleton);
+     }
+ 	    
+@@ -279,7 +278,7 @@
+     }
+ 
+     private JComponent createSizeComp() {
+-	ArrayList list = new ArrayList();
++	ArrayList<SizeEntry> list = new ArrayList<SizeEntry>();
+ 	for ( int i = MIN_SIZE; i < MAX_SIZE; i++ ) {
+ 	    list.add( new SizeEntry( new Integer( i ) ) );
+ 	}
+@@ -323,7 +322,7 @@
+     }
+ 
+     private JComponent createStyleList() {
+-	ArrayList list = new ArrayList();
++	ArrayList<StyleEntry> list = new ArrayList<StyleEntry>();
+ 	list.add( new StyleEntry( "Plain", Font.PLAIN ) );
+ 	list.add( new StyleEntry( "Bold", Font.BOLD ) );
+ 	list.add( new StyleEntry( "Italic", Font.ITALIC ) );
+Index: src/com/hp/hpl/guess/ui/DWButton.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/DWButton.java,v
+retrieving revision 1.1
+diff -u -r1.1 DWButton.java
+--- src/com/hp/hpl/guess/ui/DWButton.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/DWButton.java	30 Oct 2008 11:05:33 -0000
+@@ -1,23 +1,18 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import javax.swing.*;
+-import java.awt.event.*;
+-import java.awt.*;
+-import java.util.*;
+ 
+-import com.jidesoft.pane.CollapsiblePane;
+-import com.jidesoft.pane.CollapsiblePanes;
+-import com.jidesoft.plaf.LookAndFeelFactory;
+ import com.jidesoft.swing.JideButton;
+-import com.jidesoft.utils.SystemInfo;
+-import com.jidesoft.utils.Lm;
+ 
+-import com.hp.hpl.guess.*;
++import java.awt.*;
++import java.util.*;
+ 
+ public class DWButton extends JideButton 
+     implements GuessDropListener, Interesting {
+     
+-    private HashSet listeners = new HashSet();
++	private static final long serialVersionUID = 1L;
++
++	private HashSet<GuessDropListener> listeners = new HashSet<GuessDropListener>();
+ 
+     private String nm = null;
+ 
+@@ -48,11 +43,11 @@
+     }
+     
+     public void receiveDrop(Object o) {
+-	Iterator it = listeners.iterator();
++	Iterator<GuessDropListener> it = listeners.iterator();
+ 	//System.out.println(o);
+ 	while(it.hasNext()) {
+ 	    //System.out.println("calling...");
+-	    ((GuessDropListener)it.next()).receiveDrop(o);
++	    it.next().receiveDrop(o);
+ 	}
+     }
+ 
+Index: src/com/hp/hpl/guess/ui/GuessJFrame.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GuessJFrame.java,v
+retrieving revision 1.4
+diff -u -r1.4 GuessJFrame.java
+--- src/com/hp/hpl/guess/ui/GuessJFrame.java	30 Sep 2008 11:29:18 -0000	1.4
++++ src/com/hp/hpl/guess/ui/GuessJFrame.java	30 Oct 2008 11:05:41 -0000
+@@ -2,17 +2,19 @@
+ 
+ import java.awt.*;
+ import java.awt.event.*;
+-import java.util.*;
+ import javax.swing.*;
+ 
+-import com.jgoodies.looks.*;
++import com.jgoodies.looks.HeaderStyle;
++import com.jgoodies.looks.Options;
+ 
+ import com.hp.hpl.guess.freehep.*;
+ import com.hp.hpl.guess.*;
+ 
+ public class GuessJFrame extends JFrame {
+ 
+-    private JMenuBar jm = new JMenuBar();
++	private static final long serialVersionUID = 1630559633511657461L;
++
++	private JMenuBar jm = new JMenuBar();
+ 
+     private Dockable dockable = null;
+ 
+@@ -42,7 +44,7 @@
+ 		public void actionPerformed(ActionEvent event) {
+ 		    if (event.getActionCommand().equals("Dock")) {
+ 			getContentPane().removeAll();
+-			hide();
++			setVisible(false);
+ 			Guess.getMainUIWindow().dock(dc);
+ 		    }
+ 		}
+@@ -67,8 +69,8 @@
+     }
+ 
+     public void initMenus() {
+-
+-	jm.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
++    
++	jm.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.SINGLE);
+ 	JMenu fileMenu = new JMenu("File");
+ 	JMenuItem jmi = new JMenuItem("Export Image");
+ 	jmi.addActionListener(new ActionListener() {
+Index: src/com/hp/hpl/guess/ui/SpreadSheet.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/SpreadSheet.java,v
+retrieving revision 1.1
+diff -u -r1.1 SpreadSheet.java
+--- src/com/hp/hpl/guess/ui/SpreadSheet.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/SpreadSheet.java	30 Oct 2008 11:05:44 -0000
+@@ -1,19 +1,11 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+-import java.util.*;
+ import javax.swing.*;
+ import javax.swing.table.*;
+-import javax.swing.event.TableModelEvent;
+ 
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
+-import com.hp.hpl.guess.*;
+ import com.hp.hpl.guess.storage.StorageFactory;
+ 
+-import java.sql.Types;
+-
+ /**
+  * @pyobj SpreadSheet
+  */
+Index: src/com/hp/hpl/guess/ui/MainUIWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/MainUIWindow.java,v
+retrieving revision 1.8
+diff -u -r1.8 MainUIWindow.java
+--- src/com/hp/hpl/guess/ui/MainUIWindow.java	30 Sep 2008 11:29:18 -0000	1.8
++++ src/com/hp/hpl/guess/ui/MainUIWindow.java	30 Oct 2008 11:05:44 -0000
+@@ -1,5 +1,7 @@
+ package com.hp.hpl.guess.ui;
+ 
++import java.awt.Color;
++import java.awt.Component;
+ import java.awt.DisplayMode;
+ import java.awt.GraphicsDevice;
+ import java.awt.GraphicsEnvironment;
+@@ -15,26 +17,28 @@
+ import java.awt.GridBagConstraints;
+ 
+ import javax.swing.*;
+-import javax.swing.border.EmptyBorder;
++import javax.swing.border.Border;
++import javax.swing.plaf.basic.BasicSplitPaneDivider;
+ import javax.swing.plaf.basic.BasicSplitPaneUI;
+ 
+-import java.awt.*;
++import com.jidesoft.swing.JideTabbedPane;
+ 
+-import com.hp.hpl.guess.Guess;
+-import com.hp.hpl.guess.piccolo.GFrame;
++import java.awt.*;
+ 
+ public class MainUIWindow extends JFrame {
+ 
+-    public static final int HORIZONTAL_DOCK = 1;
++
++	private static final long serialVersionUID = 1L;
++	
++	public static final int HORIZONTAL_DOCK = 1;
+     public static final int VERTICAL_DOCK = 2;
+ 
+     private Component canvas;
+     private GraphicsDevice graphicsDevice;
+-    private DisplayMode originalDisplayMode;
+     private EventListener escapeFullScreenModeListener;
+ 
+-    private JTabbedPane tabbedPaneH = null;
+-    private JTabbedPane tabbedPaneV = null;
++    private JideTabbedPane tabbedPaneH = null;
++    private JideTabbedPane tabbedPaneV = null;
+ 
+     private JSplitPane splitPaneH = null;
+     private JSplitPane splitPaneV = null;
+@@ -43,18 +47,18 @@
+ 
+     private final JPopupMenu jpop = new JPopupMenu("Dock Menu");
+ 
+-    private JTabbedPane selected = null;
++    private JideTabbedPane selected = null;
+     
+     /**
+ 	* Object to save user preferences
+ 	*/
+ 	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
+ 
+-    public JTabbedPane getHorizontalTabbedPane() {
++    public JideTabbedPane getHorizontalTabbedPane() {
+ 	return(tabbedPaneH);
+     }
+ 
+-    public JTabbedPane getVerticalTabbedPane() {
++    public JideTabbedPane getVerticalTabbedPane() {
+ 	return(tabbedPaneV);
+     }
+ 
+@@ -66,26 +70,22 @@
+ 	return(splitPaneV);
+     }
+ 
+-    public Set getVerticalDockedComponents() {
+-	HashSet s = new HashSet();
++    public Set<Component> getVerticalDockedComponents() {
++	HashSet<Component> s = new HashSet<Component>();
+ 	for (int i = 0 ; i < tabbedPaneV.getTabCount() ; i++) {
+ 	    s.add(tabbedPaneV.getComponentAt(i));
+ 	}
+ 	return(s);
+     }
+ 
+-    public Set getHorizontalDockedComponents() {
+-	HashSet s = new HashSet();
++    public Set<Component> getHorizontalDockedComponents() {
++	HashSet<Component> s = new HashSet<Component>();
+ 	for (int i = 0 ; i < tabbedPaneH.getTabCount() ; i++) {
+ 	    s.add(tabbedPaneH.getComponentAt(i));
+ 	}
+ 	return(s);
+     }
+ 
+-    public void enableButtons(boolean state) {
+-	StatusBar.enableButtons(state);
+-    }
+-
+     public MainUIWindow(Component aCanvas) {
+ 	this(false, aCanvas);
+     }
+@@ -103,19 +103,19 @@
+ 	super(aDevice.getDefaultConfiguration());
+ 	getContentPane().setLayout(new GridBagLayout());
+ 	GridBagConstraints c = new GridBagConstraints();
+-		
++	
+ 	graphicsDevice = aDevice;
+ 	
+ 	// Set Window Icon
+ 	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
+     setIconImage(imageIcon.getImage());
+ 	
+-	try {
+-	    originalDisplayMode = graphicsDevice.getDisplayMode();
+-	} catch (InternalError e) {
++	//try {
++	//    originalDisplayMode = graphicsDevice.getDisplayMode();
++	//} catch (InternalError e) {
+ 	    //ExceptionWindow.getExceptionWindow(e);
+-	}
+-	
++	//}
++    
+ 	setBounds(getDefaultFrameBounds());
+ 	setBackground(null);
+ 	
+@@ -131,6 +131,10 @@
+ 				userPrefs.putInt("MainWindowWidth", getWidth());
+ 				userPrefs.putInt("MainWindowHeight", getHeight());
+ 
++				// Save window position
++				userPrefs.putInt("MainWindowX", getX());
++				userPrefs.putInt("MainWindowY", getY());
++				
+ 			    com.hp.hpl.guess.Guess.shutdown();
+ 			}
+ 
+@@ -140,43 +144,51 @@
+ 	} catch (SecurityException e) {} // expected from applets
+ 	
+ 	canvas = aCanvas;
+-    	
++	
+ 	if (canvas == null) {
+ 	    System.err.println("null canvas");
+ 	}
+ 	
+ 	
+-	tabbedPaneH = new JTabbedPane();
+-	//tabbedPaneH.setUI(new PSTabbedPaneUI());
+-	tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
+-	tabbedPaneV = createTabbedPane(JTabbedPane.LEFT);
+-	//new JTabbedPane();
+-	//tabbedPaneV.setUI(new PSTabbedPaneUI());
+-
+-	splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+-					      canvas,
+-					      tabbedPaneH);
+-
+-	splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+-				    tabbedPaneV,
+-				    splitPaneH);
++	
++	// Add menubar
++	myMenu = new GMenuBar();
++	
++	myMenu.setPreferredSize(new Dimension(Integer.MAX_VALUE, 35));
++	myMenu.setMinimumSize(new Dimension(0, 35));
+ 
+ 	c.fill = GridBagConstraints.BOTH;
++	c.weighty = 0;
++	c.weightx = 1;
++	c.gridy = 0;
++	c.gridx = 0;
++	c.anchor = GridBagConstraints.NORTH;
++	c.ipady = 0;
++	
++	getContentPane().add(myMenu, c);
++	
++	createPanes();
++	
++	c.fill = GridBagConstraints.BOTH;
+ 	c.weighty = 1;
+ 	c.weightx = 1;
+ 	c.gridx = 0;
+-	c.gridy = 0;
++	c.gridy = 1;
+ 	getContentPane().add(splitPaneV,c);
+ 
++	// Add statusbar
+ 	StatusBar jp = new StatusBar();
+-
+-	c.fill = GridBagConstraints.HORIZONTAL;
++	c.fill = GridBagConstraints.NONE;
+ 	c.weighty = 0;
+ 	c.gridy = 1;
++	c.anchor = GridBagConstraints.SOUTHWEST;
+ 	getContentPane().add(jp,c);
+ 
+-	myMenu = new GMenuBar();
+-	setJMenuBar(myMenu);
++	// Statusbar overlays splitPaneV
++	getContentPane().setComponentZOrder(jp, 0);
++	getContentPane().setComponentZOrder(splitPaneV, 1);
++
++	
+ 	validate(); 	
+ 	setFullScreenMode(fullScreenMode);
+ 	canvas.requestFocus();
+@@ -230,9 +242,7 @@
+ 		public void mousePressed(MouseEvent e) {
+ 		    if ((e.getButton() == MouseEvent.BUTTON2) ||
+ 			(e.getButton() == MouseEvent.BUTTON3)) {
+-			//System.out.println(tabbedPane.getSelectedIndex());
+-			//System.out.println("popup");
+-			selected = (JTabbedPane)e.getComponent();
++			selected = (JideTabbedPane)e.getComponent();
+ 			jpop.show(e.getComponent(),
+ 				  e.getX(),
+ 				  e.getY());
+@@ -243,7 +253,98 @@
+ 	tabbedPaneV.addMouseListener(ma);
+     }
+ 
+-    /**
++    public final Color getBgColor() {
++    	return new Color(227, 235, 250);
++    }
++
++	private void createPanes() {
++		
++		final Color lineColor1 = new Color(224, 232, 242);
++		final Color lineColor2 = new Color(255, 255, 255);
++		final Color lineColor3 = new Color(180, 188, 197);
++		final Color lineColor4 = new Color(238, 243, 250);
++		
++		tabbedPaneH = new JideTabbedPane();
++		tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
++		tabbedPaneH.setHideOneTab(true);
++		tabbedPaneH.setBorder(BorderFactory.createEmptyBorder());
++		tabbedPaneH.setContentBorderInsets(new Insets(0,0,0,0));
++		
++		tabbedPaneV = new JideTabbedPane();
++		tabbedPaneV.setTabPlacement(JTabbedPane.LEFT);
++		tabbedPaneV.setHideOneTab(true);
++		tabbedPaneV.setBorder(BorderFactory.createEmptyBorder());
++		tabbedPaneV.setContentBorderInsets(new Insets(0,0,0,0));
++		
++		splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
++			      canvas,
++			      tabbedPaneH);
++		
++		
++		splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
++				    tabbedPaneV,
++				    splitPaneH);
++		
++		splitPaneH.setBorder(BorderFactory.createEmptyBorder());
++		splitPaneV.setBorder(BorderFactory.createEmptyBorder());
++		
++		splitPaneH.setOneTouchExpandable(false);
++		splitPaneV.setOneTouchExpandable(false);
++		
++		splitPaneH.setDividerSize(4);
++		splitPaneV.setDividerSize(4);
++		
++		splitPaneH.setResizeWeight(1);
++		
++		splitPaneH.setBackground(getBgColor());
++		splitPaneV.setBackground(getBgColor());
++				
++		tabbedPaneH.setBackground(getBgColor());
++		tabbedPaneV.setBackground(getBgColor());
++		
++		splitPaneH.setUI(new BasicSplitPaneUI() {
++		public BasicSplitPaneDivider createDefaultDivider() {
++		  return new BasicSplitPaneDivider(this) {
++			private static final long serialVersionUID = 1L;
++
++			public void setBorder(Border b) {
++		    	Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor1);
++		    	Border b2 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor2);
++		    	Border b3 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor3);
++		    	Border b4 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor4);
++		    	 
++		    	Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
++		    	Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
++		    	Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
++		    	
++		      	super.setBorder(b1b2b3b4);
++		      }
++		  };
++		}
++		});
++		
++		splitPaneV.setUI(new BasicSplitPaneUI() {
++		public BasicSplitPaneDivider createDefaultDivider() {
++		  return new BasicSplitPaneDivider(this) {
++			  private static final long serialVersionUID = 1L;
++		      public void setBorder(Border b) {
++			    	Border b1 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor4);
++			    	Border b2 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor3);
++			    	Border b3 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor2);
++			    	Border b4 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor1);
++			    	 
++			    	Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
++			    	Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
++			    	Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
++			    	
++			      	super.setBorder(b1b2b3b4);
++		      }
++		  };
++		}
++		});
++	}
++
++	/**
+      * set the location of the horizontal panel
+      * @param loc the integer location, distance from top
+      */
+@@ -290,23 +391,6 @@
+     		return 0;
+     	}
+     }
+-
+-    public static JTabbedPane createTabbedPane(int tabPlacement){ 
+-	switch(tabPlacement){ 
+-        case JTabbedPane.LEFT: 
+-        case JTabbedPane.RIGHT: 
+-            Object textIconGap = UIManager.get("TabbedPane.textIconGap"); 
+-            Insets tabInsets = UIManager.getInsets("TabbedPane.tabInsets"); 
+-            UIManager.put("TabbedPane.textIconGap", new Integer(5)); 
+-            UIManager.put("TabbedPane.tabInsets", new Insets(tabInsets.left, tabInsets.top, tabInsets.right, tabInsets.bottom)); 
+-            JTabbedPane tabPane = new JTabbedPane(tabPlacement); 
+-            UIManager.put("TabbedPane.textIconGap", textIconGap); 
+-            UIManager.put("TabbedPane.tabInsets", tabInsets); 
+-            return tabPane; 
+-        default: 
+-            return new JTabbedPane(tabPlacement); 
+-	} 
+-    }  
+     
+ 
+     public void dock(Dockable d) {
+@@ -317,13 +401,14 @@
+ 			int m3 = (int)Math.max(m1,m2);
+ 			
+ 	    	showDividers(splitPaneV, m3);
+-		tabbedPaneV.addTab(null, 
+-				   new VerticalTextIcon(d.getTitle(),
+-							false),
+-				   (Component)d);
+-		tabbedPaneV.setBackgroundAt(0,Color.darkGray);
+-		//tabbedPaneV.addTab(d.getTitle(),(Component)d);
+-		tabbedPaneV.setSelectedComponent((Component)d);
++			tabbedPaneV.addTab(null, 
++					   new VerticalTextIcon(d.getTitle(),
++								false),
++					   (Component)d);
++			tabbedPaneV.setBackgroundAt(0,Color.darkGray);
++			//tabbedPaneV.addTab(d.getTitle(),(Component)d);
++			tabbedPaneV.setSelectedComponent((Component)d);
++
+ 	    } else {
+ 		
+ 		double m1 = splitPaneH.getDividerLocation();
+@@ -337,8 +422,6 @@
+ 	    }
+ 	    d.opening(true);
+ 	    d.attaching(true);
+-	    splitPaneH.setOneTouchExpandable(true);
+-	    splitPaneV.setOneTouchExpandable(true);
+ 	} catch (Exception e) {
+ 	    ExceptionWindow.getExceptionWindow(e);
+ 	}
+@@ -492,6 +575,10 @@
+ 		setSize(userPrefs.getInt("MainWindowWidth", getWidth()), 
+ 				userPrefs.getInt("MainWindowHeight", getHeight()));
+ 		
++		// Restore position
++		setLocation(userPrefs.getInt("MainWindowX", getX()),
++					userPrefs.getInt("MainWindowY", getY()));
++		
+ 	    validate();
+ 	    setVisible(true);
+ 	}
+@@ -511,7 +598,7 @@
+     
+     protected DisplayMode getBestDisplayMode(GraphicsDevice device) {
+ 	try {
+-	    Iterator itr = getPreferredDisplayModes(device).iterator();
++	    Iterator<DisplayMode> itr = getPreferredDisplayModes(device).iterator();
+ 	    while (itr.hasNext()) {
+ 		DisplayMode each = (DisplayMode) itr.next();
+ 		DisplayMode[] modes = device.getDisplayModes();
+@@ -529,8 +616,8 @@
+ 	return null;
+     }
+     
+-    protected Collection getPreferredDisplayModes(GraphicsDevice device) {
+-	ArrayList result = new ArrayList();
++    protected Collection<DisplayMode> getPreferredDisplayModes(GraphicsDevice device) {
++	ArrayList<DisplayMode> result = new ArrayList<DisplayMode>();
+ 	
+ 	result.add(device.getDisplayMode());
+ 	return result;
+Index: src/com/hp/hpl/guess/ui/VisFactory.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/VisFactory.java,v
+retrieving revision 1.2
+diff -u -r1.2 VisFactory.java
+--- src/com/hp/hpl/guess/ui/VisFactory.java	17 Nov 2005 01:43:44 -0000	1.2
++++ src/com/hp/hpl/guess/ui/VisFactory.java	30 Oct 2008 11:05:49 -0000
+@@ -153,6 +153,26 @@
+     public Collection getConvexHulls() {
+ 	return(new java.util.HashSet());
+     }
++    
++    /**
++     * Shows a title in the frame
++     * @pyexport
++     * @param title the title to show
++     * @param time time in ms till title is removed
++     */
++    public void showTitle(String title, long time) {
++    	
++    }
++    
++    
++    /**
++     * Sets the Color of the title text
++     * @pyexport
++     * @param aColor
++     */
++    public void setTitleColor(Color aColor) {
++    	
++    }
+ }
+ 
+ 	
+Index: src/com/hp/hpl/guess/ui/DragWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/DragWindow.java,v
+retrieving revision 1.1
+diff -u -r1.1 DragWindow.java
+--- src/com/hp/hpl/guess/ui/DragWindow.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/DragWindow.java	30 Oct 2008 11:05:33 -0000
+@@ -1,17 +1,11 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import javax.swing.*;
+-import java.awt.event.*;
+ import java.awt.*;
+ import java.util.*;
+ 
+ import com.jidesoft.pane.CollapsiblePane;
+ import com.jidesoft.pane.CollapsiblePanes;
+-import com.jidesoft.plaf.LookAndFeelFactory;
+-import com.jidesoft.swing.JideButton;
+-import com.jidesoft.utils.SystemInfo;
+-import com.jidesoft.utils.Lm;
+-import com.jidesoft.swing.MultilineLabel;
+ 
+ import com.hp.hpl.guess.*;
+ 
+@@ -48,7 +42,8 @@
+     }
+ 
+     private DragWindow() {
+-        LookAndFeelFactory.installJideExtension(LookAndFeelFactory.OFFICE2003_STYLE);
++        //LookAndFeelFactory.installJideExtension(LookAndFeelFactory.OFFICE2003_STYLE);
++    	
+         CollapsiblePanes pane = new CollapsiblePanes();
+ 	pane.setPreferredSize(new Dimension(240,490));
+ 	CollapsiblePane info = new CollapsiblePane("Draggable Menu System");
+Index: src/com/hp/hpl/guess/ui/DockableAdapter.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/DockableAdapter.java,v
+retrieving revision 1.4
+diff -u -r1.4 DockableAdapter.java
+--- src/com/hp/hpl/guess/ui/DockableAdapter.java	9 Aug 2007 02:05:56 -0000	1.4
++++ src/com/hp/hpl/guess/ui/DockableAdapter.java	30 Oct 2008 11:05:33 -0000
+@@ -1,16 +1,12 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import java.awt.*;
+-import java.awt.event.*;
+-import java.util.*;
+ import javax.swing.*;
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
+-import com.hp.hpl.guess.*;
+ 
+ public abstract class DockableAdapter extends JPanel implements Dockable {
+     
+-    public int getDirectionPreference() {
++	private static final long serialVersionUID = 1L;
++
++	public int getDirectionPreference() {
+ 	return(MainUIWindow.HORIZONTAL_DOCK);
+     }
+ 
+@@ -21,7 +17,7 @@
+     public void attaching(boolean state) {
+ 	//System.out.println("attaching: " + state);
+ 	if ((state == true) && (myParent != null))
+-	    myParent.hide();	
++	    myParent.setVisible(false);	
+     }
+ 
+     public String getTitle() {
+Index: src/com/hp/hpl/guess/ui/Colors.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/Colors.java,v
+retrieving revision 1.2
+diff -u -r1.2 Colors.java
+--- src/com/hp/hpl/guess/ui/Colors.java	19 Nov 2005 02:19:13 -0000	1.2
++++ src/com/hp/hpl/guess/ui/Colors.java	30 Oct 2008 11:05:33 -0000
+@@ -43,14 +43,14 @@
+  */
+ public abstract class Colors {
+ 
+-    public static Hashtable colors = new Hashtable();
++    public static Hashtable<String, Color> colors = new Hashtable<String, Color>();
+ 
+     public static void main(String[] args) {
+-	ArrayList st = new ArrayList(colors.keySet());
++	ArrayList<String> st = new ArrayList<String>(colors.keySet());
+ 	Collections.sort(st);
+ 	System.out.println("<FONT FACE=ARIAL><TABLE>");
+ 	int cnt = 0;
+-	Iterator it = st.iterator();
++	Iterator<String> it = st.iterator();
+ 	while(it.hasNext()) {
+ 	    if (cnt == 0) {
+ 		System.out.println("<TR>");
+@@ -282,7 +282,7 @@
+     /**
+      * @pyexport
+      */
+-    public static ArrayList generateColors(String startC, 
++    public static ArrayList<Object> generateColors(String startC, 
+ 					   String endC, 
+ 					   int inBetween) {
+ 	return(generateColors(getColor(startC,Color.red),
+@@ -290,11 +290,11 @@
+ 			      inBetween));
+     }
+     
+-    public static ArrayList generateColors(Color startColor,
++    public static ArrayList<Object> generateColors(Color startColor,
+ 					   Color endColor,
+ 					   int inBetween) {
+ 
+-	ArrayList al = new ArrayList(inBetween);
++	ArrayList<Object> al = new ArrayList<Object>(inBetween);
+ 
+ 	double red = 0;
+ 	double green = 0;
+@@ -326,7 +326,7 @@
+     /**
+      * @pyexport
+      */
+-    public static ArrayList generateColors(String startC, 
++    public static ArrayList<Object> generateColors(String startC, 
+ 					   String middleC,
+ 					   String endC,
+ 					   int inBetween) {
+@@ -336,12 +336,12 @@
+ 			      inBetween));
+     }
+ 
+-    public static ArrayList generateColors(Color sColor,
++    public static ArrayList<Object> generateColors(Color sColor,
+ 					   Color mColor,
+ 					   Color eColor,
+ 					   int inBetween) {
+ 
+-	ArrayList al = new ArrayList(inBetween);
++	ArrayList<Object> al = new ArrayList<Object>(inBetween);
+ 
+ 	double red = 0;
+ 	double green = 0;
+Index: src/com/hp/hpl/guess/ui/GMenuBar.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GMenuBar.java,v
+retrieving revision 1.9
+diff -u -r1.9 GMenuBar.java
+--- src/com/hp/hpl/guess/ui/GMenuBar.java	30 Sep 2008 11:29:18 -0000	1.9
++++ src/com/hp/hpl/guess/ui/GMenuBar.java	30 Oct 2008 11:05:41 -0000
+@@ -2,27 +2,36 @@
+ 
+ import java.awt.*;
+ import java.awt.event.*;
++import java.awt.image.BufferedImage;
+ 
+ import javax.swing.*;
++import javax.swing.border.BevelBorder;
++import javax.swing.border.Border;
++import javax.swing.event.DocumentEvent;
++import javax.swing.event.DocumentListener;
++import javax.swing.plaf.MenuBarUI;
+ 
+ import com.hp.hpl.guess.Guess;
+-import com.hp.hpl.guess.Version;
+ import com.hp.hpl.guess.Node;
+ import java.io.*;
+ import java.net.URI;
+ import java.net.URISyntaxException;
++import java.util.Arrays;
+ import java.util.prefs.Preferences;
+ 
++import com.hp.hpl.guess.action.GAction;
++import com.hp.hpl.guess.action.GActionManager;
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.freehep.HEPDialog;
+ import com.hp.hpl.guess.piccolo.GFrame;
++import com.hp.hpl.guess.piccolo.PreviewPopup;
++import com.hp.hpl.guess.storage.StorageFactory;
++import com.jgoodies.looks.Options;
+ 
+-import com.jgoodies.looks.*;
+ 
+ public class GMenuBar extends JMenuBar {
+ 
+-	String[] fileItems = new String[] { "Export Image...", "Export Graph..." };
+-
+-	char[] fileShortcuts = { 'I', 'R' };
++	private static final long serialVersionUID = 2412310463167673835L;
+ 
+ 	String[] layoutItems = new String[] { "Bin Pack", "GEM", "Circular",
+ 			"Physics", "Kamada-Kawai", "Fruchterman-Rheingold", "Spring",
+@@ -40,14 +49,30 @@
+ 				def);
+ 		return (toRet);
+ 	}
++	
++	
++    private ImageIcon backImage = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/menu-back.png"))); 
++    private Image image = backImage.getImage();
++    {setOpaque(false);}
++
++
++    
+ 
+ 	protected JMenu fileMenu = new JMenu("File");
+ 	protected JMenu editMenu = new JMenu("Edit");
+ 	protected JMenu layoutMenu = new JMenu("Layout");
+ 	protected JMenu scriptMenu = new JMenu("Script");
++	protected JMenu toolMenu = new JMenu("Tool");
+ 	protected JMenu viewMenu = new JMenu("View");
+ 	protected JMenu helpMenu = new JMenu("Help");
+ 
++	
++	protected JPanel statePanel = new JPanel();
++	
++
++	final StateSelectorPopup stateSelector = new StateSelectorPopup();
++	
++	
+ 	public boolean displayProtected() {
+ 		// System.out.println(Guess.getAppletMode() + " " +
+ 		// Guess.getSignedAppletMode());
+@@ -68,37 +93,102 @@
+ 		ActionListener scriptListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Run Script...")) {
+-					runScript();
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							runScript();
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script...");
++					
+ 				} else if (event.getActionCommand().equals("runScript1")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 1, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 1, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 1");
++					
+ 				} else if (event.getActionCommand().equals("runScript2")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 2, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 2, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 2");
++					
+ 				} else if (event.getActionCommand().equals("runScript3")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 3, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 3, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 3");
++					
+ 				} else if (event.getActionCommand().equals("runScript4")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 4, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 4, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 4");
++					
+ 				} else if (event.getActionCommand().equals("runScript5")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 5, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 5, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 5");
++					
+ 				} else if (event.getActionCommand().equals("runScript6")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 6, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 6, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 6");
++					
+ 				} else if (event.getActionCommand().equals("runScript7")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 7, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 7, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 7");
++					
+ 				} else if (event.getActionCommand().equals("runScript8")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 8, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 8, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 8");
++					
+ 				} else if (event.getActionCommand().equals("runScript9")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 9, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 9, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 9");
++					
+ 				} else if (event.getActionCommand().equals("runScript10")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 10, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 10, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 10");
+ 
+ 				}
+ 			}
+@@ -106,6 +196,7 @@
+ 
+ 		JMenuItem runScript = new JMenuItem("Run Script...");
+ 		runScript.addActionListener(scriptListener);
++		runScript.setIcon(new ImageIcon(getClass().getResource("/images/text-x-generic.png")));
+ 		scriptMenu.add(runScript);
+ 
+ 		// Add MRUs
+@@ -162,7 +253,14 @@
+ 					JCheckBoxMenuItem fullscreen = (JCheckBoxMenuItem) event.getSource();
+ 					Guess.getMainUIWindow().setFullScreenMode(fullscreen.getState());
+ 					userPrefs.putBoolean("openFullscreen", fullscreen.getState());
++				} else if (event.getActionCommand().equals("Overview")) {
++					PreviewPopup overview = new PreviewPopup((GFrame) VisFactory.getFactory().getDisplay(), true);
++					overview.showUpInCorner(viewMenu.getParent(), "", 
++							viewMenu.getX(), 
++							viewMenu.getY());
+ 				}
++				
++				
+ 			}
+ 		};
+ 
+@@ -170,6 +268,7 @@
+ 		centerMenuItem.addActionListener(viewListener);
+ 		centerMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0, false));
+ 		centerMenuItem.setMnemonic('c');
++		centerMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/view-refresh.png")));
+ 		viewMenu.add(centerMenuItem);
+ 		viewMenu.addSeparator();
+ 		
+@@ -178,6 +277,7 @@
+ 		informationWindowMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0, false));
+ 		informationWindowMenuItem.setMnemonic('i');
+ 		informationWindowMenuItem.setState(userPrefs.getBoolean("openInformationWindow", false));
++		informationWindowMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/format-justify-fill.png")));
+ 		viewMenu.add(informationWindowMenuItem);
+ 
+ 		if (Guess.guiMode) { // use internal console
+@@ -185,21 +285,30 @@
+ 		consoleMenuItem.addActionListener(viewListener);
+ 		consoleMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0, false));
+ 		consoleMenuItem.setState(userPrefs.getBoolean("openConsole", true));
++		consoleMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/utilities-terminal.png")));
+ 		consoleMenuItem.setMnemonic('o');
+ 		viewMenu.add(consoleMenuItem);
+ 		}
+ 		viewMenu.addSeparator();
+ 		
++		if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
++			JMenuItem overViewMenuItem = new JMenuItem("Overview");
++			overViewMenuItem.addActionListener(viewListener);
++			overViewMenuItem.setMnemonic('w');
++			overViewMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/previewscroller.png")));
++			viewMenu.add(overViewMenuItem);
++		}
++		
+ 		JCheckBoxMenuItem fullscreenMenuItem = new JCheckBoxMenuItem("Fullscreen");
+ 		fullscreenMenuItem.addActionListener(viewListener);
+ 		fullscreenMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0, false));
+ 		fullscreenMenuItem.setMnemonic('f');
++		fullscreenMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/view-fullscreen.png")));
+ 		fullscreenMenuItem.setState(userPrefs.getBoolean("openFullscreen", false));
+ 		viewMenu.add(fullscreenMenuItem);	
+ 	}
+ 	
+ 	private void buildFileMenu() {
+-
+ 		ActionListener printListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Exit")) {
+@@ -213,8 +322,7 @@
+ 								(GFrame) VisFactory.getFactory().getDisplay(),
+ 								"output.jpg", true);
+ 					} else {
+-						StatusBar
+-								.setErrorStatus("This method is only supported in piccolo mode right now");
++						StatusBar.setErrorStatus("This method is only supported in piccolo mode right now");
+ 					}
+ 				} else if (event.getActionCommand().equals("Export Graph...")) {
+ 					saveGDF();
+@@ -224,58 +332,49 @@
+ 			}
+ 		};
+ 
+-		ActionListener loadListener = new ActionListener() {
++		ActionListener importListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+-				if (event.getActionCommand().equals("GDF")) {
+-					loadFromFile("GDF");
+-				} else if (event.getActionCommand().equals("XML/GML")) {
+-					loadFromFile("XML");
+-				} else if (event.getActionCommand().equals("Pajek")) {
+-					loadFromFile("Pajek");
+-				}
++				loadFromFile();
+ 			}
+ 		};
+ 
+-		JMenu load = new JMenu("Import Graph");
+-		load.setMnemonic('m');
+-		JMenuItem l1 = new JMenuItem("GDF");
+-		l1.addActionListener(loadListener);
+-		l1.setMnemonic('g');
+-		load.add(l1);
+-		l1 = new JMenuItem("XML/GML");
+-		l1.setMnemonic('x');
+-		l1.addActionListener(loadListener);
+-		load.add(l1);
+-		l1 = new JMenuItem("Pajek");
+-		l1.setMnemonic('p');
+-		l1.addActionListener(loadListener);
+-		load.add(l1);
+-
+-		fileMenu.add(load);
++		
++		JMenuItem itemImportGraph = new JMenuItem("Import Graph");
++		itemImportGraph.setMnemonic('m');
++		itemImportGraph.addActionListener(importListener);
++		fileMenu.add(itemImportGraph);
+ 		if (!displayProtected()) {
+-			load.setEnabled(false);
++			itemImportGraph.setEnabled(false);
+ 		}
++		
+ 
+-		for (int i = 0; i < fileItems.length; i++) {
+-			JMenuItem item = null;
+-			if (i < fileShortcuts.length) {
+-				item = new JMenuItem(fileItems[i], fileShortcuts[i]);
+-				item.setAccelerator(KeyStroke.getKeyStroke(fileShortcuts[i],
+-						Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(),
+-						false));
+-
+-			} else {
+-				item = new JMenuItem(fileItems[i]);
+-			}
++		
++		JMenuItem itemExportGraph = new JMenuItem("Export Graph...", 'r');
++		itemExportGraph.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
++				Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
++		itemExportGraph.addActionListener(printListener);
+ 
+-			item.addActionListener(printListener);
+-			fileMenu.add(item);
+-			if (!displayProtected()) {
+-				item.setEnabled(false);
+-			}
++		fileMenu.add(itemExportGraph);
++		if (!displayProtected()) {
++			itemExportGraph.setEnabled(false);
+ 		}
+ 		fileMenu.addSeparator();
++			
++		
+ 
++		JMenuItem itemExportImage = new JMenuItem("Export Image...", 'i');
++		itemExportImage.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I,
++				Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
++		itemExportImage.addActionListener(printListener);
++		itemExportImage.setIcon(new ImageIcon(getClass().getResource("/images/image-x-generic.png")));		
++		fileMenu.add(itemExportImage);
++		if (!displayProtected()) {
++			itemExportImage.setEnabled(false);
++		}
++		
++		fileMenu.addSeparator();
++			
++			
+ 		// added the log button sep. since we need to
+ 		// access it later
+ 		logItem.addActionListener(printListener);
+@@ -291,68 +390,121 @@
+ 		exitMenuItem.setMnemonic('x');
+ 		exitMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit()
+ 				.getMenuShortcutKeyMask(), false));
+-		
++		exitMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/system-log-out.png")));
+ 		exitMenuItem.addActionListener(printListener);
+ 		fileMenu.add(exitMenuItem);
+ 	}
+ 	
+ 	private void buildLayoutMenu() {
+-
++		layoutMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
++		
+ 		ActionListener layoutListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				String command = event.getActionCommand();
+-				StatusBar.runProgressBar(true);
+ 				try {
+ 					if (command.equals("GEM")) {
+-						Guess.getGraph().gemLayout();
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().gemLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "GEM Layout");
++						StatusBar.setStatus("GEM Layout");
++						
+ 					} else if (command.equals("Radial...")) {
+ 						String centerN = getInputFromUser(
+ 								"Please enter a node to " + "use a the center",
+ 								"User input", "");
+ 						if (centerN != null) {
+-							Node x = Guess.getGraph().getNodeByName(centerN);
++							final Node x = Guess.getGraph().getNodeByName(centerN);
+ 							if (x != null) {
+-								Guess.getGraph().radialLayout(x);
++								
++								GStateAction layoutAction = new GStateAction() {
++									public void actionContent() {
++										Guess.getGraph().radialLayout(x);
++									}
++								};
++								GActionManager.runAction(layoutAction, "Radial Layout");
+ 								StatusBar.setStatus("radialLayout(" + centerN
+ 										+ ")");
+ 							} else {
+-								StatusBar
+-										.setErrorStatus("Can't find node named "
++								StatusBar.setErrorStatus("Can't find node named "
+ 												+ centerN);
+ 							}
+ 						}
+ 					} else if (command.equals("Circular")) {
+-						Guess.getGraph().circleLayout();
+-						StatusBar.setStatus("circleLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().circleLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Circle Layout");
++						StatusBar.setStatus("Circle Layout");
+ 					} else if (command.equals("Physics")) {
+-						Guess.getGraph().physicsLayout();
+-						StatusBar.setStatus("physicsLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().physicsLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Physics Layout");
++						StatusBar.setStatus("Physics Layout");
+ 					} else if (command.equals("Kamada-Kawai")) {
+-						Guess.getGraph().jkkLayout1();
+-						StatusBar.setStatus("jkkLayout1()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().jkkLayout1();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Kamada-Kawai (jkkLayout1)");
++						StatusBar.setStatus("Kamada-Kawai (jkkLayout1)");
+ 					} else if (command.equals("Fruchterman-Rheingold")) {
+-						Guess.getGraph().frLayout();
+-						StatusBar.setStatus("frLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().frLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Fruchterman-Rheingold");
++						StatusBar.setStatus("Fruchterman-Rheingold");
+ 					} else if (command.equals("Spring")) {
+-						Guess.getGraph().springLayout();
+-						StatusBar.setStatus("springLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().springLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Spring Layout");
++						StatusBar.setStatus("Spring Layout");
+ 					} else if (command.equals("MDS")) {
+-						Guess.getGraph().mdsLayout();
+-						StatusBar.setStatus("mdsLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().mdsLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "MDS Layout");
++						StatusBar.setStatus("MDS Layout");
+ 					} else if (command.equals("Random")) {
+-						Guess.getGraph().randomLayout();
+-						StatusBar.setStatus("randomLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().randomLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Random Layout");
++						StatusBar.setStatus("Random Layout");
+ 					} else if (command.equals("Bin Pack")) {
+-						Guess.getGraph().binPackLayout();
+-						StatusBar.setStatus("binPackLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().binPackLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Bin Pack Layout");
++						StatusBar.setStatus("Bin Pack Layout");
+ 					}
+ 				} catch (Exception e) {
+ 					StatusBar.setErrorStatus(e.toString());
+ 				}
+-				StatusBar.runProgressBar(false);
+ 			}
+ 		};
+ 
++		
++		Arrays.sort(layoutItems);
+ 		for (int i = 0; i < layoutItems.length; i++) {
+ 			JMenuItem item = new JMenuItem(layoutItems[i]);
+ 			item.addActionListener(layoutListener);
+@@ -405,17 +557,20 @@
+ 		JMenuItem errorLogMenuItem = new JMenuItem("Error Log");
+ 		errorLogMenuItem.addActionListener(helpListener);
+ 		errorLogMenuItem.setMnemonic('r');
++		errorLogMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/dialog-error.png")));
+ 		helpMenu.add(errorLogMenuItem);
+ 		helpMenu.addSeparator();
+ 
+ 		JMenuItem homepageMenuItem = new JMenuItem("GUESS Homepage");
+ 		homepageMenuItem.addActionListener(helpListener);
+ 		homepageMenuItem.setMnemonic('h');
++		homepageMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/go-home.png")));
+ 		helpMenu.add(homepageMenuItem);
+ 		
+ 		JMenuItem wikiMenuItem = new JMenuItem("GUESS Wiki");
+ 		wikiMenuItem.addActionListener(helpListener);
+ 		wikiMenuItem.setMnemonic('w');
++		wikiMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/help-browser.png")));
+ 		helpMenu.add(wikiMenuItem);
+ 		
+ 		helpMenu.addSeparator();
+@@ -423,11 +578,130 @@
+ 		JMenuItem aboutMenuItem = new JMenuItem("About GUESS");
+ 		aboutMenuItem.addActionListener(helpListener);
+ 		aboutMenuItem.setMnemonic('a');
++		aboutMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/guess-icon.png")));
+ 		helpMenu.add(aboutMenuItem);
+ 	}
+ 	
++	
++	private void buildToolMenu() {
++
++		toolMenu.setIcon(new ImageIcon(getClass().getResource("/images/browse.gif")));
++		toolMenu.setText("Browse");
++
++		
++		ActionListener toolListener = new ActionListener() {
++			public void actionPerformed(ActionEvent event) {
++				FrameListener fl = VisFactory.getFactory().getDisplay();
++				GFrame gfl = null;
++				if (fl instanceof GFrame) {
++					gfl = ((GFrame) fl);
++				}
++				
++				if (event.getActionCommand().equals("Browse")) {
++					gfl.switchHandler(0);
++					toolMenu.setIcon(new ImageIcon(getClass().getResource("/images/browse.gif")));
++					toolMenu.setText("Browse");
++				} else if (event.getActionCommand().equals("Manipulate Nodes")) {
++					gfl.switchHandler(1);
++					toolMenu.setIcon(new ImageIcon(getClass().getResource("/images/nodeed.gif")));
++					toolMenu.setText("Nodes");
++				} else if (event.getActionCommand().equals("Manipulate Edges")) {
++					gfl.switchHandler(2);
++					toolMenu.setIcon(new ImageIcon(getClass().getResource("/images/edgeed.gif")));
++					toolMenu.setText("Edges");
++				} else if (event.getActionCommand().equals("Manipulate Hulls")) {
++					gfl.switchHandler(3);
++					toolMenu.setIcon(new ImageIcon(getClass().getResource("/images/hulled.gif")));
++					toolMenu.setText("Hulls");
++				} else if (event.getActionCommand().equals("Draw")) {
++					gfl.switchHandler(4);
++					toolMenu.setIcon(new ImageIcon(getClass().getResource("/images/draw.gif")));
++					toolMenu.setText("Draw");
++				}
++			}
++		};
++
++		ButtonGroup editModeGroup = new ButtonGroup();
++		
++		JRadioButtonMenuItem browseMenuItem = new JRadioButtonMenuItem("Browse");
++		browseMenuItem.addActionListener(toolListener);
++		browseMenuItem.setMnemonic('b');
++		browseMenuItem.setSelected(true);
++		browseMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/browse.gif")));
++		toolMenu.add(browseMenuItem);
++		editModeGroup.add(browseMenuItem);
++		
++		JRadioButtonMenuItem nodesMenuItem = new JRadioButtonMenuItem("Manipulate Nodes");
++		nodesMenuItem.addActionListener(toolListener);
++		nodesMenuItem.setMnemonic('m');
++		nodesMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/nodeed.gif")));
++		toolMenu.add(nodesMenuItem);
++		editModeGroup.add(nodesMenuItem);
++		
++		JRadioButtonMenuItem edgesMenuItem = new JRadioButtonMenuItem("Manipulate Edges");
++		edgesMenuItem.addActionListener(toolListener);
++		edgesMenuItem.setMnemonic('a');
++		edgesMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/edgeed.gif")));
++		toolMenu.add(edgesMenuItem);
++		editModeGroup.add(edgesMenuItem);
++		
++		JRadioButtonMenuItem hullsMenuItem = new JRadioButtonMenuItem("Manipulate Hulls");
++		hullsMenuItem.addActionListener(toolListener);
++		hullsMenuItem.setMnemonic('h');
++		hullsMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/hulled.gif")));
++		toolMenu.add(hullsMenuItem);
++		editModeGroup.add(hullsMenuItem);
++		
++		JRadioButtonMenuItem drawMenuItem = new JRadioButtonMenuItem("Draw");
++		drawMenuItem.addActionListener(toolListener);
++		drawMenuItem.setMnemonic('d');
++		drawMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/draw.gif")));
++		toolMenu.add(drawMenuItem);
++		editModeGroup.add(drawMenuItem);
++	}
++	
++	
+ 	private void buildEditMenu() {
++		final JMenuItem undoMenuItem = new JMenuItem("Undo (Nothing)");
++		undoMenuItem.setActionCommand("undo");
++		undoMenuItem.setEnabled(false);
++		undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit()
++				.getMenuShortcutKeyMask(), false));
++		undoMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/edit-undo.png")));
++		
++		final JMenuItem redoMenuItem = new JMenuItem("Redo (Nothing)");
++		redoMenuItem.setActionCommand("redo");
++		redoMenuItem.setEnabled(false);
++		redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit()
++				.getMenuShortcutKeyMask() + KeyEvent.SHIFT_DOWN_MASK, false));
++		redoMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/edit-redo.png")));
+ 
++		
++		ActionListener undoRedoListener = new ActionListener() {
++			public void actionPerformed(ActionEvent event) {
++				GAction undoAction = GActionManager.getLastUndoAction();
++				if ((undoAction!=null) && (undoAction.getDescription()!=null)) {
++					undoMenuItem.setText("Undo (" + undoAction.getDescription() + ")");
++					undoMenuItem.setEnabled(true);
++				} else {
++					undoMenuItem.setText("Undo (Nothing)");
++					undoMenuItem.setEnabled(false);
++				}
++				
++				GAction redoAction = GActionManager.getLastRedoAction();
++				if ((redoAction!=null) && (redoAction.getDescription()!=null)) {
++					redoMenuItem.setText("Redo (" + redoAction.getDescription() + ")");
++					redoMenuItem.setEnabled(true);
++				} else {
++					redoMenuItem.setText("Redo (Nothing)");
++					redoMenuItem.setEnabled(false);
++				}				
++			}
++		};
++		
++		GActionManager.addActionChangeListener(undoRedoListener);
++
++		
+ 		ActionListener editListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Background Color...")) {
+@@ -437,6 +711,11 @@
+ 									.getDisplayBackground());
+ 					if (c != null) {
+ 						fl.setDisplayBackground(c);
++						// Save background color for next time
++						userPrefs.putInt("backgroundcolor-red", c.getRed());
++						userPrefs.putInt("backgroundcolor-green", c.getGreen());
++						userPrefs.putInt("backgroundcolor-blue", c.getBlue());
++						
+ 						StatusBar.setStatus("v.setDisplayBackground(\""
+ 								+ c.getRed() + "," + c.getGreen() + ","
+ 								+ c.getBlue() + "\")");
+@@ -446,9 +725,21 @@
+ 				} else if (event.getActionCommand().equals("Toggle Arrows")) {
+ 					VisFactory.getFactory().setDirected(
+ 							!VisFactory.getFactory().getDirected());
++				} else if (event.getActionCommand().equals("undo")) {
++					GActionManager.undo();
++				} else if (event.getActionCommand().equals("redo")) {
++					GActionManager.redo();
+ 				}
+ 			}
+ 		};
++		
++		undoMenuItem.addActionListener(editListener);
++		redoMenuItem.addActionListener(editListener);
++		editMenu.add(undoMenuItem);
++		editMenu.add(redoMenuItem);
++		editMenu.addSeparator();
++
++		
+ 		JMenuItem modifyFieldMenuItem = new JMenuItem("Modify Field...");
+ 		modifyFieldMenuItem.addActionListener(editListener);
+ 		modifyFieldMenuItem.setMnemonic('m');
+@@ -458,39 +749,355 @@
+ 		JMenuItem toggleArrowsMenuItem = new JMenuItem("Toggle Arrows");
+ 		toggleArrowsMenuItem.addActionListener(editListener);
+ 		toggleArrowsMenuItem.setMnemonic('t');
++		toggleArrowsMenuItem.setIcon(new ImageIcon(getClass().getResource("/images/mail-send-receive.png")));
+ 		editMenu.add(toggleArrowsMenuItem);
++		
+ 		JMenuItem bgcolor = new JMenuItem("Background Color...");
+ 		bgcolor.setMnemonic('b');
+ 		bgcolor.addActionListener(editListener);
++		bgcolor.setIcon(new ImageIcon(getClass().getResource("/images/preferences-desktop-wallpaper.png")));
+ 		editMenu.add(bgcolor);
+ 		editMenu.addSeparator();
+ 	}
+ 	
+ 	public GMenuBar() {
+-		this.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
+ 
++
++		setUI(new MenuBarUI() {
++			
++			public void paint(Graphics g,
++	                  JComponent c) {
++				
++				int height = 35;
++				int width = image.getWidth(c);
++				BufferedImage bim = (BufferedImage) createImage(width,height);
++
++				Graphics2D bim_g2d = (Graphics2D) bim.getGraphics();
++				bim_g2d.drawImage(image,0,0,Color.black, c);
++
++				Paint paint = new TexturePaint(bim,new Rectangle(0,0,width,height));
++				Graphics2D g2d = (Graphics2D) g;
++				if(paint != null)
++				{
++					g2d.setPaint(paint);
++					g2d.fill(g2d.getClip());
++				}
++			}		
++		});
++		
++		setBorder(BorderFactory.createEmptyBorder());
++		setBorderPainted(false);
++		
++		
+ 		fileMenu.setMnemonic('f');
+ 		editMenu.setMnemonic('e');
+ 		layoutMenu.setMnemonic('l');
+ 		scriptMenu.setMnemonic('s');
+ 		viewMenu.setMnemonic('v');
+ 		helpMenu.setMnemonic('h');
+-
++		toolMenu.setMnemonic('t');
++		
++		fileMenu.setOpaque(false);
++		editMenu.setOpaque(false);
++		layoutMenu.setOpaque(false);
++		scriptMenu.setOpaque(false);
++		viewMenu.setOpaque(false);
++		helpMenu.setOpaque(false);
++		toolMenu.setOpaque(false);
++		
++		fileMenu.setForeground(Color.WHITE);
++		editMenu.setForeground(Color.WHITE);
++		layoutMenu.setForeground(Color.WHITE);
++		scriptMenu.setForeground(Color.WHITE);
++		viewMenu.setForeground(Color.WHITE);
++		helpMenu.setForeground(Color.WHITE);
++		toolMenu.setForeground(Color.WHITE);
++		
++		Insets menuInsets = new Insets(0,10,0,10);
++		fileMenu.setMargin(menuInsets);
++		editMenu.setMargin(menuInsets);
++		layoutMenu.setMargin(menuInsets);
++		scriptMenu.setMargin(menuInsets);
++		viewMenu.setMargin(menuInsets);
++		helpMenu.setMargin(menuInsets);
++		toolMenu.setMargin(menuInsets);
++		
+ 		buildFileMenu();
+ 		buildEditMenu();
+ 		buildLayoutMenu();
+ 		buildScriptMenu();
+ 		buildViewMenu();
+ 		buildHelpMenu();
++		
++		buildToolMenu();
++		
++		buildStateSection();
++		
+ 
+-		super.add(fileMenu);
+-		super.add(editMenu);
+-		super.add(layoutMenu);
+-		super.add(scriptMenu);
+-		super.add(viewMenu);
+-		super.add(helpMenu);
++		
++		setLayout(new GridBagLayout());
++		GridBagConstraints c = new GridBagConstraints();
++		
++		c.fill = GridBagConstraints.BOTH;
++		c.weighty = 1;
++		c.weightx = 0;
++
++		c.gridy = 0;
++
++		c.anchor = GridBagConstraints.NORTH;
++
++
++		c.gridx = 0;
++		add(fileMenu, c);
++		
++		c.gridx = 1;
++		add(editMenu, c);
++		
++		c.gridx = 2;
++		add(layoutMenu, c);
++		
++		c.gridx = 3;
++		add(scriptMenu, c);
++		
++		c.gridx = 4;
++		add(viewMenu, c);
++		
++		c.gridx = 5;
++		add(helpMenu, c);
++		
++		c.gridx = 6;
++		c.weightx = 0.5;
++		c.anchor = GridBagConstraints.EAST;
++		c.fill = GridBagConstraints.VERTICAL;
++		add(toolMenu, c);
++		
++		c.fill = GridBagConstraints.NONE;
++		c.insets = new Insets(4,8,4,4);
++		c.weightx = 0;
++		c.gridx = 7;
++		add(statePanel, c);
++		
++	}
++	
++	private void buildStateSection() {
++	
++		// Create Border
++		Border b1 = BorderFactory.createLineBorder(new Color(224,225,226), 1);
++		Border b2 = BorderFactory.createBevelBorder(BevelBorder.LOWERED, new Color(109,114,118), new Color(67,70,75));
++		Border b3 = BorderFactory.createLineBorder(new Color(81,87,94), 1);
++		
++		Border b1b2 = BorderFactory.createCompoundBorder(b2, b1);
++		Border b1b2b3 = BorderFactory.createCompoundBorder(b3, b1b2);
++		statePanel.setBorder(b1b2b3);
++		statePanel.setBackground(new Color(170,175,179));
++	
++		
++		// Create Layout
++		statePanel.setLayout(new GridBagLayout());
++		GridBagConstraints c = new GridBagConstraints();
++		
++		c.fill = GridBagConstraints.NONE;
++		c.weighty = 0;
++		c.weightx = 0;
++		c.gridy = 0;
++		
++		final JButton btnPreviousState = new JButton();
++		final JButton btnNextState = new JButton();
++		final JTextField textState = new JTextField();
++		final JButton btnAddState = new JButton();
++		final JButton btnSaveState = new JButton();
++		final JButton btnLoadState = new JButton();
++		final JButton btnShowStates = new JButton();
++		
++		
++		// Load previous
++		btnPreviousState.setIcon(new ImageIcon(getClass().getResource("/images/btn-back.png")));
++		btnPreviousState.setRolloverIcon(new ImageIcon(getClass().getResource("/images/btn-back-hover.png")));
++		btnPreviousState.setDisabledIcon(new ImageIcon(getClass().getResource("/images/btn-back-disabled.png")));
++		btnPreviousState.setBorder(BorderFactory.createEmptyBorder(0,1,0,1));
++		btnPreviousState.setOpaque(false);
++		btnPreviousState.setContentAreaFilled(false);
++		btnPreviousState.setFocusPainted(false);
++		btnPreviousState.addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++				stateSelector.loadPrevious();
++			}
++		});
++		c.gridx = 0;
++		statePanel.add(btnPreviousState, c);
++		
++		// Load next
++		btnNextState.setIcon(new ImageIcon(getClass().getResource("/images/btn-next.png")));
++		btnNextState.setRolloverIcon(new ImageIcon(getClass().getResource("/images/btn-next-hover.png")));
++		btnNextState.setDisabledIcon(new ImageIcon(getClass().getResource("/images/btn-next-disabled.png")));
++		btnNextState.setBorder(BorderFactory.createEmptyBorder(0,1,0,1));
++		btnNextState.setOpaque(false);
++		btnNextState.setContentAreaFilled(false);
++		btnNextState.setFocusPainted(false);
++		btnNextState.addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++				stateSelector.loadNext();
++			}
++		});
++		c.gridx = 1;
++		statePanel.add(btnNextState, c);
++		
++		
++		// Name of current or new state 
++		textState.setOpaque(false);
++		textState.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
++		textState.setForeground(new Color(70,72,75));
++		textState.addFocusListener(new FocusListener() {
++			public void focusGained(FocusEvent e) {
++				textState.selectAll();
++			}
++			public void focusLost(FocusEvent e) {
++				textState.select(0, 0);
++			}
++		});
++		textState.addKeyListener(new KeyAdapter() {
++			public void keyPressed(KeyEvent e) {
++				
++				if ((e.isControlDown()) && 
++						(e.getKeyCode() == KeyEvent.VK_ENTER)) {
++					if (btnLoadState.isVisible()) {
++						btnLoadState.doClick();
++					}
++				} else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
++					if (btnAddState.isVisible()) {
++						btnAddState.doClick();
++					}
++					if (btnSaveState.isVisible()) {
++						btnSaveState.doClick();
++					}
++				}
++			}
++		});
++		textState.getDocument().addDocumentListener(new DocumentListener() {
++			public void changedUpdate(DocumentEvent e) {
++				setStateButtonState(btnPreviousState, btnNextState, btnAddState,  btnSaveState, btnLoadState, btnShowStates, textState);
++			}
++			public void insertUpdate(DocumentEvent e) {
++				setStateButtonState(btnPreviousState, btnNextState, btnAddState,  btnSaveState, btnLoadState, btnShowStates, textState);
++			}
++			public void removeUpdate(DocumentEvent e) {
++				setStateButtonState(btnPreviousState, btnNextState, btnAddState,  btnSaveState, btnLoadState, btnShowStates, textState);
++			}
++		});
++		stateSelector.addStateSelectorEventListener(new StateSelectorEventListener() {
++			public void stateLoaded(String state) {
++				textState.setText(state);
++				setStateButtonState(btnPreviousState, btnNextState, btnAddState,  btnSaveState, btnLoadState, btnShowStates, textState);
++			}
++			public void stateSaved(String state) {
++				textState.setText(state);
++				setStateButtonState(btnPreviousState, btnNextState, btnAddState,  btnSaveState, btnLoadState, btnShowStates, textState);
++			}
++		});
++		c.fill = GridBagConstraints.HORIZONTAL;
++		c.gridx = 2;
++		c.weightx = 1;
++		statePanel.add(textState, c);
++		
++		
++		// Save states
++		btnSaveState.setIcon(new ImageIcon(getClass().getResource("/images/btn-state-save.png")));
++		btnSaveState.setRolloverIcon(new ImageIcon(getClass().getResource("/images/btn-state-save-hover.png")));
++		btnSaveState.setBorder(BorderFactory.createEmptyBorder(0,1,0,1));
++		btnSaveState.setOpaque(false);
++		btnSaveState.setContentAreaFilled(false);
++		btnSaveState.setFocusPainted(false);
++		btnSaveState.setToolTipText("Save state (Enter)");
++		btnSaveState.addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++				StorageFactory.getSL().saveState(textState.getText());
++			}
++		});
++		c.fill = GridBagConstraints.NONE;
++		c.gridx = 3;
++		c.weightx = 0;
++		statePanel.add(btnSaveState, c);
++		
++		
++		// Load states
++		btnLoadState.setIcon(new ImageIcon(getClass().getResource("/images/btn-state-load.png")));
++		btnLoadState.setRolloverIcon(new ImageIcon(getClass().getResource("/images/btn-state-load-hover.png")));
++		btnLoadState.setBorder(BorderFactory.createEmptyBorder(0,1,0,1));
++		btnLoadState.setOpaque(false);
++		btnLoadState.setContentAreaFilled(false);
++		btnLoadState.setFocusPainted(false);
++		btnLoadState.setToolTipText("Load state (Ctrl+Enter)");
++		btnLoadState.addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++				StorageFactory.getSL().loadState(textState.getText());
++			}
++		});
++		c.fill = GridBagConstraints.NONE;
++		c.gridx = 4;
++		c.weightx = 0;
++		statePanel.add(btnLoadState, c);
++		
++		// Add state
++		btnAddState.setIcon(new ImageIcon(getClass().getResource("/images/btn-add.png")));
++		btnAddState.setRolloverIcon(new ImageIcon(getClass().getResource("/images/btn-add-hover.png")));
++		btnAddState.setDisabledIcon(new ImageIcon(getClass().getResource("/images/btn-add-disabled.png")));
++		btnAddState.setBorder(BorderFactory.createEmptyBorder(0,1,0,1));
++		btnAddState.setOpaque(false);
++		btnAddState.setContentAreaFilled(false);
++		btnAddState.setFocusPainted(false);
++		btnAddState.setToolTipText("Add state (Enter)");
++		btnAddState.addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++				StorageFactory.getSL().saveState(textState.getText());
++			}
++		});
++		c.fill = GridBagConstraints.NONE;
++		c.gridx = 4;
++		c.weightx = 0;
++		statePanel.add(btnAddState, c);
++		
++		// Show states
++		btnShowStates.setIcon(new ImageIcon(getClass().getResource("/images/btn-more.png")));
++		btnShowStates.setRolloverIcon(new ImageIcon(getClass().getResource("/images/btn-more-hover.png")));
++		btnShowStates.setDisabledIcon(new ImageIcon(getClass().getResource("/images/btn-more-disabled.png")));
++		btnShowStates.setBorder(BorderFactory.createEmptyBorder(0,1,0,1));
++		btnShowStates.setOpaque(false);
++		btnShowStates.setContentAreaFilled(false);
++		btnShowStates.setFocusPainted(false);
++		btnShowStates.addActionListener(new ActionListener() {
++			public void actionPerformed(ActionEvent e) {
++				stateSelector.show(
++						statePanel.getRootPane(), 
++						statePanel.getX() + statePanel.getWidth() - stateSelector.getPreferredSize().width - 2, 
++						statePanel.getY() + statePanel.getHeight() - 3
++						);
++			}
++		});
++		c.gridx = 5;
++		statePanel.add(btnShowStates, c);
++
++		setStateButtonState(btnPreviousState, btnNextState, btnAddState, btnSaveState, btnLoadState, btnShowStates, textState);
++		
++		statePanel.setPreferredSize(new Dimension(200,24));
++		statePanel.setMinimumSize(new Dimension(200,24));
+ 	}
+ 
++	private void setStateButtonState(JButton btnPrevious, JButton btnNext,
++			JButton btnAdd, JButton btnSave, JButton btnLoad, JButton btnMore, 
++			JTextField curState) {
++		
++		btnPrevious.setEnabled(stateSelector.hasPrevious());
++		btnNext.setEnabled(stateSelector.hasNext());
++		btnMore.setEnabled(stateSelector.isNotEmpty());
++		btnAdd.setEnabled(((curState.getText().length()>0) && 
++				(curState.getText().charAt(0)!=GStateAction.delimiter.charAt(0))));
++		
++		btnAdd.setVisible(!stateSelector.isState(curState.getText()));
++		btnSave.setVisible(stateSelector.isState(curState.getText()));
++		btnLoad.setVisible(stateSelector.isState(curState.getText()));
++
++	}
++	
+ 	public JMenu add(JMenu c) {
+ 		JMenu temp = getMenu(getMenuCount() - 1);
+ 		if (temp == helpMenu) {
+@@ -593,32 +1200,35 @@
+ 		}
+ 	}
+ 
+-	public void loadFromFile(String type) {
++	public void loadFromFile() {
+ 		SunFileFilter filter = new SunFileFilter();
+ 		try {
+ 			if (prevLoad == null) {
+ 				prevLoad = new File(".");
+ 			}
+ 			JFileChooser chooser = new JFileChooser(prevLoad.getCanonicalPath());
+-			if (type.equals("GDF")) {
+-				filter.addExtension("gdf");
+-			} else if (type.equals("XML")) {
+-				filter.addExtension("xml");
+-				filter.addExtension("gml");
+-				filter.addExtension("graphml");
+-			} else if (type.equals("Pajek")) {
+-				filter.addExtension("net");
+-			}
++				
++			filter.addExtension("gdf");
++			filter.addExtension("xml");
++			filter.addExtension("gml");
++			filter.addExtension("graphml");
++			filter.addExtension("net");
++
+ 			chooser.setFileFilter(filter);
+ 			int returnVal = chooser.showOpenDialog(null);
+ 			if (returnVal == JFileChooser.APPROVE_OPTION) {
+ 				String fileName = chooser.getSelectedFile().getAbsolutePath();
+-				if (type.equals("GDF")) {
++				String ext = (fileName.lastIndexOf(".")==-1)?"":fileName.substring(fileName.lastIndexOf(".")+1,fileName.length());
++				ext = ext.toLowerCase();
++				
++				if (ext.equals("gdf")) {
+ 					Guess.getGraph().makeFromGDF(fileName);
+-				} else if (type.equals("XML")) {
++				} else if (ext.equals("xml") || ext.equals("gml") || ext.equals("graphml")) {
+ 					Guess.getGraph().makeFromGML(fileName);
+-				} else if (type.equals("Pajek")) {
++				} else if (ext.equals("net")) {
+ 					Guess.getGraph().makeFromPajek(fileName);
++				} else {
++					System.err.println("Unknown File Extension.");
+ 				}
+ 				prevLoad = new File(fileName);
+ 				VisFactory.getFactory().getDisplay().center();
+Index: src/com/hp/hpl/guess/db/SpreadSheetTable.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/db/SpreadSheetTable.java,v
+retrieving revision 1.1
+diff -u -r1.1 SpreadSheetTable.java
+--- src/com/hp/hpl/guess/db/SpreadSheetTable.java	5 Oct 2005 20:19:38 -0000	1.1
++++ src/com/hp/hpl/guess/db/SpreadSheetTable.java	30 Oct 2008 11:05:26 -0000
+@@ -1,17 +1,10 @@
+ package com.hp.hpl.guess.db;
+ 
+-import java.awt.*;
+-import java.awt.event.*;
++
+ import java.util.*;
+-import javax.swing.*;
+ import javax.swing.table.*;
+-import javax.swing.event.TableModelEvent;
+-
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
+ import com.hp.hpl.guess.*;
+ 
+-import java.sql.Types;
+ 
+ public class SpreadSheetTable extends AbstractTableModel {
+ 
+Index: src/com/hp/hpl/guess/db/DBServer.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/db/DBServer.java,v
+retrieving revision 1.15
+diff -u -r1.15 DBServer.java
+--- src/com/hp/hpl/guess/db/DBServer.java	29 May 2008 21:22:00 -0000	1.15
++++ src/com/hp/hpl/guess/db/DBServer.java	30 Oct 2008 11:05:26 -0000
+@@ -9,6 +9,8 @@
+ import com.hp.hpl.guess.storage.*;
+ import com.hp.hpl.guess.ui.ExceptionWindow;
+ import com.hp.hpl.guess.ui.StatusBar;
++import com.hp.hpl.guess.ui.StatusDialog;
++
+ import javax.swing.table.AbstractTableModel;
+ import edu.uci.ics.jung.exceptions.ConstraintViolationException;
+ 
+@@ -421,7 +423,6 @@
+ 	    // next lets get the default values
+ 
+ 	} catch (Exception e) {
+-	    
+ 	    ExceptionWindow.getExceptionWindow(e);
+ 	    throw new Error(e.toString());
+ 	}
+@@ -718,16 +719,16 @@
+ 	
+         Class.forName("org.hsqldb.jdbcDriver");
+ 
+-	if (db_file_name_prefix.equals(".")) {
+-	    conn = DriverManager.getConnection("jdbc:hsqldb:mem:aname",
+-					       "sa",                 
+-					       "");    
+-	} else {
+-	    conn = DriverManager.getConnection("jdbc:hsqldb:file:"
+-					       + db_file_name_prefix,
+-					       "sa",                 
+-					       "");    
+-	}
++        if (db_file_name_prefix.equals(".")) {
++		    conn = DriverManager.getConnection("jdbc:hsqldb:mem:aname",
++						       "sa",                 
++						       "");    
++		} else {
++		    conn = DriverManager.getConnection("jdbc:hsqldb:file:"
++						       + db_file_name_prefix,
++						       "sa",                 
++						       "");    
++		}
+     }
+ 
+     public void shutdownConn() throws SQLException {
+@@ -1310,9 +1311,6 @@
+     public void shutdown() {
+ 	resetSingleton();
+ 
+-	StatusBar.setStatus("Shutting down database");
+-	StatusBar.runProgressBar(true);
+-
+ 	closeStatements();
+ 	try {
+ 	    update("SHUTDOWN");
+@@ -1324,7 +1322,6 @@
+ 	} catch (Exception ex3) {
+ 	    ExceptionWindow.getExceptionWindow(ex3);
+ 	}
+-	StatusBar.runProgressBar(false);
+     }
+ 
+     public void alter(String columnname, String query) {
+@@ -2091,8 +2088,55 @@
+ 	saveState(""+statenum);
+     }
+ 
++    public static class Base62 {
++    	 public static String base62code =
++    	  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
++    	  "abcdefghijklmnopqrstuvwxyz" + "0123456789";
++    	 public static int splitLinesAt = 76;
++    	 public static String encode(String string) {
++    	  String encoded = "";
++    	  
++    	  // determine how many padding bytes to add to the output
++    	  int paddingCount = (3 - (string.length() % 3)) % 3;
++    	  
++    	  // add any necessary padding to the input
++    	  string += "\0\0".substring(0, paddingCount);
++    	  
++    	  // process 3 bytes at a time, churning out 4 output bytes
++    	  // worry about CRLF insertions later
++    	  for (int i = 0; i < string.length(); i += 3) {
++    	   int j = (string.charAt(i) << 16) + (string.charAt(i + 1) << 8) +
++    	    string.charAt(i + 2);
++    	   encoded = encoded + base62code.charAt((j >> 18) & 0x3f) +
++    	    base62code.charAt((j >> 12) & 0x3f) +
++    	    base62code.charAt((j >> 6) & 0x3f) +
++    	    base62code.charAt(j & 0x3f);
++    	  }
++    	  // replace encoded padding nulls with "0"
++    	  return encoded.substring(0, encoded.length() - paddingCount) +
++    	   "00".substring(0, paddingCount);
++    	 }
++    	}
++    
++    public void deleteState(String statenum) {
++        try {
++            query("DROP TABLE nodes_"+statenum);
++        } catch (SQLException ex2) {
++	}
++
++        try {
++            query("DROP TABLE edges_"+statenum);
++        } catch (SQLException ex2) {
++       }
++    }
++    
+     public void saveState(String statenum) {
+ 	
++		// escape state string
++    	String orgstatenum = statenum;
++		statenum = Base62.encode(statenum);
++		
++		
+ 	tableList.clear();
+ 
+         try {
+@@ -2132,9 +2176,8 @@
+ 	}
+ 	Iterator it = listeners.iterator();
+ 	while(it.hasNext()) {
+-	    ((DBEventListener)it.next()).stateSaved(statenum);
++	    ((StorageEventListener)it.next()).stateSaved(orgstatenum);
+ 	}
+-	StatusBar.setState(statenum);
+     }
+ 
+     Hashtable unusedEdges = new Hashtable();
+@@ -2239,6 +2282,10 @@
+     public void loadState(Graph g, String statenum) {
+ 
+ 
++	// escape state string
++    String orgstatenum = statenum;
++	statenum = Base62.encode(statenum);
++		
+ 	// lets deal with edges
+ 
+ 	// step one, find/remove the edges that are in the state we're 
+@@ -2400,11 +2447,9 @@
+ 
+ 	refresh(g);
+ 
+-	StatusBar.setState(statenum);
+-
+ 	Iterator it = listeners.iterator();
+ 	while(it.hasNext()) {
+-	    ((DBEventListener)it.next()).stateLoaded(statenum);
++	    ((StorageEventListener)it.next()).stateLoaded(orgstatenum);
+ 	}
+     }
+ 
+@@ -2872,9 +2917,8 @@
+ 	}
+     }
+ 
+-    private HashSet listeners = new HashSet();
+-
+-    public void addDBEventListener(DBEventListener dbl) {
+-	listeners.add(dbl);
++    private HashSet<StorageEventListener> listeners = new HashSet<StorageEventListener>();
++    public void addStorageEventListener(StorageEventListener dbl) {
++    	listeners.add(dbl);
+     }
+ }
+Index: src/com/hp/hpl/guess/layout/GEM.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/layout/GEM.java,v
+retrieving revision 1.2
+diff -u -r1.2 GEM.java
+--- src/com/hp/hpl/guess/layout/GEM.java	22 Sep 2006 20:43:26 -0000	1.2
++++ src/com/hp/hpl/guess/layout/GEM.java	30 Oct 2008 11:05:28 -0000
+@@ -530,11 +530,9 @@
+ 
+ 
+ 	while (temperature > stop_temperature && iteration < stop_iteration) {
+-	    //com.hp.hpl.guess.ui.StatusBar.setValue((int)stop_iteration,
+ 	    //			       (int)iteration);
+ 	    a_round();
+ 	}
+-	//com.hp.hpl.guess.ui.StatusBar.setValue(100,0);
+     }
+ 
+ 
+Index: src/edu/umd/cs/piccolo/event/MyZoomHandler.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/edu/umd/cs/piccolo/event/MyZoomHandler.java,v
+retrieving revision 1.1
+diff -u -r1.1 MyZoomHandler.java
+--- src/edu/umd/cs/piccolo/event/MyZoomHandler.java	5 Oct 2005 20:19:55 -0000	1.1
++++ src/edu/umd/cs/piccolo/event/MyZoomHandler.java	30 Oct 2008 11:05:49 -0000
+@@ -14,6 +14,7 @@
+ 
+ import com.hp.hpl.guess.piccolo.*;
+ import com.hp.hpl.guess.ui.*;
++
+ import java.util.HashSet;
+ import java.util.Collection;
+ import java.util.Iterator;
+@@ -46,7 +47,7 @@
+ 
+ 	    e.pushCursor(CursorFactory.getCursor(CursorFactory.ZOOM));
+ 	    super.mousePressed(e);
+-	}	    
++	}
+     }
+ 
+     public void mouseReleased(PInputEvent e) {
+Index: src/com/hp/hpl/guess/Guess.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Guess.java,v
+retrieving revision 1.24
+diff -u -r1.24 Guess.java
+--- src/com/hp/hpl/guess/Guess.java	30 Sep 2008 11:29:19 -0000	1.24
++++ src/com/hp/hpl/guess/Guess.java	30 Oct 2008 11:05:15 -0000
+@@ -2,11 +2,8 @@
+ package com.hp.hpl.guess;
+ 
+ import java.awt.*;
+-import java.awt.event.ActionEvent;
+-import java.awt.event.ActionListener;
+ import java.awt.event.WindowAdapter;
+ import java.awt.event.WindowEvent;
+-import java.awt.event.WindowListener;
+ 
+ import javax.swing.*;
+ 
+@@ -14,23 +11,22 @@
+ import java.util.*;
+ import java.util.prefs.Preferences;
+ 
+-import com.hp.hpl.guess.*;
+ import org.python.core.*;
+ import org.python.util.*;
+ 
+-import edu.uci.ics.jung.graph.*;
+ import com.hp.hpl.guess.storage.*;
+ import com.hp.hpl.guess.ui.*;
++
+ import gnu.getopt.*;
+ import com.hp.hpl.guess.r.R;
+-import com.hp.hpl.guess.util.GuessPyStringMap;
+ import java.applet.AppletContext;
++import java.beans.PropertyChangeEvent;
++import java.beans.PropertyChangeListener;
++
+ import com.hp.hpl.guess.util.intervals.Tracker;
+ 
+-import com.jgoodies.looks.FontSizeHints;
+-import com.jgoodies.looks.LookUtils;
+ import com.jgoodies.looks.Options;
+-import com.jidesoft.utils.Lm;
++import com.jidesoft.plaf.LookAndFeelFactory;
+ 
+ 
+ /**
+@@ -82,7 +78,7 @@
+     /**
+      * we also can take a list of files to execute
+      */
+-    private static Vector pythonToExec = null;
++    private static Vector<String> pythonToExec = null;
+ 
+     /**
+      * are we running inside an applet
+@@ -122,7 +118,12 @@
+     /**
+      * Object to save user preferences
+      */
+-	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");    
++	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");
++
++    /**
++     * Object to get user preferences set by the menu
++     */
++	private static Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
+     
+     /**
+      * allow multiple edges
+@@ -295,17 +296,16 @@
+     public static void main(String[] argv)
+ 	throws Exception {
+ 
+-	Lm.verifyLicense("GUESS", "GUESS",
+-			 "kaiS04IaJ.QjUq.ZLB0OWobuNMddGb41");
++	//Lm.verifyLicense("GUESS", "GUESS",
++	//		 "kaiS04IaJ.QjUq.ZLB0OWobuNMddGb41");
+ 
+ 	try {
+-	    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+-
++		UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
+ 	    configureUI();
+ 	} catch (Exception lnfe) { 
+ 	}
+ 	
+-	LongOpt[] longopts = new LongOpt[14];
++	LongOpt[] longopts = new LongOpt[15];
+ 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
+ 	longopts[1] = new LongOpt("touchgraph", 
+ 				  LongOpt.NO_ARGUMENT, null, 't'); 
+@@ -327,7 +327,9 @@
+ 	longopts[12] = new LongOpt("fileformat", 
+ 				  LongOpt.REQUIRED_ARGUMENT, null, 'b'); 
+ 	longopts[13] = new LongOpt("fitfont", 
+-				   LongOpt.NO_ARGUMENT, null, 'g'); 
++				   LongOpt.NO_ARGUMENT, null, 'g');
++	longopts[14] = new LongOpt("reset", 
++			   LongOpt.NO_ARGUMENT, null, 'r');
+ 
+ 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
+ 	go.setOpterr(false);
+@@ -405,6 +407,13 @@
+ 		    case 'b':
+ 			defaultFileFormat = go.getOptarg();
+ 			break;
++		    case 'r':
++			Preferences globalPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");
++			globalPrefs.removeNode();
++			globalPrefs.flush();
++			System.out.println("Settings cleared. Good Bye.");
++			System.exit(0);
++			break;
+ 		    case ':':
+ 			System.out.print("unknown option: " + (char)c + "\n");
+ 			break;
+@@ -430,7 +439,7 @@
+ 		(argv[i].endsWith(".Py")) ||
+ 		(argv[i].endsWith(".PY"))) {
+ 		if (pythonToExec == null) {
+-		    pythonToExec = new Vector();
++		    pythonToExec = new Vector<String>();
+ 		}
+ 		pythonToExec.addElement(argv[i]);
+ 	    } else {
+@@ -540,78 +549,41 @@
+      * process (see the main loop for an example)
+      */
+     public static void getDataBase() {
+-    	// Create Buttons
+-    	JButton btnOpenDatabase = new JButton("Open Database...");
+-    	btnOpenDatabase.setMnemonic('O');
+-    	JButton btnImportGraph = new JButton("Import Graph...");
+-    	btnImportGraph.setMnemonic('I');
+-    	JButton btnCreateEmpty = new JButton("Create Empty");
+-    	btnCreateEmpty.setMnemonic('C');    	
+-		Object[] options = new Object[]{btnOpenDatabase, btnImportGraph, btnCreateEmpty};
++    	
++    	final welcomeDialog wd = new welcomeDialog();
++    	wd.setVisible(true);
++    	
++    	int wdResult = wd.getUsersChoice();
++
++    	
++    	if (wdResult==-1) {
++    		getDataBase();
++    		return;
++    		
++    	} else if ((wdResult==wd.DB_OPEN_DATABASE) && 
++    		(existingChooser(wd.getFileNameOpenDatabase()))) {
++    		return;
++    		
++    	} else if ((wdResult==wd.DB_IMPORT_GRAPH_MEMORY) && 
++    			(newChooser(false, wd.getFileNameImportGraph(),
++    					wd.getNameImportGraph(), wd.getDirectoryImportGraph()))) {
++    		return;
++    	} else if ((wdResult==wd.DB_IMPORT_GRAPH_PERSISTENT) && 
++    			(newChooser(true, wd.getFileNameImportGraph(),
++    					wd.getNameImportGraph(), wd.getDirectoryImportGraph())))  {
++    		return;
++    	} else if ((wdResult==wd.DB_CREATE_EMPTY) && (emptyChooser())) {
++    		return;
++    		
++    	} else {
++    		System.out.println("Could not create a database.");
++    		System.exit(0);
++    	}
++
++   
++    getDataBase();
++	return;
+ 
+-	    
+-		// Create Dialog
+-		JOptionPane pane = new JOptionPane((Object)"What kind of database do you want GUESS to start with?", 
+-				 JOptionPane.PLAIN_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null, options, options[userPrefs.getInt("LastButtonSelection", 0)]);
+-		
+-		final JDialog jd = pane.createDialog("Choose Database - GUESS");
+-
+-		// Set Window Icon
+-		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
+-		jd.setIconImage(imageIcon.getImage());
+-		
+-		
+-		try {
+-			jd.addWindowListener(new WindowAdapter() {
+-				public void windowClosing(WindowEvent e) {
+-					// User did not choose anything but to exit 
+-					System.exit(0);
+-				}
+-			});
+-			
+-		} catch (SecurityException e) {
+-			// expected from applets
+-		    System.err.println("Could not add Window Listener");
+-		}		
+-
+-		
+-		
+-		//Create ActionListener for Buttons
+-		ActionListener listChooseDB = new ActionListener() {
+-			public void actionPerformed(ActionEvent ae){
+-				if (ae.getActionCommand().equals("Open Database...")) {
+-				    // user wants an existing database, let them
+-				    // pick one and then return
+-					userPrefs.putInt("LastButtonSelection", 0);
+-				    if (existingChooser()) {
+-				    	jd.dispose();
+-				    	return;
+-				    }
+-				} else if (ae.getActionCommand().equals("Import Graph...")) {
+-				    // user wants to pick to load
+-					userPrefs.putInt("LastButtonSelection", 1);
+-				    if (newChooser()) {
+-				    	jd.dispose();
+-				    	return;
+-				    }
+-				} else if (ae.getActionCommand().equals("Create Empty")) {
+-					// user wants an empty database
+-					userPrefs.putInt("LastButtonSelection", 2);
+-				    if (emptyChooser()) {
+-				    	jd.dispose();
+-						return;
+-					 }				
+-				}
+-			}
+-		};
+-		
+-		// Set ActionsListener for Buttons
+-		btnOpenDatabase.addActionListener(listChooseDB);
+-		btnImportGraph.addActionListener(listChooseDB);
+-		btnCreateEmpty.addActionListener(listChooseDB);
+-	
+-		//Show Dialog
+-		jd.setVisible(true);
+     }
+ 
+ 
+@@ -619,26 +591,10 @@
+      * user seems to want to select from an existing database 
+      * @return true if succeeded, false otherwise
+      */
+-    private static boolean existingChooser() {
++    private static boolean existingChooser(String fileName) {
+ 	try {
+-	    String toLoad = userPrefs.get("OpenDatabasePath", ".");
+-	    JFileChooser chooser = 
+-		new JFileChooser(new File(toLoad).getCanonicalPath());
+-	    SunFileFilter filter = new SunFileFilter();
+-	    filter.addExtension("properties");
+-	    chooser.setFileFilter(filter);
+-	    int returnVal = chooser.showOpenDialog(null);
+-	    
+-	    if(returnVal == JFileChooser.APPROVE_OPTION) {
+-		String fileName = 
+-		    chooser.getSelectedFile().getAbsolutePath();
+-		fileName = fileName.substring(0,fileName.length()-11);
+-
+-		// Save Path
+-		userPrefs.put("OpenDatabasePath", chooser.getSelectedFile().getAbsolutePath());
+ 		StorageFactory.useDBServer(fileName);
+ 		return(true);
+-	    }
+ 	} catch (Exception e) {
+ 	    exceptionHandle(e);
+ 	}
+@@ -649,104 +605,58 @@
+      * user seems to want to select from new file
+      * @return true if succeeded, false otherwise
+      */
+-    private static boolean newChooser() {
++    private static boolean newChooser(boolean isPersistent, String fileName, 
++    		String dbName, String directory) {
+ 	try {
+-
+-	    // PICK THE FILE TO LOAD
+-	    
+-	    PickFile chooser = new PickFile();
+-
+-	    File returnVal = chooser.showDialog();
+-	    
+-	    if(returnVal != null) {
+-		
+-		String fileName = 
+-		    returnVal.getAbsolutePath();
+-		SunFileFilter filter = 
+-		    new SunFileFilter();
+-
+-		String fileExtension = filter.getExtension(returnVal);
++    
++		String fileExtension = "";
++		File f = new File(fileName);
+ 		
+-		if (chooser.isPersistent()) {
+-		    String directory = 
+-			chooser.getDirectory().getCanonicalPath();
+-		    String dbName = chooser.getName();
+-		    if (fileExtension.equalsIgnoreCase("dl")) {
++	    if (f.exists()) {
++	    	SunFileFilter filter = new SunFileFilter();
++	    	fileExtension = filter.getExtension(f);
++	    }
++	    
++		if (fileExtension.equalsIgnoreCase("dl")) {
+ 			// added for Patrick
+-			StorageFactory.useDBServer(directory + 
+-						   sep + 
+-						   dbName);
++		    if (isPersistent) {
++				StorageFactory.useDBServer(directory + sep + dbName);
++			} else {
++				StorageFactory.useDBServer();
++			}
+ 			StorageFactory.createEmpty();
+-			
+-			doLater = "g.makeFromDL(\""+
+-			    fileName.replace('\\','/')+
+-			    "\")";
+-		    }  else if ((fileExtension.equalsIgnoreCase("xml")) ||
+-				(fileExtension.equalsIgnoreCase("graphml"))) {
+-			StorageFactory.useDBServer(directory + 
+-						   sep + 
+-						   dbName);
++			doLater = "g.makeFromDL(\""+ fileName.replace('\\','/')+"\")";
++				
++		}  else if ((fileExtension.equalsIgnoreCase("xml")) ||
++			(fileExtension.equalsIgnoreCase("graphml"))) {
++		    if (isPersistent) {
++				StorageFactory.useDBServer(directory + sep + dbName);
++			} else {
++				StorageFactory.useDBServer();
++			}
+ 			StorageFactory.createEmpty();
+-			
+-			doLater = "g.makeFromGML(\""+
+-			    fileName.replace('\\','/')+
+-			    "\")";
+-		    } else if ((fileExtension.equalsIgnoreCase("net")) ||
+-			       (fileExtension.equalsIgnoreCase("paj")) ||
+-			       (fileExtension.equalsIgnoreCase("pajek"))) {
+-			StorageFactory.useDBServer(directory + 
+-						   sep + 
+-						   dbName);
++			doLater = "g.makeFromGML(\""+fileName.replace('\\','/')+ "\")";
++				
++		} else if ((fileExtension.equalsIgnoreCase("net")) ||
++			   (fileExtension.equalsIgnoreCase("paj")) ||
++			   (fileExtension.equalsIgnoreCase("pajek"))) {
++		    if (isPersistent) {
++				StorageFactory.useDBServer(directory + sep + dbName);
++			} else {
++				StorageFactory.useDBServer();
++			}
+ 			StorageFactory.createEmpty();
+-			
+-			doLater = "g.makeFromPajek(\""+
+-			    fileName.replace('\\','/')+
+-			    "\")";
+-		    } else {
+-			StorageFactory.useDBServer(directory + 
+-						   sep + 
+-						   dbName);
+-			StorageFactory.loadFromFile(fileName);
+-		    }
+-		    return(true);
++			doLater = "g.makeFromPajek(\""+ fileName.replace('\\','/')+ "\")";
++				
+ 		} else {
+- 		    //System.out.println("using in memory database");
+-		    if ((fileExtension.equalsIgnoreCase("dl"))) {
+-			// added for Patrick
+- 			StorageFactory.useDBServer();
+- 			StorageFactory.createEmpty();
+-
+- 			doLater = "g.makeFromDL(\""+
+- 			    fileName.replace('\\','/')+
+- 			    "\")";
+- 		    } else if ((fileExtension.equalsIgnoreCase("xml")) ||
+- 			(fileExtension.equalsIgnoreCase("graphml"))) {
+-
+- 			StorageFactory.useDBServer();
+- 			StorageFactory.createEmpty();
+-
+- 			doLater = "g.makeFromGML(\""+
+- 			    fileName.replace('\\','/')+
+- 			    "\")";
+- 		    } else if ((fileExtension.equalsIgnoreCase("net")) ||
+-			       (fileExtension.equalsIgnoreCase("paj")) ||
+-			       (fileExtension.equalsIgnoreCase("pajek"))) {
+-
+- 			StorageFactory.useDBServer();
+- 			StorageFactory.createEmpty();
+-
+- 			doLater = "g.makeFromPajek(\""+
+- 			    fileName.replace('\\','/')+
+- 			    "\")";
+- 		    } else { 
+- 			StorageFactory.useDBServer();
++		    if (isPersistent) {
++				StorageFactory.useDBServer(directory + sep + dbName);
++			} else {
++				StorageFactory.useDBServer();
++			}
+ 			StorageFactory.loadFromFile(fileName);
+-		    }
+- 		    return(true);
+ 		}
+-	    } else {
+-		return(false);
+-	    }
++		return(true);
+ 	} catch (Exception e) {
+ 	    exceptionHandle(e);
+ 	}
+@@ -772,27 +682,16 @@
+     /**
+      * do some initial setup to the UI look and feel
+      */
+-    public static void configureUI() {
+-	//ClearLookManager.setMode(ClearLookMode.DEBUG);
+-
+-        UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
+-        Options.setGlobalFontSizeHints(FontSizeHints.MIXED);
+-        Options.setDefaultIconSize(new Dimension(18, 18));
+-        
+-        String lafName =
+-            LookUtils.IS_OS_WINDOWS_XP
+-                ? Options.getCrossPlatformLookAndFeelClassName()
+-                : Options.getSystemLookAndFeelClassName();
+-
+-
+-	//	System.out.println(lafName + " " + LookUtils.IS_OS_WINDOWS_XP);
+-
++    public static void configureUI() {      	   
+         try {
+-            UIManager.setLookAndFeel(lafName);
++            UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
++            UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
++            LookAndFeelFactory.setDefaultStyle(LookAndFeelFactory.VSNET_STYLE_WITHOUT_MENU);
+         } catch (Exception e) {
+             System.err.println("Can't set look & feel");
+-	    exceptionHandle(e);
++            exceptionHandle(e);
+         }
++        
+     }
+ 
+     static BufferedReader reader = null;
+@@ -895,13 +794,10 @@
+ 	    textMode = false;
+ 	}
+ 
+-	//System.out.println("before");
+-
+ 	final InterpreterAbstraction interp = getInterpreter();
+ 
+-	//System.out.println("after");
+ 	final int uiMode2 = uiMode;
+-
++	
+ 	try {
+ 	    javax.swing.SwingUtilities.invokeAndWait(new Runnable() { 
+ 		    public void run() {
+@@ -912,10 +808,15 @@
+ 	    exceptionHandle(e);
+ 	}
+ 	  
+-
+ 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
+-	myF = myFrame;
+-	myF.setDisplayBackground(Color.black);
++	setFrame(myFrame);
++	
++	// Set the background color
++	int colorred = userPrefsMenu.getInt("backgroundcolor-red", Color.black.getRed());
++	int colorgreen = userPrefsMenu.getInt("backgroundcolor-green", Color.black.getGreen());
++	int colorblue = userPrefsMenu.getInt("backgroundcolor-blue", Color.black.getBlue());
++	myF.setDisplayBackground(new Color(colorred, colorgreen, colorblue));
++
+ 
+ 	try {
+ 	    g = new Graph(myFrame, interp, multiEdge);
+@@ -940,9 +841,9 @@
+ 		Node node = (Node)nodes.next();
+ 		interp.setImmutable(node.getName(), node);
+ 	    }
+-	Enumeration en = Colors.colors.keys();
++	Enumeration<String> en = Colors.colors.keys();
+ 	while(en.hasMoreElements()) {
+-	    String key = (String)en.nextElement();
++	    String key = en.nextElement();
+ 	    Color val = (Color)Colors.colors.get(key);
+ 	    interp.setImmutable(key,val.toString());
+ 	}
+@@ -1045,8 +946,6 @@
+ 			tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
+ 		    myWin.dock(tpjc);
+ 		    
+-			Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
+-			
+ 			// Show console?
+ 			if (!userPrefsMenu.getBoolean("openConsole", true)) {
+ 				getMainUIWindow().close(tpjc);
+@@ -1083,9 +982,9 @@
+ 	} 
+ 	
+ 	if (pythonToExec != null) {
+-	    Iterator it = pythonToExec.iterator();
++	    Iterator<String> it = pythonToExec.iterator();
+ 	    while(it.hasNext()) {
+-		final String fl = (String)it.next();
++		final String fl = it.next();
+ 		try {
+ 		    javax.swing.SwingUtilities.invokeAndWait(new Runnable() { 
+ 			    public void run() {
+@@ -1156,16 +1055,13 @@
+ 					catch(Throwable e2) {
+ 					    exceptionHandle(e2);	    
+ 					}
+-					StatusBar.runProgressBar(false);
+ 				    } catch(Throwable e3) {
+ 					exceptionHandle(e3);
+-					StatusBar.runProgressBar(false);
+ 				    }
+ 				myFrame.repaint();
+ 			    } 
+ 			}); 
+ 		} catch (InterruptedException e) {
+-		    StatusBar.runProgressBar(false);
+ 		    exceptionHandle(e);
+ 		}
+ 		checkFrozen(interp);
+@@ -1237,3 +1133,4 @@
+ 	    }
+     }
+ }
++
+Index: src/com/hp/hpl/guess/Graph.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Graph.java,v
+retrieving revision 1.20
+diff -u -r1.20 Graph.java
+--- src/com/hp/hpl/guess/Graph.java	30 Sep 2008 11:29:19 -0000	1.20
++++ src/com/hp/hpl/guess/Graph.java	30 Oct 2008 11:05:13 -0000
+@@ -12,9 +12,7 @@
+ import com.hp.hpl.guess.layout.*;
+ import com.hp.hpl.guess.util.*;
+ import com.hp.hpl.guess.io.*;
+-import javax.swing.JOptionPane;
+ 
+-import org.apache.commons.collections.*;
+ import edu.uci.ics.jung.algorithms.cluster.*;
+ import edu.uci.ics.jung.algorithms.importance.*;
+ import edu.uci.ics.jung.algorithms.transformation.*;
+@@ -29,13 +27,10 @@
+ import edu.uci.ics.jung.visualization.contrib.*;
+ import edu.uci.ics.jung.random.generators.*;
+ import edu.uci.ics.jung.graph.ArchetypeGraph;
+-import edu.uci.ics.jung.visualization.Coordinates;
+ import com.hp.hpl.guess.pajek.*;
+ 
+ import org.python.core.*;
+-import org.python.util.*;
+ 
+-import com.hp.hpl.guess.ui.StatusBar;
+ 
+ /**
+  * @pyobj g
+Index: src/com/hp/hpl/guess/Node.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Node.java,v
+retrieving revision 1.5
+diff -u -r1.5 Node.java
+--- src/com/hp/hpl/guess/Node.java	5 Oct 2006 04:56:55 -0000	1.5
++++ src/com/hp/hpl/guess/Node.java	30 Oct 2008 11:05:15 -0000
+@@ -4,6 +4,8 @@
+ import com.hp.hpl.guess.prefuse.*;
+ import com.hp.hpl.guess.tg.*;
+ import com.hp.hpl.guess.ui.*;
++import com.hp.hpl.guess.action.GActionManager;
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.db.DBServer;
+ import com.hp.hpl.guess.storage.StorageFactory;
+ 
+@@ -596,9 +598,13 @@
+ 	rep.setLocation(x1,y1);
+     }
+ 
+-    public void endMove(double x1, double y1) {
+-	// do the regular thing
+-	setLocation(x1,y1);
++    public void endMove(final double x1, final double y1) {
++		GStateAction nodeAction = new GStateAction() {
++			public void actionContent() {
++				setLocation(x1,y1);
++			}
++		};
++		GActionManager.runAction(nodeAction, "Move Node");
+     }
+     
+     /*public void setSize(double width,double height) {
+Index: src/com/hp/hpl/guess/StateGraph.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/StateGraph.java,v
+retrieving revision 1.4
+diff -u -r1.4 StateGraph.java
+--- src/com/hp/hpl/guess/StateGraph.java	30 Sep 2008 11:29:19 -0000	1.4
++++ src/com/hp/hpl/guess/StateGraph.java	30 Oct 2008 11:05:21 -0000
+@@ -11,28 +11,21 @@
+ import com.hp.hpl.guess.layout.*;
+ import com.hp.hpl.guess.util.*;
+ import com.hp.hpl.guess.io.*;
+-import javax.swing.JOptionPane;
+ 
+-import org.apache.commons.collections.*;
+ import edu.uci.ics.jung.algorithms.cluster.*;
+ import edu.uci.ics.jung.algorithms.importance.*;
+ import edu.uci.ics.jung.algorithms.transformation.*;
+ import edu.uci.ics.jung.graph.ArchetypeEdge;
+ import edu.uci.ics.jung.graph.UndirectedGraph;
+ import edu.uci.ics.jung.graph.DirectedGraph;
+-import edu.uci.ics.jung.graph.decorators.*;
+ import edu.uci.ics.jung.graph.impl.*;
+ import edu.uci.ics.jung.utils.*;
+ import edu.uci.ics.jung.visualization.*;
+ import edu.uci.ics.jung.visualization.contrib.*;
+ import edu.uci.ics.jung.random.generators.*;
+ import edu.uci.ics.jung.graph.ArchetypeGraph;
+-import edu.uci.ics.jung.visualization.Coordinates;
+ 
+ import org.python.core.*;
+-import org.python.util.*;
+-
+-import com.hp.hpl.guess.ui.StatusBar;
+ 
+ /**
+  *
+Index: src/com/hp/hpl/guess/storage/StorageListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/storage/StorageListener.java,v
+retrieving revision 1.3
+diff -u -r1.3 StorageListener.java
+--- src/com/hp/hpl/guess/storage/StorageListener.java	19 May 2008 17:50:15 -0000	1.3
++++ src/com/hp/hpl/guess/storage/StorageListener.java	30 Oct 2008 11:05:33 -0000
+@@ -1,6 +1,8 @@
+ package com.hp.hpl.guess.storage;
+ 
+ import com.hp.hpl.guess.*;
++import com.hp.hpl.guess.storage.StorageEventListener;
++
+ import java.util.Set;
+ import java.util.Vector;
+ import javax.swing.table.AbstractTableModel;
+@@ -251,6 +253,8 @@
+     public void saveState(int state);
+     
+     public void saveState(String state);
++    
++    public void deleteState(String state);
+ 
+     public Object getStatistic(Field f, String statType);
+ 
+@@ -286,6 +290,8 @@
+     public void addEdge(Edge e);
+ 
+     public void exportGDF(String filename);
++    
++    public void addStorageEventListener(StorageEventListener eventListener);
+ }
+ 
+ 
+Index: src/com/hp/hpl/guess/storage/DumbStorage.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/storage/DumbStorage.java,v
+retrieving revision 1.3
+diff -u -r1.3 DumbStorage.java
+--- src/com/hp/hpl/guess/storage/DumbStorage.java	19 May 2008 17:50:15 -0000	1.3
++++ src/com/hp/hpl/guess/storage/DumbStorage.java	30 Oct 2008 11:05:33 -0000
+@@ -10,7 +10,17 @@
+ 
+     public DumbStorage() {
+     }
++    
++    //private HashSet<StorageEventListener> listeners = new HashSet<StorageEventListener>();
++    public void addStorageEventListener(StorageEventListener eventListener) {
++    //	listeners.add(eventListener);
++    	throw(new Error("Unsupported function"));
++    }
+ 
++    public void deleteState(String state) {
++    	System.err.println("deleteState is not implementet yet.");
++    }
++    
+     public void findMatchingNodes(Query q) {
+ 	Iterator it = q.getGraph().getVertices().iterator();
+ 	while (it.hasNext())
+Index: src/com/hp/hpl/guess/io/GDFReader.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/io/GDFReader.java,v
+retrieving revision 1.6
+diff -u -r1.6 GDFReader.java
+--- src/com/hp/hpl/guess/io/GDFReader.java	19 May 2008 17:50:14 -0000	1.6
++++ src/com/hp/hpl/guess/io/GDFReader.java	30 Oct 2008 11:05:28 -0000
+@@ -3,16 +3,10 @@
+ import java.sql.*;
+ import java.util.*;
+ import java.io.*;
+-import org.python.core.*;
+ 
+ import com.hp.hpl.guess.*;
+ import com.hp.hpl.guess.storage.*;
+-import com.hp.hpl.guess.db.*;
+ import com.hp.hpl.guess.ui.ExceptionWindow;
+-import com.hp.hpl.guess.ui.StatusBar;
+-import javax.swing.table.AbstractTableModel;
+-import edu.uci.ics.jung.exceptions.ConstraintViolationException;
+-import com.hp.hpl.guess.db.*;
+ 
+ public class GDFReader {
+ 
+@@ -26,7 +20,7 @@
+ 	    boolean inQuote = false;
+ 	    char quoteChar = '\'';
+ 	    char slashChar = '\\';
+-	    Vector toReturn = new Vector();
++	    Vector<String> toReturn = new Vector<String>();
+ 	    StringBuffer curString = null;
+ 	    for (int i = 0 ; i < chars.length ; i++) {
+ 		//System.out.println(chars[i]);
+@@ -85,7 +79,10 @@
+ 	}
+     }
+ 
+-    private static String fixString(String init,Hashtable defs) {
++    /*
++     * Method is never used...
++     * 
++    private static String fixString(String init, Hashtable defs) {
+ 	String s = init.trim();
+ 	StringBuffer toRet = new StringBuffer();
+ 	
+@@ -107,6 +104,7 @@
+ 	}
+ 	return(toRet.toString());
+     }
++    */
+ 
+     private Field[] processNodeDef(Graph g, String s) {
+ 	return(processDef(g,s,g.getNodeSchema()));
+@@ -226,9 +224,6 @@
+ 	boolean inNodeDef = false;
+ 	boolean inEdgeDef = false;
+ 	
+-	int nodecount = 0;
+-	int edgecount = 0;
+-	
+ 	Random rand = new Random();
+ 	
+ 	Field[] nodeCols = null;
+Index: src/com/hp/hpl/guess/storage/StorageEventListener.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/storage/StorageEventListener.java
+diff -N src/com/hp/hpl/guess/storage/StorageEventListener.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/storage/StorageEventListener.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,7 @@
++package com.hp.hpl.guess.storage;
++
++public interface StorageEventListener {
++    public void stateLoaded(String state);
++
++    public void stateSaved(String state);
++}
+Index: src/com/hp/hpl/guess/piccolo/PreviewPopup.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/piccolo/PreviewPopup.java
+diff -N src/com/hp/hpl/guess/piccolo/PreviewPopup.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/piccolo/PreviewPopup.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,263 @@
++package com.hp.hpl.guess.piccolo;
++
++/*
++ * originally by:
++ * David Bismut, david.bismut@gmail.com
++ * Intern, SETLabs, Infosys Technologies Ltd. May 2004 - Jul 2004
++ * http://www.infosys.com/instepweb
++ * Ecole des Mines de Nantes, France
++ */
++
++import java.awt.*;
++import java.awt.event.MouseEvent;
++import java.awt.event.MouseListener;
++import java.awt.event.MouseMotionListener;
++import java.awt.image.BufferedImage;
++
++import javax.swing.BorderFactory;
++import javax.swing.ImageIcon;
++import javax.swing.JLabel;
++import javax.swing.JLayeredPane;
++import javax.swing.JPopupMenu;
++import javax.swing.border.Border;
++
++
++import edu.umd.cs.piccolo.*;
++import edu.umd.cs.piccolo.util.PBounds;
++import java.awt.geom.Rectangle2D;
++
++
++public class PreviewPopup
++    extends JPopupMenu
++    implements MouseListener, MouseMotionListener {
++
++	private static final long serialVersionUID = 1L;
++
++	//    private static Robot robot = null;
++    
++    private PCamera _camera;
++    
++    private JLabel _zoomWindow; // the JLabel containing the scaled image
++    
++    private JLabel _cursorLabel; // the JLabel mimicking the fake rectangle cursor
++    
++    // This component will hold both JLabels _zoomWindow and _cursorLabel, 
++    // the latter on top of the other.
++    private JLayeredPane _layeredPane;
++    
++    private int _iconWidth;
++    private int _iconHeight;
++    
++    private boolean _doCloseAfterClick;
++
++    private Rectangle2D _origin = null;
++
++    double _ratio;
++    
++    // DELTA is the space between the scroll pane and the preview popup menu.
++    private static int DELTA = 5;
++    
++    // SCALEFACTOR is the scale factor between the previewed component 
++    // and the viewport.
++    private static double SCALEFACTOR = 4;
++    
++    private GFrame _gf = null;
++
++    public PreviewPopup(GFrame gf, boolean doCloseAfterClick) {
++	_camera = gf.getGCamera();
++	_gf = gf;
++	this.setBorder(BorderFactory.createEtchedBorder());
++	
++	_doCloseAfterClick = doCloseAfterClick;
++	
++	//_scrollPane = scrollPane;
++	//_viewPort = _scrollPane.getViewport();
++	
++	_zoomWindow = new JLabel();
++	_cursorLabel = createCursor();
++	
++	_layeredPane = new JLayeredPane();
++	
++	_layeredPane.add(_zoomWindow, new Integer(0));
++	_layeredPane.add(_cursorLabel, new Integer(1));
++	
++	
++	// Creates a blank transparent cursor to be used as the cursor of
++	// the popup menu.
++	BufferedImage bim =
++	    new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
++	setCursor(
++		  getToolkit().createCustomCursor(bim, (new Point(0, 0)), "HiddenM"));
++	
++	this.add(_layeredPane);
++	
++	// Adds the mouse input listeners to the _layeredPane to scroll the
++	// viewport and to move the fake cursor (_cursorLabel).
++	_layeredPane.addMouseListener(this);
++	_layeredPane.addMouseMotionListener(this);
++
++	//try {
++	//   robot = new Robot();
++	//} catch (Exception ex) {};
++
++    }
++
++
++    private Image componentImage = null;
++    
++    private long lastUpdate = System.currentTimeMillis();
++    
++    /**
++     * By default, the right corner of a popup menu is positionned at the right
++     * of a mouse click. What we want is to have the preview popup menu 
++     * positionned <i>inside</i> the scroll pane, near the corner component. 
++     * The purpose of this method is to display the scaled image of
++     * the component of the scroll pane, and to calculate the correct position
++     * of the preview popup menu.
++     */
++    
++    public void showUpInCorner(Component c, String corner,
++			       int mouseX, int mouseY) {
++
++	Image original = null;
++	if ((componentImage == null) || 
++	    (lastUpdate < PFactory.getLastUpdate())) {
++	    lastUpdate = System.currentTimeMillis();
++	    _origin = _gf.getFullImageSize();
++	    original = _gf.getFullImage(_origin,200,200);
++	    //System.out.println("image size: " + original.getWidth(this) + " " + original.getHeight(this));
++	    SCALEFACTOR = (1/Math.min(200/_origin.getWidth(),
++				      200/_origin.getHeight()));
++	    //System.out.println("scalefactor: " + SCALEFACTOR);
++	    if (original == null)
++		return;
++	}
++
++	_ratio = 1 / SCALEFACTOR;
++
++	if (original != null) {
++	    componentImage = original;
++	}
++
++	// Converts the Image to an ImageIcon to be used with a JLabel.
++	ImageIcon componentIcon = new ImageIcon(componentImage);
++	
++	_iconWidth = componentIcon.getIconWidth();
++	_iconHeight = componentIcon.getIconHeight();
++	
++	_zoomWindow.setIcon(componentIcon);
++	
++	_zoomWindow.setBounds(0, 0, _iconWidth, _iconHeight);
++	
++	PBounds pb = _camera.getViewBounds();
++
++	double cursorWidth = pb.getWidth() * _ratio;
++	double cursorHeight = pb.getHeight() * _ratio;
++
++	//System.out.println("image size: " + _iconWidth + " " + _iconHeight);
++	//System.out.println("SCALEFACTOR: " + SCALEFACTOR);
++	//System.out.println("ratio: " + _ratio);
++	//System.out.println("cursor width: " + cursorWidth + " " + cursorHeight);
++	_cursorLabel.setBounds(0, 0, (int)cursorWidth, (int)cursorHeight);
++	//_cursorLabel.setBounds(0, 0, 50,50);
++	
++	_layeredPane.setPreferredSize(new Dimension(_iconWidth, _iconHeight));
++
++	//System.out.println("click at: " + mouseX + " " + mouseY);
++
++	//double startX = Math.max(0,(pb.getX() - _origin.getX()) * _ratio);
++	//double startY = Math.max(0,(pb.getY() - _origin.getY()) * _ratio);
++	//System.out.println("cursor should be at: " + startX + " " + startY);
++
++	//int origx = c.getX() + c.getWidth() + DELTA;
++	//int origy = c.getY() + c.getHeight() + DELTA;
++	
++	// Shows the popup menu at the right place.
++	//this.show(c,origx, origy);
++	this.show(c,mouseX, mouseY);
++	
++	//System.out.println(origx + " " + origy); 
++	//robot.mouseMove(origx + 10, origy + 10);
++    }
++    
++    public JLabel createCursor() {
++		JLabel label = new JLabel();
++		Border blackBorder = BorderFactory.createLineBorder(Color.BLACK);
++		Border whiteBorder = BorderFactory.createLineBorder(Color.WHITE);
++		label.setBorder(BorderFactory.createCompoundBorder(blackBorder, whiteBorder));
++		label.setVisible(false);
++		return label;
++    }
++    
++    public void mouseClicked(MouseEvent e) {
++    }
++    
++    public void mouseEntered(MouseEvent e) {
++	// When the mouse enters the preview popup menu, set the visibility
++	// of the fake cursor to true.
++	_cursorLabel.setVisible(true);
++    }
++    
++    public void mouseExited(MouseEvent e) {
++	// When the mouse exits the preview popup menu, set the visibility
++	// of the fake cursor to false.
++	_cursorLabel.setVisible(false);
++    }
++    
++    public void mousePressed(MouseEvent e) {
++    }
++    
++    public void mouseReleased(MouseEvent e) {
++	// When the mouse is released, set the visibility of the preview
++	// popup menu to false only if doCloseAfterClick is set to true.
++	if(_doCloseAfterClick) {
++	    this.setVisible(false);
++	    _cursorLabel.setVisible(false);
++	}
++    }
++    
++    public void mouseDragged(MouseEvent e) {
++	moveCursor(e.getX(), e.getY());
++	scrollViewPort();
++    }
++    
++    public void mouseMoved(MouseEvent e) {
++	moveCursor(e.getX(), e.getY());
++	scrollViewPort();
++    }
++    
++    /**
++     * Centers the fake cursor (_cursorLabel) position on the coordinates
++     * specified in the parameters. 
++     */
++    private void moveCursor(int x, int y) {
++	int dx = x - _cursorLabel.getWidth() / 2;
++	int dy = y - _cursorLabel.getHeight() / 2;
++	_cursorLabel.setLocation(dx, dy);
++    }
++    
++    /**
++     * Scrolls the viewport according to the fake cursor position in the
++     * preview popup menu.
++     */
++    private void scrollViewPort() {
++	Point cursorLocation = _cursorLabel.getLocation();
++	double dx = cursorLocation.getX();
++	double dy = cursorLocation.getY();
++
++	dx = dx / _ratio + _origin.getX();
++	dy = dy / _ratio + _origin.getY();
++
++	PBounds pb = _camera.getViewBounds();
++	Rectangle2D r2d = new Rectangle2D.Double(dx,dy,
++					       pb.getWidth(),
++					       pb.getHeight());
++
++	//System.out.println(r2d);
++
++	_camera.animateViewToPanToBounds(r2d,0);
++	//System.out.println(dx + " " + dy);
++	//	((JComponent) _gf).scrollRectToVisible(
++	//							     new Rectangle(dx, dy, (int)_camera.getWidth(), (int)_camera.getHeight()));
++    }
++}
+Index: src/com/hp/hpl/guess/ui/StateSelectorPopup.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/ui/StateSelectorPopup.java
+diff -N src/com/hp/hpl/guess/ui/StateSelectorPopup.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/ui/StateSelectorPopup.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,313 @@
++package com.hp.hpl.guess.ui;
++
++import java.awt.BorderLayout;
++import java.awt.Color;
++import java.awt.Component;
++import java.awt.Dimension;
++import java.awt.Graphics2D;
++import java.awt.GridBagConstraints;
++import java.awt.GridBagLayout;
++import java.awt.Image;
++import java.awt.event.MouseAdapter;
++import java.awt.event.MouseEvent;
++import java.awt.image.BufferedImage;
++import java.util.ArrayList;
++import java.util.Collections;
++import java.util.HashMap;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
++
++import javax.swing.BorderFactory;
++import javax.swing.Icon;
++import javax.swing.ImageIcon;
++import javax.swing.JLabel;
++import javax.swing.JPanel;
++import javax.swing.JPopupMenu;
++import javax.swing.JScrollPane;
++import javax.swing.ScrollPaneConstants;
++import javax.swing.SwingConstants;
++
++import com.hp.hpl.guess.Guess;
++import com.hp.hpl.guess.action.GStateAction;
++import com.hp.hpl.guess.storage.StorageEventListener;
++import com.hp.hpl.guess.storage.StorageFactory;
++
++public class StateSelectorPopup extends JPopupMenu implements StorageEventListener {
++	
++	private static final long serialVersionUID = 1L;
++
++	/**
++	 * A List of all current saved states
++	 */
++	List<String> savedTitles = new ArrayList<String>();
++	
++	/**
++	 * Maps the statename to a thumbnail
++	 */
++	Map<String, Icon> descToIcon = new HashMap<String, Icon>();
++
++
++	/**
++	 * The current state name
++	 */
++	String currentState = "";
++	
++	Set<StateSelectorEventListener> eventListeners = new HashSet<StateSelectorEventListener>();
++	
++	
++	public StateSelectorPopup() {
++		StorageFactory.getSL().addStorageEventListener(this);
++		setPreferredSize(new Dimension(196, 200));
++	}
++	
++	/**
++	 * Add a state to the StateSelector, does not add 
++	 * a state.
++	 * @param img
++	 * @param aTitle
++	 */
++	private void add(Icon img, String aTitle) {
++		// Add title to list
++		savedTitles.add(aTitle);
++		
++		// Put Menuitem Icon
++		descToIcon.put(aTitle, img);
++	}
++	
++	
++	/**
++	 * Remove a state from the StateSelector, does not 
++	 * remove the state itself
++	 * @param aStateDesc
++	 */
++	private void remove(String aStateDesc) {
++		savedTitles.remove(aStateDesc);
++		descToIcon.remove(aStateDesc);
++	}
++	
++	
++	public void show(Component invoker, int x, int y) {
++		
++		super.removeAll();
++		super.add(getMenu(), BorderLayout.CENTER);
++			
++		super.show(invoker, x, y);
++	}
++	
++	/**
++	 * Returns a menu containing all states with thumbnails
++	 * @return
++	 */
++	public JPanel getMenu() {
++		JScrollPane itemScroller = new JScrollPane();
++		JPanel itemPanel = new JPanel();
++		final JPopupMenu pm = this;
++		int i = 0;
++		
++		
++		itemPanel.setLayout(new GridBagLayout());
++		GridBagConstraints c = new GridBagConstraints();
++		c.fill = GridBagConstraints.HORIZONTAL;
++		c.weighty = 1;
++		c.weightx = 1;
++		c.gridy = 0;
++		
++		
++		Collections.reverse(savedTitles);
++		Iterator<String> menuItemsIterator = savedTitles.iterator();
++		while (menuItemsIterator.hasNext()) {
++			final String nextItem = menuItemsIterator.next();
++
++			
++			final JLabel newItem = new JLabel(nextItem, descToIcon.get(nextItem), 0);
++			newItem.setBackground(Color.WHITE);
++			newItem.setOpaque(true);
++			newItem.setHorizontalAlignment(SwingConstants.LEFT);
++			newItem.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
++			newItem.setForeground(new Color(68, 70, 72));
++			
++			newItem.addMouseListener(new MouseAdapter() {
++				public void mouseClicked(MouseEvent e) {
++					StorageFactory.getSL().loadState(nextItem);
++					pm.setVisible(false);
++				}
++				
++				public void mouseEntered(MouseEvent e) {
++					newItem.setBackground(new Color(218,235,243));
++				}
++		        public void	mouseExited(MouseEvent e) {
++		        	newItem.setBackground(Color.WHITE);
++		        }
++
++			});
++
++			i++;
++			c.gridy = i;
++			itemPanel.add(newItem, c);
++		}
++		Collections.reverse(savedTitles);
++		
++		if (i > 4) {
++			setPreferredSize(new Dimension(196, 104 * 5 + 8));
++		} else {
++			setPreferredSize(new Dimension(196, 104 * i + 8));
++		}
++		
++		itemScroller = new JScrollPane(itemPanel);
++		itemScroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
++		
++		itemPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
++		itemScroller.setBorder(null);
++		
++		JPanel ret = new JPanel();
++		ret.setLayout(new GridBagLayout());
++		GridBagConstraints d = new GridBagConstraints();
++		d.fill = GridBagConstraints.BOTH;
++		d.weighty = 1;
++		d.weightx = 1;
++		ret.add(itemScroller, d);
++		
++		return ret;
++	}
++
++	
++	
++	/**
++	 * Load the previous state if it exists
++	 */
++	public void loadPrevious() {
++		if (hasPrevious()) {
++			String nextItem = savedTitles.get(savedTitles.indexOf(currentState) - 1);
++			StorageFactory.getSL().loadState(nextItem);
++		}
++	}
++	
++	
++	/**
++	 * Load the next state if it exists
++	 */
++	public void loadNext() {
++		if (hasNext()) {
++			String nextItem = savedTitles.get(savedTitles.indexOf(currentState) + 1);
++			StorageFactory.getSL().loadState(nextItem);
++		}
++	}
++	
++	/**
++	 * Returns true if there is a next state
++	 * @return
++	 */
++	public boolean hasNext() {
++		if (savedTitles.contains(currentState)) {
++			if (savedTitles.indexOf(currentState) < (savedTitles.size() - 1)) {
++				return true;
++			}
++		}
++		return false;
++	}
++	
++	/**
++	 * Returns true if there is a previous state
++	 * @return
++	 */
++	public boolean hasPrevious() {
++		if (savedTitles.contains(currentState)) {
++			if (savedTitles.indexOf(currentState) > 0) {
++				return true;
++			}
++		}
++		return false;
++	}
++	
++	/**
++	 * Returns true if there is a saved state
++	 * @return
++	 */
++	public boolean isNotEmpty() {
++		return (savedTitles.size() > 0);
++	}
++	
++	
++	/**
++	 * Returns true if state is a saved state
++	 * @return
++	 */
++	public boolean isState(String state) {
++		return (savedTitles.contains(state));
++	}
++	
++	/**
++	 * Set the internal current state 
++	 */
++	public void stateLoaded(String state) {
++		// Do not process undo / redo states
++    	if (state.charAt(0)==GStateAction.delimiter.charAt(0)) {
++    		return;
++    	}
++		
++		currentState = state;
++		
++		// Call EventListeners
++		Iterator<StateSelectorEventListener> eventIterator = eventListeners.iterator();
++		while (eventIterator.hasNext()) {
++			StateSelectorEventListener eventItem = eventIterator.next();
++			eventItem.stateLoaded(state);
++		}
++	}
++
++	/**
++	 * Add a state to the StateSelector if a state
++	 * is added
++	 */
++	public void stateSaved(String state) {
++		// Do not save undo / redo states
++    	if (state.charAt(0)==GStateAction.delimiter.charAt(0)) {
++    		return;
++    	}
++		
++		// Generate image
++		BufferedImage imageSrc = Guess.getFrame().getFullImage();
++		
++		int thumbWidth = 100;
++		int thumbHeight = 100;
++		
++		Image thumb = imageSrc.getScaledInstance(thumbWidth, thumbHeight ,Image.SCALE_SMOOTH);
++
++		BufferedImage bi = new BufferedImage(thumbWidth, thumbHeight, BufferedImage.TYPE_INT_RGB);
++		Graphics2D biContext = bi.createGraphics();
++		biContext.drawImage(thumb, 0, 0, null);
++			
++		// add to Menu
++		if (savedTitles.contains(state)) {
++			remove(state);
++			add(new ImageIcon(thumb), state);
++		} else {
++			add(new ImageIcon(thumb), state);
++		}
++		
++		currentState = state;
++		
++		// Call EventListeners
++		Iterator<StateSelectorEventListener> eventIterator = eventListeners.iterator();
++		while (eventIterator.hasNext()) {
++			StateSelectorEventListener eventItem = eventIterator.next();
++			eventItem.stateSaved(state);
++		}
++	}
++	
++	public void addStateSelectorEventListener(StateSelectorEventListener eventListener) {
++		eventListeners.add(eventListener);
++	}
++
++}
++
++
++interface StateSelectorEventListener {
++    public void stateLoaded(String state);
++
++    public void stateSaved(String state);
++}
++
+Index: src/com/hp/hpl/guess/action/GAction.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/action/GAction.java
+diff -N src/com/hp/hpl/guess/action/GAction.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/action/GAction.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,48 @@
++package com.hp.hpl.guess.action;
++
++public abstract class GAction {
++	
++	/**
++	 * The description of the action
++	 */
++	private String actionDescription = null;
++	
++	/**
++	 * Set the description for the action
++	 * @param aDescription
++	 */
++	public void setDescription(String aDescription) {
++		actionDescription = aDescription;
++	}
++	
++	/**
++	 * Get the description of the action
++	 * @return
++	 */
++	public String getDescription() {
++		return actionDescription;
++	}
++		
++	/**
++	 * Executes the action
++	 */
++	public void run() {
++		actionContent();
++	}
++	
++	/**
++	 * The action to run
++	 */
++	protected abstract void actionContent();
++	
++	/**
++	 * Undo the action and return a redo action
++	 */
++	public abstract GAction getUndoAction();
++	
++	/**
++	 * How to delete the action if it is
++	 * not needed anymore
++	 */
++	public abstract void dispose();
++}
+Index: src/com/hp/hpl/guess/action/GActionManager.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/action/GActionManager.java
+diff -N src/com/hp/hpl/guess/action/GActionManager.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/action/GActionManager.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,156 @@
++package com.hp.hpl.guess.action;
++
++import java.awt.event.ActionEvent;
++import java.awt.event.ActionListener;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.Set;
++import java.util.Stack;
++
++public class GActionManager {
++	/**
++	 * The action elements which can be undone 
++	 */
++	private static Stack<GAction> undoStack = new Stack<GAction>();
++	
++	/**
++	 * The action elements which where already undone, but can
++	 * be redone
++	 */
++	private static Stack<GAction> redoStack = new Stack<GAction>();
++	
++	/**
++	 * The maximum count of actions that can be undone
++	 */
++	public static final int MAX_UNDO_ACTIONS = 4;
++	
++	/**
++	 * The IDs to send to the Action Listeners in the
++	 * Action Event
++	 */
++	public static final int ACTION_EVENT_ADDED = 0;
++	public static final int ACTION_EVENT_REDO = 1;
++	public static final int ACTION_EVENT_UNDO = 2;
++	
++	/**
++	 * Set of listeners to notify when the undo or redo
++	 * stack changes
++	 */
++	private static Set<ActionListener> actionChangeListener = new HashSet<ActionListener>();
++	
++	/**
++	 * Add an action to the undo list
++	 * @param aAction
++	 */
++	private static void addUndoAction(GAction aAction) {
++		undoStack.push(aAction);
++		notifyActionChangeListener(aAction, ACTION_EVENT_ADDED);
++	}
++	
++	/**
++	 * Add an action to the redo list
++	 * @param aAction
++	 */
++	private static void addRedoAction(GAction aAction) {
++		redoStack.push(aAction);
++		notifyActionChangeListener(aAction, ACTION_EVENT_ADDED);
++	}
++	
++	/**
++	 * Run the action and add it to the undo list
++	 * @param aAction
++	 */
++	public static void runAction(GAction aAction) {
++		runAction(aAction, null);
++	}
++	
++	/**
++	 * Run the action and add a description and add 
++	 * it to the undo list
++	 * @param aAction
++	 * @param aDescription
++	 */
++	public static void runAction(GAction aAction, String aDescription) {
++		if (aDescription!=null) {
++		aAction.setDescription(aDescription);
++		}
++		aAction.run();
++		addUndoAction(aAction);
++		redoStack.clear();
++		disposeOldActions();
++	}	
++	
++	/**
++	 * Undo the last action
++	 */
++	public static void undo() {	
++		GAction lastItem = undoStack.pop();
++		GAction redoItem = lastItem.getUndoAction().getUndoAction();
++		addRedoAction(redoItem);
++		lastItem.getUndoAction().run();
++				
++		notifyActionChangeListener(lastItem, ACTION_EVENT_UNDO);
++	}
++	
++	/**
++	 * Redo the last undone action
++	 */
++	public static void redo() {
++		GAction lastItem = redoStack.pop();
++		GAction undoItem = lastItem.getUndoAction();
++		addUndoAction(undoItem);
++		lastItem.run();
++				
++		notifyActionChangeListener(lastItem, ACTION_EVENT_REDO);
++	}
++	
++	/**
++	 * Delete actions older than MAX_UNDO_ACTIONS
++	 */
++	private static void disposeOldActions() {
++		if (undoStack.size()>MAX_UNDO_ACTIONS) {
++			GAction oldestAction = undoStack.get(0);
++			oldestAction.dispose();
++			undoStack.removeElementAt(0);
++		}
++	}
++	
++	public static void addActionChangeListener(ActionListener changeListener) {
++		actionChangeListener.add(changeListener);
++	}
++	
++	private static void notifyActionChangeListener(Object source, int eventID) {
++		ActionEvent changeEvent = new ActionEvent(source, eventID, null);
++		
++		Iterator<ActionListener> listenerIterator = actionChangeListener.iterator();
++		while(listenerIterator.hasNext()) {
++			listenerIterator.next().actionPerformed(changeEvent);
++		}
++	}
++	
++	/**
++	 * Returns the description of the last action for undo, or
++	 * null if no such action exists
++	 * @return
++	 */
++	public static GAction getLastUndoAction() {
++		if (undoStack.size()==0) {
++			return null;
++		} else {		
++			return undoStack.peek();
++		}
++	}
++	
++	/**
++	 * Returns the description of the last action for redo, or
++	 * null if no such action exists
++	 * @return
++	 */
++	public static GAction getLastRedoAction() {
++		if (redoStack.size()==0) {
++			return null;
++		} else {		
++			return redoStack.peek();
++		}
++	}	
++}
+Index: src/com/hp/hpl/guess/action/GStateAction.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/action/GStateAction.java
+diff -N src/com/hp/hpl/guess/action/GStateAction.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/action/GStateAction.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,80 @@
++package com.hp.hpl.guess.action;
++
++import java.util.UUID;
++
++import com.hp.hpl.guess.storage.StorageFactory;
++
++/**
++ * Implements a GAction with the Guess states concept.
++ * Before an action is called the stated is saved and after the 
++ * action the state is saved again. Undo and Redo load these states. 
++ * @author johannes
++ *
++ */
++public abstract class GStateAction extends GAction {
++
++	/**
++	 * Name of the old state
++	 */
++	private String oldStateName = null;
++	
++	/**
++	 * Delimiter to separate from ordinary states
++	 */
++	public static final String delimiter = "_";
++	
++	/**
++	 * Creates a new state in the storage listener
++	 * @return the statename
++	 */
++	private String createNewState() {
++		String statename = delimiter + UUID.randomUUID().toString().replace('-', 'X');
++		StorageFactory.getSL().saveState(statename);
++		return statename;
++	}
++	
++	/**
++	 * Executes the action
++	 */
++	public void run() {
++		setOldState();
++		super.run();
++	}
++	
++	/**
++	 * Save a state before the action was
++	 * called
++	 */
++	private void setOldState() {
++		oldStateName = createNewState();
++	}
++	
++	/**
++	 * Load the old state
++	 * @return Actions item for redo
++	 */
++	public GAction getUndoAction() {
++		if (oldStateName==null) {
++			System.err.println("No state for undo action.");
++		}
++		GStateAction undoAction = new GStateAction() {
++			protected void actionContent() {
++				StorageFactory.getSL().loadState(oldStateName);
++			}
++		};
++		undoAction.setDescription(getDescription());
++		undoAction.setOldState();
++		
++		return undoAction;
++		
++	}
++
++	/**
++	 * Delete old state
++	 */
++	public void dispose() {
++		System.out.println("Dispose: " + oldStateName);
++		StorageFactory.getSL().deleteState(oldStateName);
++	}	
++
++}
+Index: src/com/hp/hpl/guess/ui/welcomeDialog.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/ui/welcomeDialog.java
+diff -N src/com/hp/hpl/guess/ui/welcomeDialog.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/ui/welcomeDialog.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,744 @@
++package com.hp.hpl.guess.ui;
++
++import java.awt.Component;
++import java.awt.Dimension;
++import java.awt.Graphics;
++import java.awt.GridBagConstraints;
++import java.awt.GridBagLayout;
++import java.awt.Insets;
++import java.awt.Toolkit;
++import java.awt.event.ActionEvent;
++import java.awt.event.ActionListener;
++import java.awt.event.KeyAdapter;
++import java.awt.event.KeyEvent;
++import java.awt.event.KeyListener;
++import java.awt.event.WindowAdapter;
++import java.awt.event.WindowEvent;
++import java.io.File;
++import java.io.IOException;
++import java.util.prefs.Preferences;
++
++import javax.swing.ButtonGroup;
++import javax.swing.ComboBoxModel;
++import javax.swing.DefaultComboBoxModel;
++import javax.swing.ImageIcon;
++import javax.swing.JButton;
++import javax.swing.JComboBox;
++import javax.swing.JDialog;
++import javax.swing.JFileChooser;
++import javax.swing.JOptionPane;
++
++import javax.swing.JLabel;
++import javax.swing.JRadioButton;
++import javax.swing.JTextField;
++import javax.swing.event.DocumentEvent;
++import javax.swing.event.DocumentListener;
++
++import com.jidesoft.swing.FolderChooser;
++
++public class welcomeDialog extends JDialog {
++
++	private static final long serialVersionUID = 1L;
++
++	/**
++	 * GUI Widgets
++	 */
++	private JDialog welcomedlg;
++
++	private JLabel welcomeLbl;
++	
++	private ButtonGroup buttonGroup;
++	private JRadioButton openDatabaseBtn;
++	private JRadioButton CreateEmptyBtn;
++	private JRadioButton ImportGraphBtn;
++	
++	private JTextField openDatabaseFileNameTxt;
++	private JLabel fileNameOpenDatabaseLbl;
++	private JButton browseOpenDatabaseFileNameBtn;
++	
++	private JTextField databaseDirectoryTxt;
++	private JTextField databaseNameTxt;
++	private JLabel databaseDirLbl;
++	private JLabel databaseNameLbl;
++	private JButton importToDatabaseDirectoryBtn;
++	private JComboBox importToCombo;
++	private JLabel fileNameImportGraphLbl;
++	private JButton importToFileNameBtn;
++	private JLabel importToLbl;
++	private JTextField importToFileNameTxt;
++	
++	private JButton okBtn;
++	private JLabel headerLogo;
++	private JLabel headerText;
++	private JLabel headerSpacer;
++	private JButton cancelBtn;	
++
++	/**
++	 * Save and load user preferences
++	 */
++	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
++
++	/**
++	 * Types of opening the database
++	 */
++	public final int DB_OPEN_DATABASE = 0;
++	public final int DB_IMPORT_GRAPH_MEMORY = 1;
++	public final int DB_IMPORT_GRAPH_PERSISTENT = 2;
++	public final int DB_CREATE_EMPTY = 3;
++	
++	/**
++	 * the user's choice
++	 */
++	private int usersChoice = -1;
++	
++	public welcomeDialog() {
++		super();
++		setModal(true);
++		welcomedlg = this;
++		initGUI();
++		getPreferences();
++		enableDisableWidgets();
++		centerWindow();
++		
++		// Give focus to ok button
++		addWindowListener(new WindowAdapter() {
++			public void windowActivated(WindowEvent e) {
++				okBtn.requestFocusInWindow();
++			}
++		});
++	}
++	
++	/**
++	 * Load preferences
++	 */
++	private void getPreferences() {
++		openDatabaseFileNameTxt.setText(userPrefs.get("openfilename", ""));
++		importToFileNameTxt.setText(userPrefs.get("importfilename", ""));
++		importToCombo.setSelectedIndex(userPrefs.getInt("importto", 0));
++		databaseDirectoryTxt.setText(userPrefs.get("dbdirectory", ""));
++		databaseNameTxt.setText(userPrefs.get("dbname", ""));
++
++		int radioSelected = userPrefs.getInt("LastButtonSelection", -1);
++		if (radioSelected==0) {
++			openDatabaseBtn.setSelected(true);
++		} else if (radioSelected==1) {
++			ImportGraphBtn.setSelected(true);
++		} else if (radioSelected==2) {
++			CreateEmptyBtn.setSelected(true);
++		}
++	}
++	
++	/**
++	 * Save preferences
++	 */
++	private void setPreferences() {
++		userPrefs.put("openfilename", openDatabaseFileNameTxt.getText());
++		userPrefs.put("importfilename", importToFileNameTxt.getText());
++		userPrefs.putInt("importto", importToCombo.getSelectedIndex());
++		userPrefs.put("dbdirectory", databaseDirectoryTxt.getText());
++		userPrefs.put("dbname", databaseNameTxt.getText());
++		
++		int radioSelected = -1;
++		if (openDatabaseBtn.isSelected()) {
++			radioSelected = 0;
++		} else if (ImportGraphBtn.isSelected()) {
++			radioSelected = 1;
++		} else if (CreateEmptyBtn.isSelected()) {
++			radioSelected = 2;
++		}
++		userPrefs.putInt("LastButtonSelection", radioSelected);
++	}
++	
++	
++	/**
++	 * Enable / Disable the elements
++	 */
++	private void enableDisableWidgets() {
++		
++		// Save old focus owner
++		Component FocusOwner = null;
++		if (welcomedlg!=null) {
++			FocusOwner = welcomedlg.getFocusOwner();
++		}
++		
++		// First disable all fields
++		openDatabaseFileNameTxt.setEnabled(false);
++		fileNameOpenDatabaseLbl.setEnabled(false);
++		browseOpenDatabaseFileNameBtn.setEnabled(false);
++		
++		databaseDirectoryTxt.setEnabled(false);
++		databaseNameTxt.setEnabled(false);
++		databaseDirLbl.setEnabled(false);
++		databaseNameLbl.setEnabled(false);
++		importToDatabaseDirectoryBtn.setEnabled(false);
++		importToCombo.setEnabled(false);
++		fileNameImportGraphLbl.setEnabled(false);
++		importToFileNameBtn.setEnabled(false);
++		importToLbl.setEnabled(false);
++		importToFileNameTxt.setEnabled(false);
++		
++		okBtn.setEnabled(false);
++		
++		// Open Database
++		if (openDatabaseBtn.isSelected()) {
++			openDatabaseFileNameTxt.setEnabled(true);
++			fileNameOpenDatabaseLbl.setEnabled(true);
++			browseOpenDatabaseFileNameBtn.setEnabled(true);
++			
++			// Filename not null
++			if (!openDatabaseFileNameTxt.getText().equals("")) {
++				okBtn.setEnabled(true);
++			}
++		}
++		
++		// Import to
++		if (ImportGraphBtn.isSelected()) {
++			
++			importToCombo.setEnabled(true);
++			fileNameImportGraphLbl.setEnabled(true);
++			importToFileNameBtn.setEnabled(true);
++			importToLbl.setEnabled(true);
++			importToFileNameTxt.setEnabled(true);
++
++			// Persistent
++			if (importToCombo.getSelectedIndex()==1) {
++				databaseDirectoryTxt.setEnabled(true);
++				databaseNameTxt.setEnabled(true);
++				databaseDirLbl.setEnabled(true);
++				databaseNameLbl.setEnabled(true);
++				importToDatabaseDirectoryBtn.setEnabled(true);
++				
++				// DB Name and dir not null
++				if ((!databaseDirectoryTxt.getText().equals("")) &&
++						(!databaseNameTxt.getText().equals(""))){
++					okBtn.setEnabled(true);
++				}
++			} else {
++				// Filename not null
++				if (!importToFileNameTxt.getText().equals("")) {
++					okBtn.setEnabled(true);
++				}
++			}
++		}
++		
++		// Create Empty
++		if (CreateEmptyBtn.isSelected()) {
++			okBtn.setEnabled(true);
++		}
++		
++		// restore focus
++		if ((FocusOwner!=null) && FocusOwner.isFocusable()) {
++			FocusOwner.requestFocusInWindow();
++		}
++	}
++	
++	
++	/**
++	 * Actionlistener to enable / disable fields
++	 */
++	ActionListener enableDisableActionListener = new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			enableDisableWidgets();
++		}
++	};
++	
++	/**
++	 * Documentlistener to enable / disable fields
++	 */
++	DocumentListener enableDisableDocumentListener = new DocumentListener() {
++		public void changedUpdate(DocumentEvent e) {
++			enableDisableWidgets();
++		}
++		public void insertUpdate(DocumentEvent e) {
++			enableDisableWidgets();
++		}
++		public void removeUpdate(DocumentEvent e) {
++			enableDisableWidgets();
++		}
++	};
++	
++	
++	/**
++	 * Actionlistener for ok button
++	 */
++	ActionListener okAction = new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			
++			boolean success = false;
++			
++			// Open Database
++			if (openDatabaseBtn.isSelected()) {
++				
++				// Validate file name
++				File f = new File(openDatabaseFileNameTxt.getText());
++				if (f.exists()) {
++					usersChoice = DB_OPEN_DATABASE;
++					success = true;
++				} else {
++					JOptionPane.showMessageDialog(
++										welcomedlg,
++										"File does not exist. Please check the File Name box.",
++										"Error - GUESS",
++										JOptionPane.ERROR_MESSAGE);
++					return;
++				}
++				
++
++			// Import Graph
++			} else if (ImportGraphBtn.isSelected()) {
++				
++				if (importToCombo.getSelectedIndex()==0) {
++					// Validate file name
++					File f = new File(importToFileNameTxt.getText());
++					if (f.exists()) {
++						usersChoice = DB_IMPORT_GRAPH_MEMORY;
++						success = true;
++					} else {
++						JOptionPane.showMessageDialog(
++											welcomedlg,
++											"File does not exist. Please check the File Name box.",
++											"Error - GUESS",
++											JOptionPane.ERROR_MESSAGE);
++						return;
++					}
++						
++				// import persistent
++				} else if (importToCombo.getSelectedIndex()==1) {
++					File f = new File(databaseDirectoryTxt.getText());
++					if ((!f.exists()) || (!f.isDirectory())) {
++						JOptionPane.showMessageDialog(
++										null,
++										"Directory does not exist. Please check the Directory box.",
++										"Error - GUESS",
++										JOptionPane.ERROR_MESSAGE);
++						return;
++					}
++					if (databaseNameTxt.getText().equals("")) {
++						JOptionPane.showMessageDialog(
++										null,
++										"You must declare a database name. Please insert a name to the Name box.",
++										"Error - GUESS",
++										JOptionPane.ERROR_MESSAGE);
++						return;
++					}
++					f = new File(databaseDirectoryTxt.getText() + File.separatorChar +
++							databaseNameTxt.getText() + ".properties");
++					if (f.exists()) {
++						int yn = JOptionPane.showConfirmDialog(null,
++								"Database exists, overwrite?",
++								"Overwrite Database - GUESS",
++								JOptionPane.YES_NO_OPTION);
++						if (yn == JOptionPane.NO_OPTION) {
++							return;
++						} else {
++							usersChoice = DB_IMPORT_GRAPH_PERSISTENT;
++							success = true;
++						}
++					} else {
++						usersChoice = DB_IMPORT_GRAPH_PERSISTENT;
++						success = true;
++					}
++				}
++				
++			// Create empty db
++			} else if (CreateEmptyBtn.isSelected()) {
++				usersChoice = DB_CREATE_EMPTY;
++				success = true;
++			}
++				
++			if (success) {
++				// Save preferences for next time
++				setPreferences();
++				setVisible(false);
++			}
++		}
++	};
++	
++	/**
++	 * Actionlistener for cancel button
++	 */
++	ActionListener cancelAction = new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			// Exit Guess
++			System.exit(0);
++		}
++	};
++	
++	
++	/**
++	 * Actionlistener Open Database browse button
++	 */
++	ActionListener openDatabaseBrowseAction = new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			// Browse for database file
++			JFileChooser chooser = null;
++			try {
++				chooser = new JFileChooser(new 
++						File(openDatabaseFileNameTxt.getText()).getCanonicalPath());
++				
++				SunFileFilter filter = new SunFileFilter();
++			    filter.addExtension("properties");
++			    chooser.setFileFilter(filter);
++			    
++				int returnVal = chooser.showOpenDialog(welcomedlg);
++				if (returnVal == JFileChooser.APPROVE_OPTION) {
++					try {
++						openDatabaseFileNameTxt.setText(chooser.getSelectedFile().
++								getCanonicalPath());
++					} catch (IOException e1) {
++						e1.printStackTrace();
++					}
++				}
++				
++			} catch (IOException e2) {
++			}
++			
++			// Enable or disable fields
++			enableDisableWidgets();
++		}
++	};
++	
++	/**
++	 * Actionlistener Import Graph browse button
++	 */
++	ActionListener importGraphBrowseAction = new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			
++			// Browse for graph file to import
++			JFileChooser chooser = null;
++			try {
++				chooser = new JFileChooser(new 
++						File(importToFileNameTxt.getText()).getCanonicalPath());
++			
++				int returnVal = chooser.showOpenDialog(welcomedlg);
++				if (returnVal == JFileChooser.APPROVE_OPTION) {
++					try {
++						importToFileNameTxt.setText(chooser.getSelectedFile().
++								getCanonicalPath());
++					} catch (IOException e1) {
++						e1.printStackTrace();
++					}
++				}
++				
++			} catch (IOException e2) {
++			}
++			
++			// Enable or disable fields
++			enableDisableWidgets();
++		}
++	};
++	
++	/**
++	 * Actionlistener Import Graph DB Directory browse button
++	 */
++	ActionListener importGraphDBDirectoryBrowseAction = new ActionListener() {
++		public void actionPerformed(ActionEvent e) {
++			// Browse for directory
++			FolderChooser chooser = new FolderChooser();
++		    int returnVal = chooser.showOpenDialog(welcomedlg);
++		    if(returnVal == FolderChooser.APPROVE_OPTION) {
++		       try {
++		    	   databaseDirectoryTxt.setText(chooser.getSelectedFile().getCanonicalPath());
++		       } catch (IOException e1) {
++		    	   e1.printStackTrace();
++		       }
++		    }
++			
++			// Enable or disable fields
++			enableDisableWidgets();
++		}
++	};
++	
++	
++	KeyListener enterListener = new KeyAdapter()
++	{
++		public void keyReleased( KeyEvent e ) {
++			if( e.getKeyCode() == KeyEvent.VK_ENTER ) {
++					okBtn.doClick();
++			}
++		}
++	};
++	
++	/**
++	 * Return the users Choice
++	 * @return See DB_OPEN_DATABASE, DB_IMPORT_GRAPH_MEMORY, ...
++	 */
++	public int getUsersChoice() {
++		return usersChoice;
++	}
++	
++	/**
++	 * Return the file name of the field to
++	 * open a database
++	 * @return
++	 */
++	public String getFileNameOpenDatabase() {
++		return openDatabaseFileNameTxt.getText().substring(0, 
++				openDatabaseFileNameTxt.getText().length() - 11);
++	}
++	
++	/**
++	 * Return the file name of a graph to import
++	 * @return
++	 */
++	public String getFileNameImportGraph() {
++		return importToFileNameTxt.getText();
++	}
++	
++	/**
++	 * Return a name of a new persisten db
++	 * @return
++	 */
++	public String getNameImportGraph() {
++		return databaseNameTxt.getText();
++	}
++	
++	/**
++	 * Return a directory of a new persistent db
++	 * @return
++	 */
++	public String getDirectoryImportGraph() {
++		return databaseDirectoryTxt.getText();
++	}
++	
++	/**
++	 * Init the gui elements
++	 */
++	private void initGUI() {
++		//Set Look & Feel
++		try {
++			javax.swing.UIManager.setLookAndFeel(javax.swing.UIManager.getSystemLookAndFeelClassName());
++		} catch(Exception e) {
++			e.printStackTrace();
++		}
++		
++		// Set Window Icon
++		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
++		this.setIconImage(imageIcon.getImage());
++		
++		// Set default button
++		getRootPane().setDefaultButton(okBtn);
++		
++		// Set title
++		setTitle("Choose Database - GUESS");	
++		
++		try {
++			GridBagLayout thisLayout = new GridBagLayout();
++			thisLayout.columnWidths = new int[] {12, 11, 11, 7, 11, 7, 12};
++			thisLayout.columnWeights = new double[] {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
++			thisLayout.rowWeights = new double[] {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0};
++			thisLayout.rowHeights = new int[] {50, 12, 7, 11, 7, 7, 11, 3, 3, 6, 3, 6, 3, 6, 3, 11, 7, 17, 7, 12};
++			getContentPane().setLayout(thisLayout);
++			
++			{
++				openDatabaseBtn = new JRadioButton();
++				getContentPane().add(openDatabaseBtn, new GridBagConstraints(1, 4, 3, 1, 0.0, 0.0, GridBagConstraints.SOUTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				openDatabaseBtn.setText("Open Existing Database");
++				openDatabaseBtn.setMnemonic(java.awt.event.KeyEvent.VK_P);
++				openDatabaseBtn.addActionListener(enableDisableActionListener);
++				getButtonGroup().add(openDatabaseBtn);
++				openDatabaseBtn.addKeyListener(enterListener);
++			}
++			{
++				ImportGraphBtn = new JRadioButton();
++				getContentPane().add(ImportGraphBtn, new GridBagConstraints(1, 7, 3, 1, 0.0, 0.0, GridBagConstraints.SOUTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				ImportGraphBtn.setText("Import Graph to New Database");
++				ImportGraphBtn.setMnemonic(java.awt.event.KeyEvent.VK_G);
++				ImportGraphBtn.addActionListener(enableDisableActionListener);
++				getButtonGroup().add(ImportGraphBtn);
++				ImportGraphBtn.addKeyListener(enterListener);
++			}
++			{
++				CreateEmptyBtn = new JRadioButton();
++				getContentPane().add(CreateEmptyBtn, new GridBagConstraints(1, 16, 3, 1, 0.0, 0.0, GridBagConstraints.SOUTHWEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				CreateEmptyBtn.setText("Create Empty Database");
++				CreateEmptyBtn.setMnemonic(java.awt.event.KeyEvent.VK_E);
++				CreateEmptyBtn.addActionListener(enableDisableActionListener);
++				getButtonGroup().add(CreateEmptyBtn);
++				CreateEmptyBtn.addKeyListener(enterListener);
++			}
++			{
++				welcomeLbl = new JLabel();
++				getContentPane().add(welcomeLbl, new GridBagConstraints(1, 2, 5, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				welcomeLbl.setText("What kind of database do you want Guess to start with?");
++			}
++			{
++				fileNameOpenDatabaseLbl = new JLabel();
++				getContentPane().add(fileNameOpenDatabaseLbl, new GridBagConstraints(1, 5, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				fileNameOpenDatabaseLbl.setText("File Name");
++				fileNameOpenDatabaseLbl.setEnabled(false);
++				fileNameOpenDatabaseLbl.setLabelFor(openDatabaseFileNameTxt);
++			}
++			{
++				openDatabaseFileNameTxt = new JTextField();
++				getContentPane().add(openDatabaseFileNameTxt, new GridBagConstraints(3, 5, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
++				openDatabaseFileNameTxt.setEnabled(false);
++				openDatabaseFileNameTxt.getDocument().addDocumentListener(enableDisableDocumentListener);
++				openDatabaseFileNameTxt.addKeyListener(enterListener);
++			}
++			{
++				browseOpenDatabaseFileNameBtn = new JButton();
++				getContentPane().add(browseOpenDatabaseFileNameBtn, new GridBagConstraints(5, 5, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				browseOpenDatabaseFileNameBtn.setText("Browse...");
++				browseOpenDatabaseFileNameBtn.setEnabled(false);
++				browseOpenDatabaseFileNameBtn.setMnemonic(java.awt.event.KeyEvent.VK_B);
++				browseOpenDatabaseFileNameBtn.addActionListener(enableDisableActionListener);
++				browseOpenDatabaseFileNameBtn.addActionListener(openDatabaseBrowseAction);
++			}
++			{
++				fileNameImportGraphLbl = new JLabel();
++				getContentPane().add(fileNameImportGraphLbl, new GridBagConstraints(1, 8, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				fileNameImportGraphLbl.setText("File Name");
++				fileNameImportGraphLbl.setEnabled(false);
++			}
++			{
++				importToLbl = new JLabel();
++				getContentPane().add(importToLbl, new GridBagConstraints(1, 10, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				importToLbl.setText("Import To");
++				importToLbl.setEnabled(false);
++			}
++			{
++				databaseNameLbl = new JLabel();
++				getContentPane().add(databaseNameLbl, new GridBagConstraints(1, 12, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				databaseNameLbl.setText("Name");
++				databaseNameLbl.setEnabled(false);
++			}
++			{
++				databaseDirLbl = new JLabel();
++				getContentPane().add(databaseDirLbl, new GridBagConstraints(1, 14, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				databaseDirLbl.setText("Directory");
++				databaseDirLbl.setEnabled(false);
++			}
++			{
++				ComboBoxModel importToComboModel = 
++					new DefaultComboBoxModel(
++							new String[] { "Memory", "Persistent" });
++				importToCombo = new JComboBox();
++				importToLbl.setLabelFor(importToCombo);
++				getContentPane().add(importToCombo, new GridBagConstraints(3, 10, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
++				importToCombo.setModel(importToComboModel);
++				importToCombo.setEnabled(false);
++				importToCombo.addActionListener(enableDisableActionListener);
++				importToCombo.addKeyListener(enterListener);
++			}
++			{
++				importToFileNameTxt = new JTextField();
++				fileNameImportGraphLbl.setLabelFor(importToFileNameTxt);
++				getContentPane().add(importToFileNameTxt, new GridBagConstraints(3, 8, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
++				importToFileNameTxt.setEnabled(false);
++				importToFileNameTxt.getDocument().addDocumentListener(enableDisableDocumentListener);
++				importToFileNameTxt.addKeyListener(enterListener);
++			}
++			{
++				importToFileNameBtn = new JButton();
++				getContentPane().add(importToFileNameBtn, new GridBagConstraints(5, 8, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				importToFileNameBtn.setText("Browse...");
++				importToFileNameBtn.setEnabled(false);
++				importToFileNameBtn.setMnemonic(java.awt.event.KeyEvent.VK_R);
++				importToFileNameBtn.addActionListener(enableDisableActionListener);
++				importToFileNameBtn.addActionListener(importGraphBrowseAction);
++			}
++			{
++				databaseNameTxt = new JTextField();
++				databaseNameLbl.setLabelFor(databaseNameTxt);
++				getContentPane().add(databaseNameTxt, new GridBagConstraints(3, 12, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
++				databaseNameTxt.setEnabled(false);
++				databaseNameTxt.getDocument().addDocumentListener(enableDisableDocumentListener);
++				databaseNameTxt.addKeyListener(enterListener);
++			}
++			{
++				databaseDirectoryTxt = new JTextField();
++				databaseDirLbl.setLabelFor(databaseDirectoryTxt);
++				getContentPane().add(databaseDirectoryTxt, new GridBagConstraints(3, 14, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
++				databaseDirectoryTxt.setEnabled(false);
++				databaseDirectoryTxt.getDocument().addDocumentListener(enableDisableDocumentListener);
++				databaseDirectoryTxt.addKeyListener(enterListener);
++			}
++			{
++				importToDatabaseDirectoryBtn = new JButton();
++				getContentPane().add(importToDatabaseDirectoryBtn, new GridBagConstraints(5, 14, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				importToDatabaseDirectoryBtn.setText("Browse...");
++				importToDatabaseDirectoryBtn.setEnabled(false);
++				importToDatabaseDirectoryBtn.setMnemonic(java.awt.event.KeyEvent.VK_W);
++				importToDatabaseDirectoryBtn.addActionListener(enableDisableActionListener);
++				importToDatabaseDirectoryBtn.addActionListener(importGraphDBDirectoryBrowseAction);
++			}
++			{
++				okBtn = new JButton();
++				getContentPane().add(okBtn, new GridBagConstraints(3, 18, 1, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				okBtn.setText("Ok");
++				okBtn.setSize(79, 23);
++				okBtn.setPreferredSize(new java.awt.Dimension(79, 23));
++				okBtn.setMinimumSize(new java.awt.Dimension(79, 23));
++				okBtn.setMnemonic(java.awt.event.KeyEvent.VK_O);
++				okBtn.addActionListener(okAction);
++			}
++			{
++				cancelBtn = new JButton();
++				getContentPane().add(cancelBtn, new GridBagConstraints(5, 18, 1, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				getContentPane().add(getHeaderText(), new GridBagConstraints(3, 0, 4, 1, 0.0, 0.0, GridBagConstraints.EAST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				getContentPane().add(getHeaderLogo(), new GridBagConstraints(0, 0, 2, 1, 0.0, 0.0, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
++				getContentPane().add(getHeaderSpacer(), new GridBagConstraints(2, 0, 2, 1, 1.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
++
++				cancelBtn.setText("Cancel");
++				cancelBtn.setSize(79, 23);
++				cancelBtn.setPreferredSize(new java.awt.Dimension(79, 23));
++				cancelBtn.setMinimumSize(new java.awt.Dimension(79, 23));
++				cancelBtn.setMnemonic(java.awt.event.KeyEvent.VK_C);
++				cancelBtn.addActionListener(cancelAction);
++			}
++
++			this.setSize(382, 420);
++		} catch (Exception e) {
++			e.printStackTrace();
++		}
++	}
++	
++	
++	private ButtonGroup getButtonGroup() {
++		if(buttonGroup == null) {
++			buttonGroup = new ButtonGroup();
++		}
++		return buttonGroup;
++	}
++
++	private void centerWindow() { 
++        Dimension dm = Toolkit.getDefaultToolkit().getScreenSize(); 
++        double width = dm.getWidth(); 
++        double height = dm.getHeight(); 
++        double xPosition = (width / 2 - getWidth() / 2); 
++        double yPosition = (height / 2 - getHeight() / 2); 
++        setLocation((int) xPosition, (int) yPosition); 
++    }
++	
++	private JLabel getHeaderSpacer() {
++		if(headerSpacer == null) {
++			headerSpacer = new JLabel() {
++				private static final long serialVersionUID = 1L;
++				public void paintComponent (Graphics g) {
++				      super.paintComponent (g);
++				      g.drawImage (((ImageIcon) getIcon()).getImage(), 0, 0, getWidth (), getHeight (), null);
++				   }
++			};
++			headerSpacer.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-welcome-spacer.png"))));
++		}
++		return headerSpacer;
++	}
++	
++	private JLabel getHeaderText() {
++		if(headerText == null) {
++			headerText = new JLabel();
++			headerText.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-welcome-text.png"))));
++		}
++		return headerText;
++	}
++	
++	private JLabel getHeaderLogo() {
++		if(headerLogo == null) {
++			headerLogo = new JLabel();
++			headerLogo.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-welcome-logo.png"))));
++		}
++		return headerLogo;
++	}
++
++}

@@ -1,0 +1,552 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/Guess.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Guess.java,v
+retrieving revision 1.24
+diff -u -r1.24 Guess.java
+--- src/com/hp/hpl/guess/Guess.java	30 Sep 2008 11:29:19 -0000	1.24
++++ src/com/hp/hpl/guess/Guess.java	9 Oct 2008 21:43:13 -0000
+@@ -6,7 +6,6 @@
+ import java.awt.event.ActionListener;
+ import java.awt.event.WindowAdapter;
+ import java.awt.event.WindowEvent;
+-import java.awt.event.WindowListener;
+ 
+ import javax.swing.*;
+ 
+@@ -14,21 +13,16 @@
+ import java.util.*;
+ import java.util.prefs.Preferences;
+ 
+-import com.hp.hpl.guess.*;
+ import org.python.core.*;
+ import org.python.util.*;
+ 
+-import edu.uci.ics.jung.graph.*;
+ import com.hp.hpl.guess.storage.*;
+ import com.hp.hpl.guess.ui.*;
+ import gnu.getopt.*;
+ import com.hp.hpl.guess.r.R;
+-import com.hp.hpl.guess.util.GuessPyStringMap;
+ import java.applet.AppletContext;
+ import com.hp.hpl.guess.util.intervals.Tracker;
+ 
+-import com.jgoodies.looks.FontSizeHints;
+-import com.jgoodies.looks.LookUtils;
+ import com.jgoodies.looks.Options;
+ import com.jidesoft.utils.Lm;
+ 
+@@ -122,7 +116,12 @@
+     /**
+      * Object to save user preferences
+      */
+-	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");    
++	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");
++
++    /**
++     * Object to get user preferences set by the menu
++     */
++	private static Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
+     
+     /**
+      * allow multiple edges
+@@ -299,13 +298,12 @@
+ 			 "kaiS04IaJ.QjUq.ZLB0OWobuNMddGb41");
+ 
+ 	try {
+-	    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+-
++		UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
+ 	    configureUI();
+ 	} catch (Exception lnfe) { 
+ 	}
+ 	
+-	LongOpt[] longopts = new LongOpt[14];
++	LongOpt[] longopts = new LongOpt[15];
+ 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
+ 	longopts[1] = new LongOpt("touchgraph", 
+ 				  LongOpt.NO_ARGUMENT, null, 't'); 
+@@ -327,7 +325,9 @@
+ 	longopts[12] = new LongOpt("fileformat", 
+ 				  LongOpt.REQUIRED_ARGUMENT, null, 'b'); 
+ 	longopts[13] = new LongOpt("fitfont", 
+-				   LongOpt.NO_ARGUMENT, null, 'g'); 
++				   LongOpt.NO_ARGUMENT, null, 'g');
++	longopts[14] = new LongOpt("reset", 
++			   LongOpt.NO_ARGUMENT, null, 'r');
+ 
+ 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
+ 	go.setOpterr(false);
+@@ -405,6 +405,13 @@
+ 		    case 'b':
+ 			defaultFileFormat = go.getOptarg();
+ 			break;
++		    case 'r':
++			Preferences globalPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");
++			globalPrefs.removeNode();
++			globalPrefs.flush();
++			System.out.println("Settings cleared. Good Bye.");
++			System.exit(0);
++			break;
+ 		    case ':':
+ 			System.out.print("unknown option: " + (char)c + "\n");
+ 			break;
+@@ -772,27 +779,15 @@
+     /**
+      * do some initial setup to the UI look and feel
+      */
+-    public static void configureUI() {
+-	//ClearLookManager.setMode(ClearLookMode.DEBUG);
+-
+-        UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
+-        Options.setGlobalFontSizeHints(FontSizeHints.MIXED);
+-        Options.setDefaultIconSize(new Dimension(18, 18));
+-        
+-        String lafName =
+-            LookUtils.IS_OS_WINDOWS_XP
+-                ? Options.getCrossPlatformLookAndFeelClassName()
+-                : Options.getSystemLookAndFeelClassName();
+-
+-
+-	//	System.out.println(lafName + " " + LookUtils.IS_OS_WINDOWS_XP);
+-
++    public static void configureUI() {      	   
+         try {
+-            UIManager.setLookAndFeel(lafName);
++            UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
++            UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
+         } catch (Exception e) {
+             System.err.println("Can't set look & feel");
+-	    exceptionHandle(e);
++            exceptionHandle(e);
+         }
++        
+     }
+ 
+     static BufferedReader reader = null;
+@@ -895,11 +890,8 @@
+ 	    textMode = false;
+ 	}
+ 
+-	//System.out.println("before");
+-
+ 	final InterpreterAbstraction interp = getInterpreter();
+ 
+-	//System.out.println("after");
+ 	final int uiMode2 = uiMode;
+ 
+ 	try {
+@@ -915,7 +907,13 @@
+ 
+ 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
+ 	myF = myFrame;
+-	myF.setDisplayBackground(Color.black);
++	
++	// Set the background color
++	int colorred = userPrefsMenu.getInt("backgroundcolor-red", Color.black.getRed());
++	int colorgreen = userPrefsMenu.getInt("backgroundcolor-green", Color.black.getGreen());
++	int colorblue = userPrefsMenu.getInt("backgroundcolor-blue", Color.black.getBlue());
++	myF.setDisplayBackground(new Color(colorred, colorgreen, colorblue));
++
+ 
+ 	try {
+ 	    g = new Graph(myFrame, interp, multiEdge);
+@@ -1045,8 +1043,6 @@
+ 			tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
+ 		    myWin.dock(tpjc);
+ 		    
+-			Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
+-			
+ 			// Show console?
+ 			if (!userPrefsMenu.getBoolean("openConsole", true)) {
+ 				getMainUIWindow().close(tpjc);
+@@ -1237,3 +1233,4 @@
+ 	    }
+     }
+ }
++
+Index: src/com/hp/hpl/guess/db/SpreadSheetTable.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/db/SpreadSheetTable.java,v
+retrieving revision 1.1
+diff -u -r1.1 SpreadSheetTable.java
+--- src/com/hp/hpl/guess/db/SpreadSheetTable.java	5 Oct 2005 20:19:38 -0000	1.1
++++ src/com/hp/hpl/guess/db/SpreadSheetTable.java	9 Oct 2008 21:43:15 -0000
+@@ -1,17 +1,10 @@
+ package com.hp.hpl.guess.db;
+ 
+-import java.awt.*;
+-import java.awt.event.*;
++
+ import java.util.*;
+-import javax.swing.*;
+ import javax.swing.table.*;
+-import javax.swing.event.TableModelEvent;
+-
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
+ import com.hp.hpl.guess.*;
+ 
+-import java.sql.Types;
+ 
+ public class SpreadSheetTable extends AbstractTableModel {
+ 
+Index: src/com/hp/hpl/guess/ui/DockableAdapter.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/DockableAdapter.java,v
+retrieving revision 1.4
+diff -u -r1.4 DockableAdapter.java
+--- src/com/hp/hpl/guess/ui/DockableAdapter.java	9 Aug 2007 02:05:56 -0000	1.4
++++ src/com/hp/hpl/guess/ui/DockableAdapter.java	9 Oct 2008 21:43:15 -0000
+@@ -4,7 +4,6 @@
+ import java.awt.event.*;
+ import java.util.*;
+ import javax.swing.*;
+-import com.jgoodies.looks.*;
+ import com.hp.hpl.guess.freehep.*;
+ import com.hp.hpl.guess.*;
+ 
+Index: src/com/hp/hpl/guess/ui/GuessJFrame.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GuessJFrame.java,v
+retrieving revision 1.4
+diff -u -r1.4 GuessJFrame.java
+--- src/com/hp/hpl/guess/ui/GuessJFrame.java	30 Sep 2008 11:29:18 -0000	1.4
++++ src/com/hp/hpl/guess/ui/GuessJFrame.java	9 Oct 2008 21:43:15 -0000
+@@ -2,17 +2,19 @@
+ 
+ import java.awt.*;
+ import java.awt.event.*;
+-import java.util.*;
+ import javax.swing.*;
+ 
+-import com.jgoodies.looks.*;
++import com.jgoodies.looks.HeaderStyle;
++import com.jgoodies.looks.Options;
+ 
+ import com.hp.hpl.guess.freehep.*;
+ import com.hp.hpl.guess.*;
+ 
+ public class GuessJFrame extends JFrame {
+ 
+-    private JMenuBar jm = new JMenuBar();
++	private static final long serialVersionUID = 1630559633511657461L;
++
++	private JMenuBar jm = new JMenuBar();
+ 
+     private Dockable dockable = null;
+ 
+@@ -42,7 +44,7 @@
+ 		public void actionPerformed(ActionEvent event) {
+ 		    if (event.getActionCommand().equals("Dock")) {
+ 			getContentPane().removeAll();
+-			hide();
++			setVisible(false);
+ 			Guess.getMainUIWindow().dock(dc);
+ 		    }
+ 		}
+@@ -67,8 +69,8 @@
+     }
+ 
+     public void initMenus() {
+-
+-	jm.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
++    
++	jm.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.SINGLE);
+ 	JMenu fileMenu = new JMenu("File");
+ 	JMenuItem jmi = new JMenuItem("Export Image");
+ 	jmi.addActionListener(new ActionListener() {
+Index: src/com/hp/hpl/guess/ui/InfoWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/InfoWindow.java,v
+retrieving revision 1.2
+diff -u -r1.2 InfoWindow.java
+--- src/com/hp/hpl/guess/ui/InfoWindow.java	22 May 2008 15:23:36 -0000	1.2
++++ src/com/hp/hpl/guess/ui/InfoWindow.java	9 Oct 2008 21:43:18 -0000
+@@ -1,14 +1,11 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+ import java.util.*;
+ import javax.swing.*;
+ import javax.swing.table.*;
+ import javax.swing.event.TableModelEvent;
+ 
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
+ import com.hp.hpl.guess.*;
+ 
+ import java.sql.Types;
+Index: src/com/hp/hpl/guess/ui/SpreadSheet.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/SpreadSheet.java,v
+retrieving revision 1.1
+diff -u -r1.1 SpreadSheet.java
+--- src/com/hp/hpl/guess/ui/SpreadSheet.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/SpreadSheet.java	9 Oct 2008 21:43:18 -0000
+@@ -1,19 +1,11 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+-import java.util.*;
+ import javax.swing.*;
+ import javax.swing.table.*;
+-import javax.swing.event.TableModelEvent;
+ 
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
+-import com.hp.hpl.guess.*;
+ import com.hp.hpl.guess.storage.StorageFactory;
+ 
+-import java.sql.Types;
+-
+ /**
+  * @pyobj SpreadSheet
+  */
+Index: src/com/hp/hpl/guess/ui/MainUIWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/MainUIWindow.java,v
+retrieving revision 1.8
+diff -u -r1.8 MainUIWindow.java
+--- src/com/hp/hpl/guess/ui/MainUIWindow.java	30 Sep 2008 11:29:18 -0000	1.8
++++ src/com/hp/hpl/guess/ui/MainUIWindow.java	9 Oct 2008 21:43:18 -0000
+@@ -15,13 +15,13 @@
+ import java.awt.GridBagConstraints;
+ 
+ import javax.swing.*;
+-import javax.swing.border.EmptyBorder;
+ import javax.swing.plaf.basic.BasicSplitPaneUI;
+ 
+ import java.awt.*;
+ 
+ import com.hp.hpl.guess.Guess;
+ import com.hp.hpl.guess.piccolo.GFrame;
++import com.jgoodies.looks.Options;
+ 
+ public class MainUIWindow extends JFrame {
+ 
+@@ -103,7 +103,7 @@
+ 	super(aDevice.getDefaultConfiguration());
+ 	getContentPane().setLayout(new GridBagLayout());
+ 	GridBagConstraints c = new GridBagConstraints();
+-		
++	
+ 	graphicsDevice = aDevice;
+ 	
+ 	// Set Window Icon
+@@ -131,6 +131,10 @@
+ 				userPrefs.putInt("MainWindowWidth", getWidth());
+ 				userPrefs.putInt("MainWindowHeight", getHeight());
+ 
++				// Save window position
++				userPrefs.putInt("MainWindowX", getX());
++				userPrefs.putInt("MainWindowY", getY());
++				
+ 			    com.hp.hpl.guess.Guess.shutdown();
+ 			}
+ 
+@@ -140,18 +144,15 @@
+ 	} catch (SecurityException e) {} // expected from applets
+ 	
+ 	canvas = aCanvas;
+-    	
++	
+ 	if (canvas == null) {
+ 	    System.err.println("null canvas");
+ 	}
+ 	
+ 	
+ 	tabbedPaneH = new JTabbedPane();
+-	//tabbedPaneH.setUI(new PSTabbedPaneUI());
+ 	tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
+ 	tabbedPaneV = createTabbedPane(JTabbedPane.LEFT);
+-	//new JTabbedPane();
+-	//tabbedPaneV.setUI(new PSTabbedPaneUI());
+ 
+ 	splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+ 					      canvas,
+@@ -161,6 +162,11 @@
+ 				    tabbedPaneV,
+ 				    splitPaneH);
+ 
++	splitPaneH.setBorder(BorderFactory.createEmptyBorder());
++	splitPaneV.setBorder(BorderFactory.createEmptyBorder());
++	
++	
++	
+ 	c.fill = GridBagConstraints.BOTH;
+ 	c.weighty = 1;
+ 	c.weightx = 1;
+@@ -492,6 +498,10 @@
+ 		setSize(userPrefs.getInt("MainWindowWidth", getWidth()), 
+ 				userPrefs.getInt("MainWindowHeight", getHeight()));
+ 		
++		// Restore position
++		setLocation(userPrefs.getInt("MainWindowX", getX()),
++					userPrefs.getInt("MainWindowY", getY()));
++		
+ 	    validate();
+ 	    setVisible(true);
+ 	}
+Index: src/com/hp/hpl/guess/ui/GMenuBar.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GMenuBar.java,v
+retrieving revision 1.9
+diff -u -r1.9 GMenuBar.java
+--- src/com/hp/hpl/guess/ui/GMenuBar.java	30 Sep 2008 11:29:18 -0000	1.9
++++ src/com/hp/hpl/guess/ui/GMenuBar.java	9 Oct 2008 21:43:15 -0000
+@@ -6,7 +6,6 @@
+ import javax.swing.*;
+ 
+ import com.hp.hpl.guess.Guess;
+-import com.hp.hpl.guess.Version;
+ import com.hp.hpl.guess.Node;
+ import java.io.*;
+ import java.net.URI;
+@@ -15,11 +14,14 @@
+ 
+ import com.hp.hpl.guess.freehep.HEPDialog;
+ import com.hp.hpl.guess.piccolo.GFrame;
++import com.jgoodies.looks.HeaderStyle;
++import com.jgoodies.looks.Options;
+ 
+-import com.jgoodies.looks.*;
+ 
+ public class GMenuBar extends JMenuBar {
+ 
++	private static final long serialVersionUID = 2412310463167673835L;
++
+ 	String[] fileItems = new String[] { "Export Image...", "Export Graph..." };
+ 
+ 	char[] fileShortcuts = { 'I', 'R' };
+@@ -132,6 +134,7 @@
+ 	 * Create the menu view
+ 	 */
+ 	private void buildViewMenu() {
++		viewMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
+ 		ActionListener viewListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Center")) {
+@@ -199,7 +202,8 @@
+ 	}
+ 	
+ 	private void buildFileMenu() {
+-
++		fileMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
++		
+ 		ActionListener printListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Exit")) {
+@@ -237,6 +241,8 @@
+ 		};
+ 
+ 		JMenu load = new JMenu("Import Graph");
++		load.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
++		
+ 		load.setMnemonic('m');
+ 		JMenuItem l1 = new JMenuItem("GDF");
+ 		l1.addActionListener(loadListener);
+@@ -297,7 +303,8 @@
+ 	}
+ 	
+ 	private void buildLayoutMenu() {
+-
++		layoutMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
++		
+ 		ActionListener layoutListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				String command = event.getActionCommand();
+@@ -361,11 +368,13 @@
+ 	}
+ 	
+ 	private void buildScriptMenu() {
++		scriptMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
+ 		rebuildScriptMenu();
+ 	}
+ 	
+ 	private void buildHelpMenu() {
+-
++		helpMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
++		
+ 		ActionListener helpListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("About GUESS")) {
+@@ -427,7 +436,8 @@
+ 	}
+ 	
+ 	private void buildEditMenu() {
+-
++		editMenu.putClientProperty(Options.NO_ICONS_KEY, Boolean.TRUE);
++		
+ 		ActionListener editListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Background Color...")) {
+@@ -437,6 +447,11 @@
+ 									.getDisplayBackground());
+ 					if (c != null) {
+ 						fl.setDisplayBackground(c);
++						// Save background color for next time
++						userPrefs.putInt("backgroundcolor-red", c.getRed());
++						userPrefs.putInt("backgroundcolor-green", c.getGreen());
++						userPrefs.putInt("backgroundcolor-blue", c.getBlue());
++						
+ 						StatusBar.setStatus("v.setDisplayBackground(\""
+ 								+ c.getRed() + "," + c.getGreen() + ","
+ 								+ c.getBlue() + "\")");
+@@ -467,7 +482,7 @@
+ 	}
+ 	
+ 	public GMenuBar() {
+-		this.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
++		this.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.SINGLE);
+ 
+ 		fileMenu.setMnemonic('f');
+ 		editMenu.setMnemonic('e');
+Index: src/com/hp/hpl/guess/ui/PickFile.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/PickFile.java,v
+retrieving revision 1.2
+diff -u -r1.2 PickFile.java
+--- src/com/hp/hpl/guess/ui/PickFile.java	30 Sep 2008 11:29:18 -0000	1.2
++++ src/com/hp/hpl/guess/ui/PickFile.java	9 Oct 2008 21:43:18 -0000
+@@ -5,21 +5,15 @@
+ import java.awt.Insets;
+ import java.awt.SystemColor;
+ import java.awt.event.*;
+-import java.awt.event.KeyEvent;
+ import javax.swing.*;
+-import javax.swing.JButton;
+-import javax.swing.JComboBox;
+-import javax.swing.JFormattedTextField;
+-import javax.swing.JLabel;
+-import javax.swing.JLayeredPane;
+-import javax.swing.JPanel;
+ import javax.swing.border.EtchedBorder;
++
++import com.jgoodies.looks.Options;
++
+ import java.io.File;
+ import java.io.IOException;
+ import java.util.prefs.*;
+ 
+-import com.jgoodies.looks.*;
+-
+ public class PickFile extends JPanel implements ActionListener {
+ 
+ 	private static final long serialVersionUID = -1782036809617887316L;
+@@ -68,10 +62,9 @@
+ 	 * do some initial setup to the UI look and feel
+ 	 */
+ 	public static void configureUI() {
+-		String lafName = Options.getSystemLookAndFeelClassName();
+-
+ 		try {
+-			UIManager.setLookAndFeel(lafName);
++			UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
++			UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
+ 		} catch (Exception e) {
+ 			ExceptionWindow.getExceptionWindow(e);
+ 			System.err.println("Can't set look & feel:" + e);

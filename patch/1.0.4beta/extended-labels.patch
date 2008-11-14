@@ -1,0 +1,364 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/piccolo/GuessPNode.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessPNode.java,v
+retrieving revision 1.1
+diff -u -r1.1 GuessPNode.java
+--- src/com/hp/hpl/guess/piccolo/GuessPNode.java	5 Oct 2005 20:19:40 -0000	1.1
++++ src/com/hp/hpl/guess/piccolo/GuessPNode.java	6 Oct 2008 15:13:33 -0000
+@@ -10,6 +10,8 @@
+ 
+ public interface GuessPNode extends NodeListener {
+ 
++	public GFrame getFrame();
++	
+     public Node getOwner();
+ 
+     public void moveDone(double x, double y);
+Index: src/com/hp/hpl/guess/piccolo/GuessShapeNode.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GuessShapeNode.java,v
+retrieving revision 1.9
+diff -u -r1.9 GuessShapeNode.java
+--- src/com/hp/hpl/guess/piccolo/GuessShapeNode.java	6 Feb 2008 18:31:48 -0000	1.9
++++ src/com/hp/hpl/guess/piccolo/GuessShapeNode.java	6 Oct 2008 15:13:33 -0000
+@@ -10,7 +10,6 @@
+ import java.awt.*;
+ import java.awt.geom.*;
+ import java.util.*;
+-import edu.umd.cs.piccolo.activities.*;
+ 
+ import com.hp.hpl.guess.Guess;
+ import com.hp.hpl.guess.ui.*;
+@@ -28,6 +27,10 @@
+     public Node getOwner() {
+ 	return(owner);
+     }
++    
++    public GFrame getFrame() {
++    	return(frame);
++    }
+ 
+     public void set(String field, Object o) {
+ 	/*try {*/
+@@ -276,7 +279,15 @@
+ 	}
+     }
+     
+-    protected LabelText labelText = null;
++    protected LabelText labelText = new LabelText(this);
++    
++    public void addFieldToLabel(String aField) {
++    	labelText.addField(aField);
++    }
++    
++    public void removeFieldFromLabel(String aField) {
++    	labelText.removeField(aField);
++    } 
+ 
+     public void highlight(boolean state) {
+ 
+@@ -286,19 +297,17 @@
+ 	if (!getVisible()) 
+ 	    return;
+ 
+-	if (labelText == null) {
+-	    labelText = new LabelText(this);
+-	}
+-
+ 	if (state) {
+ 	    //System.out.println("**** " + label);
+ 	    super.setPaint(Color.yellow);
+ 	    labelText.setText(label);
++	    labelText.addField("name");
+ 	    labelText.setPaint(new Color(100,100,100,210));
+ 	    labelText.setTextPaint(Color.yellow);
+ 	    float scaling = (float)(1/frame.getGCamera().getViewScale());
+ 	    labelText.setX(getX() + getWidth()+1*scaling);
+ 	    labelText.setY(getY() + getHeight());
++	    labelText.recalculateLocation();
+ 	    frame.labels.addChild(labelText);
+ 	    if ((label != null) && (label.equals(owner.getName()))) {
+ 		StatusBar.setStatus(label);
+Index: src/com/hp/hpl/guess/piccolo/LabelText.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/LabelText.java,v
+retrieving revision 1.2
+diff -u -r1.2 LabelText.java
+--- src/com/hp/hpl/guess/piccolo/LabelText.java	24 Aug 2007 00:25:13 -0000	1.2
++++ src/com/hp/hpl/guess/piccolo/LabelText.java	6 Oct 2008 15:13:35 -0000
+@@ -1,70 +1,110 @@
+ package com.hp.hpl.guess.piccolo;
+ 
+-import edu.umd.cs.piccolo.*;
+ import edu.umd.cs.piccolo.util.PPaintContext;
+ import edu.umd.cs.piccolo.nodes.*;
+-import edu.umd.cs.piccolox.nodes.*;
+-import edu.umd.cs.piccolo.event.*;
+-import edu.umd.cs.piccolo.util.*;
+-import java.awt.event.*;
+ import java.awt.*;
+ import java.awt.geom.*;
+-import edu.umd.cs.piccolo.activities.*;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.Set;
++
+ import com.hp.hpl.guess.ui.VisFactory;
++import com.hp.hpl.guess.Field;
+ import com.hp.hpl.guess.Guess;
+ 
+ public class LabelText extends PText {
+ 
+-    private GuessPNode owner = null;
+-
+-    public LabelText(GuessPNode owner) {
+-	this.owner = owner;
+-    }
+-
+-    private Point2D location = null;
+-
+-    public LabelText(Point2D location) {
+-	this.location = location;
+-    }
+-
+-    public void setLocation(Point2D location) {
+-	this.location = location;
+-	setX(location.getX());
+-	setY(location.getY()-20);
+-    }
+-
+-    private float prevScale = -1;
+-
+-    public void paint(PPaintContext apc) {
+-	//	Thread.dumpStack();
+-	float scaling = (float)(1/((GFrame)VisFactory.getFactory().getDisplay()).getGCamera().getViewScale());
+-
+-	//System.out.println(scaling + " " + prevScale);	
+-	//System.out.println(getText());
+-
+-	//	System.out.println("xxx");
+-	if (scaling != prevScale) {
+-	    Font f = getFont();
+-	    f = f.deriveFont((float)(12*scaling));
+-	    prevScale = scaling;
+-	    if (scaling <= .3) {
+-		scaling = (float).3;
+-	    }
+-	    //System.out.println(scaling);
+-	    if (owner != null) {
+-		setX(owner.getX() + owner.getWidth()+1*scaling);
+-		setY(owner.getY() + owner.getHeight());
++	private GuessPNode owner = null;
++	private Point2D location = null;
++	private float prevScale = -1;
++	
++	private Set<String> fieldList = new HashSet<String>();
++	
++	
++	public LabelText(GuessPNode owner) {
++		this.owner = owner;
++	}
++
++	public LabelText(Point2D location) {
++		this.location = location;
++	}
++	
++
++	public void addField(String aField) {
++		fieldList.add(aField);
++	}
++	
++	public void removeField(String aField) {
++		fieldList.remove(aField);
++	}
++	
++	private String getTextFromFields() {
++		String labelText = "";
++		Iterator<String> fieldIterator = fieldList.iterator();
++	    while ( fieldIterator.hasNext() ){
++	    	String nextField = fieldIterator.next();
++	    	labelText = labelText + owner.getOwner().__getattr__(nextField) + "\n";
+ 	    }
+-	    if (Guess.getDefaultFont() != null) {
+-		if (!f.getFamily().equals(Guess.getDefaultFont())) {
+-		    f = new Font(Guess.getDefaultFont(),
+-				 f.getStyle(),
+-				 f.getSize());
++		
++		return labelText;
++	}
++	
++	
++	public void recalculateLocation() {
++		// Set X
++		double w1 = owner.getFrame().getCamera().getViewBounds().getX() - getX() - getWidth();
++		double w2 = owner.getFrame().getCamera().getViewBounds().getWidth();
++		
++		w1 = -1*w1;
++		
++		if (w1 > w2) {
++			setX(getX() - (w1-w2));
+ 		}
+-	    }
+-	    setFont(f);
+-	} 
+-	//repaint();
+-	super.paint(apc);
+-    }
++		
++		// Set Y
++		double h1 = owner.getFrame().getCamera().getViewBounds().getY() -20 - getY() - getHeight();
++		double h2 = owner.getFrame().getCamera().getViewBounds().getHeight();
++		
++		h1 = -1*h1;
++		
++		if (h1 > h2) {
++			setY(getY() - (h1-h2));
++		}
++	}
++	
++	public void setLocation(Point2D location) {
++		this.location = location;
++		setX(location.getX());
++		setY(location.getY() - 20);
++	}
++
++	public void paint(PPaintContext apc) {
++		setText(getTextFromFields());
++		
++		float scaling = (float) (1 / ((GFrame) VisFactory.getFactory()
++				.getDisplay()).getGCamera().getViewScale());
++
++		if (scaling != prevScale) {
++			Font f = getFont();
++			f = f.deriveFont((float) (12 * scaling));
++			prevScale = scaling;
++			if (scaling <= .3) {
++				scaling = (float) .3;
++			}
++			// System.out.println(scaling);
++			if (owner != null) {
++				setX(owner.getX() + owner.getWidth() + 1 * scaling);
++				setY(owner.getY() + owner.getHeight());
++			}
++			if (Guess.getDefaultFont() != null) {
++				if (!f.getFamily().equals(Guess.getDefaultFont())) {
++					f = new Font(Guess.getDefaultFont(), f.getStyle(), f
++							.getSize());
++				}
++			}
++			setFont(f);
++		}
++		recalculateLocation();
++		super.paint(apc);
++	}
+ }
+Index: src/org/python/core/PySequence.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/org/python/core/PySequence.java,v
+retrieving revision 1.4
+diff -u -r1.4 PySequence.java
+--- src/org/python/core/PySequence.java	14 Mar 2007 19:12:02 -0000	1.4
++++ src/org/python/core/PySequence.java	6 Oct 2008 15:13:35 -0000
+@@ -5,6 +5,7 @@
+ import com.hp.hpl.guess.ui.*;
+ import java.util.HashSet;
+ import java.util.Collection;
++import java.util.Iterator;
+ 
+ class SeqFuncs extends PyBuiltinFunctionSet
+ {
+@@ -692,6 +693,22 @@
+ 	{
+ 		__setattr__("visible", new PyInteger(0));
+ 	}
++	
++	public void addFieldToLabel(String aField)
++	{
++		Iterator<Node> edgeIterator = findNodes().iterator();
++		while (edgeIterator.hasNext()) {
++			edgeIterator.next().addFieldToLabel(aField);
++		}
++	}
++	
++	public void removeFieldFromLabel(String aField)
++	{
++		Iterator<Node> edgeIterator = findNodes().iterator();
++		while (edgeIterator.hasNext()) {
++			edgeIterator.next().removeFieldFromLabel(aField);
++		}
++	}
+ 
+ 	public PyObject __sub__(PyObject object)
+ 	{
+Index: src/com/hp/hpl/guess/GraphElement.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/GraphElement.java,v
+retrieving revision 1.1
+diff -u -r1.1 GraphElement.java
+--- src/com/hp/hpl/guess/GraphElement.java	5 Oct 2005 20:19:38 -0000	1.1
++++ src/com/hp/hpl/guess/GraphElement.java	6 Oct 2008 15:13:33 -0000
+@@ -11,9 +11,10 @@
+     public void show();
+     
+     public void hide();
+-    
++     
+     //Returns a hashtable of field names and values.
+     public Map values();
+ 
+     public GraphElementListener getRep();
++
+ }
+Index: src/com/hp/hpl/guess/Node.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Node.java,v
+retrieving revision 1.5
+diff -u -r1.5 Node.java
+--- src/com/hp/hpl/guess/Node.java	5 Oct 2006 04:56:55 -0000	1.5
++++ src/com/hp/hpl/guess/Node.java	6 Oct 2008 15:13:33 -0000
+@@ -719,5 +719,17 @@
+ 
+ 		return values;
+ 	}
++	
++	public void addFieldToLabel(String aField) {
++		rep.addFieldToLabel(aField);
++	}
+ 
++	public void removeFieldFromLabel(String aField) {
++		rep.removeFieldFromLabel(aField);
++	}	
++	
++	public void addField() {
++		//rep.addFieldToLabel("color");
++		__setattr__("visible", Boolean.FALSE);
++	}
+ }
+Index: src/com/hp/hpl/guess/ui/NodeListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/NodeListener.java,v
+retrieving revision 1.1
+diff -u -r1.1 NodeListener.java
+--- src/com/hp/hpl/guess/ui/NodeListener.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/NodeListener.java	6 Oct 2008 15:13:35 -0000
+@@ -1,12 +1,13 @@
+ package com.hp.hpl.guess.ui;
+ 
+-import java.awt.Color;
+-import java.awt.Paint;
+-import java.awt.Shape;
+-
+ public interface NodeListener extends GraphElementListener {
+     
+     public void setLocation(double x, double y);
+     
+     public void setLocation(double x, double y, double width, double height);
++    
++    public void addFieldToLabel(String aField);
++    
++    public void removeFieldFromLabel(String aField);
++    
+ }

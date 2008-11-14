@@ -1,0 +1,894 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/db/DBServer.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/db/DBServer.java,v
+retrieving revision 1.15
+diff -u -r1.15 DBServer.java
+--- src/com/hp/hpl/guess/db/DBServer.java	29 May 2008 21:22:00 -0000	1.15
++++ src/com/hp/hpl/guess/db/DBServer.java	9 Oct 2008 14:58:05 -0000
+@@ -2091,6 +2091,18 @@
+ 	saveState(""+statenum);
+     }
+ 
++    public void deleteState(String statenum) {
++        try {
++            query("DROP TABLE nodes_"+statenum);
++        } catch (SQLException ex2) {
++	}
++
++        try {
++            query("DROP TABLE edges_"+statenum);
++        } catch (SQLException ex2) {
++       }
++    }
++    
+     public void saveState(String statenum) {
+ 	
+ 	tableList.clear();
+Index: src/com/hp/hpl/guess/ui/StatusBar.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/StatusBar.java,v
+retrieving revision 1.1
+diff -u -r1.1 StatusBar.java
+--- src/com/hp/hpl/guess/ui/StatusBar.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/StatusBar.java	9 Oct 2008 14:58:08 -0000
+@@ -6,10 +6,8 @@
+ import java.awt.GridBagConstraints;
+ 
+ import javax.swing.*;
+-import javax.swing.SwingUtilities;
+-import java.awt.*;
+-import javax.swing.border.LineBorder;
+ 
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.piccolo.*;
+ import com.hp.hpl.guess.storage.*;
+ import com.hp.hpl.guess.*;
+@@ -44,11 +42,18 @@
+     }
+ 
+     public static void setState(String state) {
++    	
++    	// Do not add internal undo / redo
++    	// states to the list.
++    	if (state.charAt(0)==GStateAction.delimiter.charAt(0)) {
++    		return;
++    	}
++    	
+ 	// we're going to push the new state to the 
+ 	// bottom
+ 	if (stateList != null) {
+ 	    if (!states.contains(state)) {
+-		ignoreChange = true;
++		ignoreChange = true;	
+ 		stateList.addItem(state);
+ 		states.add(state);
+ 	    }
+Index: src/com/hp/hpl/guess/ui/InfoWindow.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/InfoWindow.java,v
+retrieving revision 1.2
+diff -u -r1.2 InfoWindow.java
+--- src/com/hp/hpl/guess/ui/InfoWindow.java	22 May 2008 15:23:36 -0000	1.2
++++ src/com/hp/hpl/guess/ui/InfoWindow.java	9 Oct 2008 14:58:08 -0000
+@@ -1,14 +1,13 @@
+ package com.hp.hpl.guess.ui;
+ 
+ import java.awt.*;
+-import java.awt.event.*;
+ import java.util.*;
+ import javax.swing.*;
+ import javax.swing.table.*;
+ import javax.swing.event.TableModelEvent;
+ 
+-import com.jgoodies.looks.*;
+-import com.hp.hpl.guess.freehep.*;
++import com.hp.hpl.guess.action.GActionManager;
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.*;
+ 
+ import java.sql.Types;
+@@ -261,35 +260,40 @@
+ 	    }
+ 	}
+ 
+-	public void setValueAt(Object value, int row, int col) {
+-	    String f = null;
+-	    Field fld = null;
+-	    if (lastSel != null) {
+-		if (lastSel instanceof Node) {
+-		    f = (String)nFields.elementAt(row);
+-		    fld = Guess.getGraph().getNodeSchema().getField(f);
+-		} else {
+-		    f = (String)eFields.elementAt(row);
+-		    fld = Guess.getGraph().getEdgeSchema().getField(f);
+-		}
+-		try {
+-		    if ((fld.getSQLType() == Types.INTEGER) ||
+-			(fld.getSQLType() == Types.TINYINT) ||
+-			(fld.getSQLType() == Types.SMALLINT) ||
+-			(fld.getSQLType() == Types.BIGINT)) {
+-			lastSel.__setattr__(f,new Integer((String)value));
+-		    } else if (fld.getSQLType() == Types.BOOLEAN) {
+-			lastSel.__setattr__(f,new Boolean((String)value));
+-		    } else if (fld.isNumeric()) {
+-			lastSel.__setattr__(f,new Double((String)value));
+-		    } else {
+-			lastSel.__setattr__(f,value);
+-		    }
+-		} catch (Exception e) {
+-		    ExceptionWindow.getExceptionWindow(e);
+-		}
+-		fireTableCellUpdated(row, col);
+-	    }
++	public void setValueAt(final Object value, final int row, final int col) {
++		GStateAction infoWindowAction = new GStateAction() {
++			public void actionContent() {
++				String f = null;
++			    Field fld = null;
++			    if (lastSel != null) {
++				if (lastSel instanceof Node) {
++				    f = (String)nFields.elementAt(row);
++				    fld = Guess.getGraph().getNodeSchema().getField(f);
++				} else {
++				    f = (String)eFields.elementAt(row);
++				    fld = Guess.getGraph().getEdgeSchema().getField(f);
++				}
++				try {
++				    if ((fld.getSQLType() == Types.INTEGER) ||
++					(fld.getSQLType() == Types.TINYINT) ||
++					(fld.getSQLType() == Types.SMALLINT) ||
++					(fld.getSQLType() == Types.BIGINT)) {
++					lastSel.__setattr__(f,new Integer((String)value));
++				    } else if (fld.getSQLType() == Types.BOOLEAN) {
++					lastSel.__setattr__(f,new Boolean((String)value));
++				    } else if (fld.isNumeric()) {
++					lastSel.__setattr__(f,new Double((String)value));
++				    } else {
++					lastSel.__setattr__(f,value);
++				    }
++				} catch (Exception e) {
++				    ExceptionWindow.getExceptionWindow(e);
++				}
++				fireTableCellUpdated(row, col);
++			    }
++			}
++		};
++		GActionManager.runAction(infoWindowAction, "Edit Properties");
+ 	}
+ 
+     }
+Index: src/com/hp/hpl/guess/ui/GMenuBar.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/GMenuBar.java,v
+retrieving revision 1.9
+diff -u -r1.9 GMenuBar.java
+--- src/com/hp/hpl/guess/ui/GMenuBar.java	30 Sep 2008 11:29:18 -0000	1.9
++++ src/com/hp/hpl/guess/ui/GMenuBar.java	9 Oct 2008 14:58:08 -0000
+@@ -6,13 +6,15 @@
+ import javax.swing.*;
+ 
+ import com.hp.hpl.guess.Guess;
+-import com.hp.hpl.guess.Version;
+ import com.hp.hpl.guess.Node;
+ import java.io.*;
+ import java.net.URI;
+ import java.net.URISyntaxException;
+ import java.util.prefs.Preferences;
+ 
++import com.hp.hpl.guess.action.GAction;
++import com.hp.hpl.guess.action.GActionManager;
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.freehep.HEPDialog;
+ import com.hp.hpl.guess.piccolo.GFrame;
+ 
+@@ -20,6 +22,8 @@
+ 
+ public class GMenuBar extends JMenuBar {
+ 
++	private static final long serialVersionUID = 2412310463167673835L;
++
+ 	String[] fileItems = new String[] { "Export Image...", "Export Graph..." };
+ 
+ 	char[] fileShortcuts = { 'I', 'R' };
+@@ -68,37 +72,102 @@
+ 		ActionListener scriptListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Run Script...")) {
+-					runScript();
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							runScript();
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script...");
++					
+ 				} else if (event.getActionCommand().equals("runScript1")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 1, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 1, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 1");
++					
+ 				} else if (event.getActionCommand().equals("runScript2")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 2, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 2, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 2");
++					
+ 				} else if (event.getActionCommand().equals("runScript3")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 3, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 3, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 3");
++					
+ 				} else if (event.getActionCommand().equals("runScript4")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 4, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 4, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 4");
++					
+ 				} else if (event.getActionCommand().equals("runScript5")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 5, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 5, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 5");
++					
+ 				} else if (event.getActionCommand().equals("runScript6")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 6, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 6, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 6");
++					
+ 				} else if (event.getActionCommand().equals("runScript7")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 7, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 7, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 7");
++					
+ 				} else if (event.getActionCommand().equals("runScript8")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 8, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 8, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 8");
++					
+ 				} else if (event.getActionCommand().equals("runScript9")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 9, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 9, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 9");
++					
+ 				} else if (event.getActionCommand().equals("runScript10")) {
+-					Guess.getInterpreter().execfile(
+-							userPrefs.get("scriptMRU" + 10, ""));
++					GStateAction scriptAction = new GStateAction() {
++						public void actionContent() {
++							Guess.getInterpreter().execfile(
++									userPrefs.get("scriptMRU" + 10, ""));
++						}
++					};
++					GActionManager.runAction(scriptAction, "Run Script 10");
+ 
+ 				}
+ 			}
+@@ -304,15 +373,28 @@
+ 				StatusBar.runProgressBar(true);
+ 				try {
+ 					if (command.equals("GEM")) {
+-						Guess.getGraph().gemLayout();
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().gemLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "GEM Layout");
++						StatusBar.setStatus("GEM Layout");
++						
+ 					} else if (command.equals("Radial...")) {
+ 						String centerN = getInputFromUser(
+ 								"Please enter a node to " + "use a the center",
+ 								"User input", "");
+ 						if (centerN != null) {
+-							Node x = Guess.getGraph().getNodeByName(centerN);
++							final Node x = Guess.getGraph().getNodeByName(centerN);
+ 							if (x != null) {
+-								Guess.getGraph().radialLayout(x);
++								
++								GStateAction layoutAction = new GStateAction() {
++									public void actionContent() {
++										Guess.getGraph().radialLayout(x);
++									}
++								};
++								GActionManager.runAction(layoutAction, "Radial Layout");
+ 								StatusBar.setStatus("radialLayout(" + centerN
+ 										+ ")");
+ 							} else {
+@@ -322,29 +404,69 @@
+ 							}
+ 						}
+ 					} else if (command.equals("Circular")) {
+-						Guess.getGraph().circleLayout();
+-						StatusBar.setStatus("circleLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().circleLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Circle Layout");
++						StatusBar.setStatus("Circle Layout");
+ 					} else if (command.equals("Physics")) {
+-						Guess.getGraph().physicsLayout();
+-						StatusBar.setStatus("physicsLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().physicsLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Physics Layout");
++						StatusBar.setStatus("Physics Layout");
+ 					} else if (command.equals("Kamada-Kawai")) {
+-						Guess.getGraph().jkkLayout1();
+-						StatusBar.setStatus("jkkLayout1()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().jkkLayout1();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Kamada-Kawai (jkkLayout1)");
++						StatusBar.setStatus("Kamada-Kawai (jkkLayout1)");
+ 					} else if (command.equals("Fruchterman-Rheingold")) {
+-						Guess.getGraph().frLayout();
+-						StatusBar.setStatus("frLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().frLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Fruchterman-Rheingold");
++						StatusBar.setStatus("Fruchterman-Rheingold");
+ 					} else if (command.equals("Spring")) {
+-						Guess.getGraph().springLayout();
+-						StatusBar.setStatus("springLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().springLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Spring Layout");
++						StatusBar.setStatus("Spring Layout");
+ 					} else if (command.equals("MDS")) {
+-						Guess.getGraph().mdsLayout();
+-						StatusBar.setStatus("mdsLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().mdsLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "MDS Layout");
++						StatusBar.setStatus("MDS Layout");
+ 					} else if (command.equals("Random")) {
+-						Guess.getGraph().randomLayout();
+-						StatusBar.setStatus("randomLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().randomLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Random Layout");
++						StatusBar.setStatus("Random Layout");
+ 					} else if (command.equals("Bin Pack")) {
+-						Guess.getGraph().binPackLayout();
+-						StatusBar.setStatus("binPackLayout()");
++						GStateAction layoutAction = new GStateAction() {
++							public void actionContent() {
++								Guess.getGraph().binPackLayout();
++							}
++						};
++						GActionManager.runAction(layoutAction, "Bin Pack Layout");
++						StatusBar.setStatus("Bin Pack Layout");
+ 					}
+ 				} catch (Exception e) {
+ 					StatusBar.setErrorStatus(e.toString());
+@@ -428,6 +550,41 @@
+ 	
+ 	private void buildEditMenu() {
+ 
++		final JMenuItem undoMenuItem = new JMenuItem("Undo (Nothing)");
++		final JMenuItem redoMenuItem = new JMenuItem("Redo (Nothing)");
++		undoMenuItem.setActionCommand("undo");
++		undoMenuItem.setEnabled(false);
++		undoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit()
++				.getMenuShortcutKeyMask(), false));
++		redoMenuItem.setActionCommand("redo");
++		redoMenuItem.setEnabled(false);
++		redoMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit()
++				.getMenuShortcutKeyMask() + KeyEvent.SHIFT_DOWN_MASK, false));
++		
++		ActionListener undoRedoListener = new ActionListener() {
++			public void actionPerformed(ActionEvent event) {
++				GAction undoAction = GActionManager.getLastUndoAction();
++				if ((undoAction!=null) && (undoAction.getDescription()!=null)) {
++					undoMenuItem.setText("Undo (" + undoAction.getDescription() + ")");
++					undoMenuItem.setEnabled(true);
++				} else {
++					undoMenuItem.setText("Undo (Nothing)");
++					undoMenuItem.setEnabled(false);
++				}
++				
++				GAction redoAction = GActionManager.getLastRedoAction();
++				if ((redoAction!=null) && (redoAction.getDescription()!=null)) {
++					redoMenuItem.setText("Redo (" + redoAction.getDescription() + ")");
++					redoMenuItem.setEnabled(true);
++				} else {
++					redoMenuItem.setText("Redo (Nothing)");
++					redoMenuItem.setEnabled(false);
++				}				
++			}
++		};
++		
++		GActionManager.addActionChangeListener(undoRedoListener);
++		
+ 		ActionListener editListener = new ActionListener() {
+ 			public void actionPerformed(ActionEvent event) {
+ 				if (event.getActionCommand().equals("Background Color...")) {
+@@ -446,9 +603,21 @@
+ 				} else if (event.getActionCommand().equals("Toggle Arrows")) {
+ 					VisFactory.getFactory().setDirected(
+ 							!VisFactory.getFactory().getDirected());
++				} else if (event.getActionCommand().equals("undo")) {
++					GActionManager.undo();
++				} else if (event.getActionCommand().equals("redo")) {
++					GActionManager.redo();
+ 				}
+ 			}
+ 		};
++		
++		undoMenuItem.addActionListener(editListener);
++		redoMenuItem.addActionListener(editListener);
++		editMenu.add(undoMenuItem);
++		editMenu.add(redoMenuItem);
++		editMenu.addSeparator();
++
++		
+ 		JMenuItem modifyFieldMenuItem = new JMenuItem("Modify Field...");
+ 		modifyFieldMenuItem.addActionListener(editListener);
+ 		modifyFieldMenuItem.setMnemonic('m');
+Index: src/com/hp/hpl/guess/storage/StorageListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/storage/StorageListener.java,v
+retrieving revision 1.3
+diff -u -r1.3 StorageListener.java
+--- src/com/hp/hpl/guess/storage/StorageListener.java	19 May 2008 17:50:15 -0000	1.3
++++ src/com/hp/hpl/guess/storage/StorageListener.java	9 Oct 2008 14:58:07 -0000
+@@ -251,6 +251,8 @@
+     public void saveState(int state);
+     
+     public void saveState(String state);
++    
++    public void deleteState(String state);
+ 
+     public Object getStatistic(Field f, String statType);
+ 
+Index: src/com/hp/hpl/guess/storage/DumbStorage.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/storage/DumbStorage.java,v
+retrieving revision 1.3
+diff -u -r1.3 DumbStorage.java
+--- src/com/hp/hpl/guess/storage/DumbStorage.java	19 May 2008 17:50:15 -0000	1.3
++++ src/com/hp/hpl/guess/storage/DumbStorage.java	9 Oct 2008 14:58:07 -0000
+@@ -11,6 +11,10 @@
+     public DumbStorage() {
+     }
+ 
++    public void deleteState(String state) {
++    	System.err.println("deleteState is not implementet yet.");
++    }
++    
+     public void findMatchingNodes(Query q) {
+ 	Iterator it = q.getGraph().getVertices().iterator();
+ 	while (it.hasNext())
+Index: src/com/hp/hpl/guess/Node.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Node.java,v
+retrieving revision 1.5
+diff -u -r1.5 Node.java
+--- src/com/hp/hpl/guess/Node.java	5 Oct 2006 04:56:55 -0000	1.5
++++ src/com/hp/hpl/guess/Node.java	9 Oct 2008 14:58:00 -0000
+@@ -4,6 +4,8 @@
+ import com.hp.hpl.guess.prefuse.*;
+ import com.hp.hpl.guess.tg.*;
+ import com.hp.hpl.guess.ui.*;
++import com.hp.hpl.guess.action.GActionManager;
++import com.hp.hpl.guess.action.GStateAction;
+ import com.hp.hpl.guess.db.DBServer;
+ import com.hp.hpl.guess.storage.StorageFactory;
+ 
+@@ -596,9 +598,13 @@
+ 	rep.setLocation(x1,y1);
+     }
+ 
+-    public void endMove(double x1, double y1) {
+-	// do the regular thing
+-	setLocation(x1,y1);
++    public void endMove(final double x1, final double y1) {
++		GStateAction nodeAction = new GStateAction() {
++			public void actionContent() {
++				setLocation(x1,y1);
++			}
++		};
++		GActionManager.runAction(nodeAction, "Move Node");
+     }
+     
+     /*public void setSize(double width,double height) {
+Index: src/com/hp/hpl/guess/piccolo/KeyBoardManager.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/KeyBoardManager.java,v
+retrieving revision 1.1
+diff -u -r1.1 KeyBoardManager.java
+--- src/com/hp/hpl/guess/piccolo/KeyBoardManager.java	5 Oct 2005 20:19:40 -0000	1.1
++++ src/com/hp/hpl/guess/piccolo/KeyBoardManager.java	9 Oct 2008 14:58:05 -0000
+@@ -73,11 +73,10 @@
+ 
+ 	
+ 	//System.out.println(event.getKeyCode());
+-
+ 	if (event.getKeyCode() == 90) {
+-	    AffineTransform af = new AffineTransform();
+-	    af.scale(scale*.8,scale*.8);
+-	    cam.animateToTransform(af,200);
++	    //AffineTransform af = new AffineTransform();
++	    //af.scale(scale*.8,scale*.8);
++	    //cam.animateToTransform(af,200);
+ 	    //cam.setScale(scale*.8);
+ 	} else if (event.getKeyCode() == 88) {
+ 	    AffineTransform af = new AffineTransform();
+Index: src/com/hp/hpl/guess/action/GAction.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/action/GAction.java
+diff -N src/com/hp/hpl/guess/action/GAction.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/action/GAction.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,48 @@
++package com.hp.hpl.guess.action;
++
++public abstract class GAction {
++	
++	/**
++	 * The description of the action
++	 */
++	private String actionDescription = null;
++	
++	/**
++	 * Set the description for the action
++	 * @param aDescription
++	 */
++	public void setDescription(String aDescription) {
++		actionDescription = aDescription;
++	}
++	
++	/**
++	 * Get the description of the action
++	 * @return
++	 */
++	public String getDescription() {
++		return actionDescription;
++	}
++		
++	/**
++	 * Executes the action
++	 */
++	public void run() {
++		actionContent();
++	}
++	
++	/**
++	 * The action to run
++	 */
++	protected abstract void actionContent();
++	
++	/**
++	 * Undo the action and return a redo action
++	 */
++	public abstract GAction getUndoAction();
++	
++	/**
++	 * How to delete the action if it is
++	 * not needed anymore
++	 */
++	public abstract void dispose();
++}
+Index: src/com/hp/hpl/guess/action/GActionManager.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/action/GActionManager.java
+diff -N src/com/hp/hpl/guess/action/GActionManager.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/action/GActionManager.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,156 @@
++package com.hp.hpl.guess.action;
++
++import java.awt.event.ActionEvent;
++import java.awt.event.ActionListener;
++import java.util.HashSet;
++import java.util.Iterator;
++import java.util.Set;
++import java.util.Stack;
++
++public class GActionManager {
++	/**
++	 * The action elements which can be undone 
++	 */
++	private static Stack<GAction> undoStack = new Stack<GAction>();
++	
++	/**
++	 * The action elements which where already undone, but can
++	 * be redone
++	 */
++	private static Stack<GAction> redoStack = new Stack<GAction>();
++	
++	/**
++	 * The maximum count of actions that can be undone
++	 */
++	public static final int MAX_UNDO_ACTIONS = 4;
++	
++	/**
++	 * The IDs to send to the Action Listeners in the
++	 * Action Event
++	 */
++	public static final int ACTION_EVENT_ADDED = 0;
++	public static final int ACTION_EVENT_REDO = 1;
++	public static final int ACTION_EVENT_UNDO = 2;
++	
++	/**
++	 * Set of listeners to notify when the undo or redo
++	 * stack changes
++	 */
++	private static Set<ActionListener> actionChangeListener = new HashSet<ActionListener>();
++	
++	/**
++	 * Add an action to the undo list
++	 * @param aAction
++	 */
++	private static void addUndoAction(GAction aAction) {
++		undoStack.push(aAction);
++		notifyActionChangeListener(aAction, ACTION_EVENT_ADDED);
++	}
++	
++	/**
++	 * Add an action to the redo list
++	 * @param aAction
++	 */
++	private static void addRedoAction(GAction aAction) {
++		redoStack.push(aAction);
++		notifyActionChangeListener(aAction, ACTION_EVENT_ADDED);
++	}
++	
++	/**
++	 * Run the action and add it to the undo list
++	 * @param aAction
++	 */
++	public static void runAction(GAction aAction) {
++		runAction(aAction, null);
++	}
++	
++	/**
++	 * Run the action and add a description and add 
++	 * it to the undo list
++	 * @param aAction
++	 * @param aDescription
++	 */
++	public static void runAction(GAction aAction, String aDescription) {
++		if (aDescription!=null) {
++		aAction.setDescription(aDescription);
++		}
++		aAction.run();
++		addUndoAction(aAction);
++		redoStack.clear();
++		disposeOldActions();
++	}	
++	
++	/**
++	 * Undo the last action
++	 */
++	public static void undo() {	
++		GAction lastItem = undoStack.pop();
++		GAction redoItem = lastItem.getUndoAction().getUndoAction();
++		addRedoAction(redoItem);
++		lastItem.getUndoAction().run();
++				
++		notifyActionChangeListener(lastItem, ACTION_EVENT_UNDO);
++	}
++	
++	/**
++	 * Redo the last undone action
++	 */
++	public static void redo() {
++		GAction lastItem = redoStack.pop();
++		GAction undoItem = lastItem.getUndoAction();
++		addUndoAction(undoItem);
++		lastItem.run();
++				
++		notifyActionChangeListener(lastItem, ACTION_EVENT_REDO);
++	}
++	
++	/**
++	 * Delete actions older than MAX_UNDO_ACTIONS
++	 */
++	private static void disposeOldActions() {
++		if (undoStack.size()>MAX_UNDO_ACTIONS) {
++			GAction oldestAction = undoStack.get(0);
++			oldestAction.dispose();
++			undoStack.removeElementAt(0);
++		}
++	}
++	
++	public static void addActionChangeListener(ActionListener changeListener) {
++		actionChangeListener.add(changeListener);
++	}
++	
++	private static void notifyActionChangeListener(Object source, int eventID) {
++		ActionEvent changeEvent = new ActionEvent(source, eventID, null);
++		
++		Iterator<ActionListener> listenerIterator = actionChangeListener.iterator();
++		while(listenerIterator.hasNext()) {
++			listenerIterator.next().actionPerformed(changeEvent);
++		}
++	}
++	
++	/**
++	 * Returns the description of the last action for undo, or
++	 * null if no such action exists
++	 * @return
++	 */
++	public static GAction getLastUndoAction() {
++		if (undoStack.size()==0) {
++			return null;
++		} else {		
++			return undoStack.peek();
++		}
++	}
++	
++	/**
++	 * Returns the description of the last action for redo, or
++	 * null if no such action exists
++	 * @return
++	 */
++	public static GAction getLastRedoAction() {
++		if (redoStack.size()==0) {
++			return null;
++		} else {		
++			return redoStack.peek();
++		}
++	}	
++}
+Index: src/com/hp/hpl/guess/action/GStateAction.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/action/GStateAction.java
+diff -N src/com/hp/hpl/guess/action/GStateAction.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/action/GStateAction.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,80 @@
++package com.hp.hpl.guess.action;
++
++import java.util.UUID;
++
++import com.hp.hpl.guess.storage.StorageFactory;
++
++/**
++ * Implements a GAction with the Guess states concept.
++ * Before an action is called the stated is saved and after the 
++ * action the state is saved again. Undo and Redo load these states. 
++ * @author johannes
++ *
++ */
++public abstract class GStateAction extends GAction {
++
++	/**
++	 * Name of the old state
++	 */
++	private String oldStateName = null;
++	
++	/**
++	 * Delimiter to separate from ordinary states
++	 */
++	public static final String delimiter = "_";
++	
++	/**
++	 * Creates a new state in the storage listener
++	 * @return the statename
++	 */
++	private String createNewState() {
++		String statename = delimiter + UUID.randomUUID().toString().replace('-', 'X');
++		StorageFactory.getSL().saveState(statename);
++		return statename;
++	}
++	
++	/**
++	 * Executes the action
++	 */
++	public void run() {
++		setOldState();
++		super.run();
++	}
++	
++	/**
++	 * Save a state before the action was
++	 * called
++	 */
++	private void setOldState() {
++		oldStateName = createNewState();
++	}
++	
++	/**
++	 * Load the old state
++	 * @return Actions item for redo
++	 */
++	public GAction getUndoAction() {
++		if (oldStateName==null) {
++			System.err.println("No state for undo action.");
++		}
++		GStateAction undoAction = new GStateAction() {
++			protected void actionContent() {
++				StorageFactory.getSL().loadState(oldStateName);
++			}
++		};
++		undoAction.setDescription(getDescription());
++		undoAction.setOldState();
++		
++		return undoAction;
++		
++	}
++
++	/**
++	 * Delete old state
++	 */
++	public void dispose() {
++		System.out.println("Dispose: " + oldStateName);
++		StorageFactory.getSL().deleteState(oldStateName);
++	}	
++
++}

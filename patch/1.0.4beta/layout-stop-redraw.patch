@@ -1,0 +1,126 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/Graph.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Graph.java,v
+retrieving revision 1.20
+diff -u -r1.20 Graph.java
+--- src/com/hp/hpl/guess/Graph.java	30 Sep 2008 11:29:19 -0000	1.20
++++ src/com/hp/hpl/guess/Graph.java	2 Oct 2008 10:42:58 -0000
+@@ -1166,7 +1166,9 @@
+ 								// Update status Dialog and Graphframe
+ 								dialogLayoutStatus.setDescription("Ran " + incCounter
+ 										+ " loops.");
+-								update();
++								if (dialogLayoutStatus.getRedrawGraph()){
++									update();
++								}
+ 								curTime = System.currentTimeMillis();
+ 							}
+ 
+@@ -1225,7 +1227,11 @@
+ 					// System.out.println("trying to center");
+ 					if (display instanceof GFrame) {
+ 						// System.out.println("center fast");\
+-						((GFrame) display).center(minX, minY, maxX, maxY, 500);
++						if (dialogLayoutStatus.getRedrawGraph()){
++							((GFrame) display).center(minX, minY, maxX, maxY, 500);
++						} else {
++							((GFrame) display).center(minX, minY, maxX, maxY, 0);
++						}
+ 						// System.out.println("post center fast");
+ 					} else {
+ 						// System.out.println("center");
+Index: src/com/hp/hpl/guess/StateGraph.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/StateGraph.java,v
+retrieving revision 1.4
+diff -u -r1.4 StateGraph.java
+--- src/com/hp/hpl/guess/StateGraph.java	30 Sep 2008 11:29:19 -0000	1.4
++++ src/com/hp/hpl/guess/StateGraph.java	2 Oct 2008 10:43:01 -0000
+@@ -866,7 +866,9 @@
+ 								// Update status Dialog and Graphframe
+ 								dialogLayoutStatus.setDescription("Ran " + incCounter
+ 										+ " loops.");
+-								update();
++								if (dialogLayoutStatus.getRedrawGraph()){
++									update();
++								}
+ 								curTime = System.currentTimeMillis();
+ 							}
+ 
+@@ -925,7 +927,11 @@
+ 					// System.out.println("trying to center");
+ 					if (display instanceof GFrame) {
+ 						// System.out.println("center fast");\
+-						((GFrame) display).center(minX, minY, maxX, maxY, 500);
++						if (dialogLayoutStatus.getRedrawGraph()){
++							((GFrame) display).center(minX, minY, maxX, maxY, 500);
++						} else {
++							((GFrame) display).center(minX, minY, maxX, maxY, 0);
++						}
+ 						// System.out.println("post center fast");
+ 					} else {
+ 						// System.out.println("center");
+Index: src/com/hp/hpl/guess/ui/StatusDialog.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/StatusDialog.java,v
+retrieving revision 1.1
+diff -u -r1.1 StatusDialog.java
+--- src/com/hp/hpl/guess/ui/StatusDialog.java	30 Sep 2008 11:29:18 -0000	1.1
++++ src/com/hp/hpl/guess/ui/StatusDialog.java	2 Oct 2008 10:43:01 -0000
+@@ -6,9 +6,11 @@
+ import java.awt.event.WindowEvent;
+ 
+ import javax.swing.*;
++import javax.swing.JCheckBox;
+ 
+ public class StatusDialog {
+ 
++	private JCheckBox chkRedrawGraph = new JCheckBox();
+ 	private JProgressBar statusProgressbar = new JProgressBar();
+ 	private JDialog mainDialog = new JDialog();
+ 	private JLabel descriptionLabel = new JLabel();
+@@ -29,23 +31,28 @@
+ 		mainDialog.getContentPane().setLayout(null);
+ 		mainDialog.pack();
+ 		mainDialog.setResizable(false);
+-		mainDialog.setBounds(200, 200, 434, 105);
++		mainDialog.setBounds(200, 200, 434, 134);
+ 		mainDialog.getContentPane().add(descriptionLabel);
+ 		mainDialog.getContentPane().add(stopButton);
+ 
+-		statusProgressbar.setBounds(12, 41, 307, 25);
++		statusProgressbar.setBounds(12, 41, 403, 25);
+ 		statusProgressbar.setIndeterminate(true);
+ 
+ 		descriptionLabel.setBounds(10, 19, 309, 16);
+ 
+ 		stopButton.setText("Stop");
+-		stopButton.setBounds(325, 41, 90, 25);
++		stopButton.setBounds(325, 74, 90, 25);
+ 		stopButton.addActionListener(new ActionListener() {
+ 			public void actionPerformed(ActionEvent e) {
+ 				operationThread.stop();
+ 				hide();
+ 			}
+ 		});
++		
++		chkRedrawGraph.setBounds(12, 74, 307, 24);
++		chkRedrawGraph.setSelected(true);
++		chkRedrawGraph.setText("Update graph while layout is running.");
++		mainDialog.getContentPane().add(chkRedrawGraph);
+ 
+ 	}
+ 	
+@@ -76,6 +83,10 @@
+ 	public void setIndeterminate(boolean isIndeterminate) {
+ 		statusProgressbar.setIndeterminate(isIndeterminate);
+ 	}
++	
++	public boolean getRedrawGraph() {
++		return chkRedrawGraph.isSelected();
++	}
+ 
+ 	public void show() {
+ 		mainDialog.setVisible(true);

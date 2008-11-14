@@ -1,0 +1,266 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/db/DBServer.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/db/DBServer.java,v
+retrieving revision 1.15
+diff -u -r1.15 DBServer.java
+--- src/com/hp/hpl/guess/db/DBServer.java	29 May 2008 21:22:00 -0000	1.15
++++ src/com/hp/hpl/guess/db/DBServer.java	2 Oct 2008 21:07:51 -0000
+@@ -2132,7 +2132,7 @@
+ 	}
+ 	Iterator it = listeners.iterator();
+ 	while(it.hasNext()) {
+-	    ((DBEventListener)it.next()).stateSaved(statenum);
++	    ((StorageEventListener)it.next()).stateSaved(statenum);
+ 	}
+ 	StatusBar.setState(statenum);
+     }
+@@ -2404,7 +2404,7 @@
+ 
+ 	Iterator it = listeners.iterator();
+ 	while(it.hasNext()) {
+-	    ((DBEventListener)it.next()).stateLoaded(statenum);
++	    ((StorageEventListener)it.next()).stateLoaded(statenum);
+ 	}
+     }
+ 
+@@ -2872,9 +2872,8 @@
+ 	}
+     }
+ 
+-    private HashSet listeners = new HashSet();
+-
+-    public void addDBEventListener(DBEventListener dbl) {
+-	listeners.add(dbl);
++    private HashSet<StorageEventListener> listeners = new HashSet<StorageEventListener>();
++    public void addStorageEventListener(StorageEventListener dbl) {
++    	listeners.add(dbl);
+     }
+ }
+Index: src/com/hp/hpl/guess/storage/StorageListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/storage/StorageListener.java,v
+retrieving revision 1.3
+diff -u -r1.3 StorageListener.java
+--- src/com/hp/hpl/guess/storage/StorageListener.java	19 May 2008 17:50:15 -0000	1.3
++++ src/com/hp/hpl/guess/storage/StorageListener.java	2 Oct 2008 21:07:52 -0000
+@@ -1,6 +1,8 @@
+ package com.hp.hpl.guess.storage;
+ 
+ import com.hp.hpl.guess.*;
++import com.hp.hpl.guess.storage.StorageEventListener;
++
+ import java.util.Set;
+ import java.util.Vector;
+ import javax.swing.table.AbstractTableModel;
+@@ -286,6 +288,8 @@
+     public void addEdge(Edge e);
+ 
+     public void exportGDF(String filename);
++    
++    public void addStorageEventListener(StorageEventListener eventListener);
+ }
+ 
+ 
+Index: src/com/hp/hpl/guess/storage/DumbStorage.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/storage/DumbStorage.java,v
+retrieving revision 1.3
+diff -u -r1.3 DumbStorage.java
+--- src/com/hp/hpl/guess/storage/DumbStorage.java	19 May 2008 17:50:15 -0000	1.3
++++ src/com/hp/hpl/guess/storage/DumbStorage.java	2 Oct 2008 21:07:51 -0000
+@@ -10,6 +10,12 @@
+ 
+     public DumbStorage() {
+     }
++    
++    //private HashSet<StorageEventListener> listeners = new HashSet<StorageEventListener>();
++    public void addStorageEventListener(StorageEventListener eventListener) {
++    //	listeners.add(eventListener);
++    	throw(new Error("Unsupported function"));
++    }
+ 
+     public void findMatchingNodes(Query q) {
+ 	Iterator it = q.getGraph().getVertices().iterator();
+Index: src/com/hp/hpl/guess/piccolo/PFactory.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/PFactory.java,v
+retrieving revision 1.6
+diff -u -r1.6 PFactory.java
+--- src/com/hp/hpl/guess/piccolo/PFactory.java	6 Feb 2008 18:31:48 -0000	1.6
++++ src/com/hp/hpl/guess/piccolo/PFactory.java	2 Oct 2008 21:07:51 -0000
+@@ -2,16 +2,23 @@
+ 
+ import java.awt.*;
+ import java.awt.geom.*;
++
++import com.hp.hpl.guess.storage.StorageEventListener;
++import com.hp.hpl.guess.storage.StorageFactory;
+ import com.hp.hpl.guess.ui.*;
+ import com.hp.hpl.guess.*;
++
+ import edu.umd.cs.piccolo.PNode;
+-import org.python.core.PySequence;
++import edu.umd.cs.piccolo.nodes.PText;
++
+ import java.util.Collection;
+ 
+ public class PFactory extends VisFactory implements UIListener {
+ 
+     private GFrame curFrame = null;
+-
++    PText titleText = new PText();
++    Thread titleThread = null;
++    
+     private static long lastModTime = System.currentTimeMillis();
+     
+     public static void updateTime() {
+@@ -22,10 +29,35 @@
+ 	return(lastModTime);
+     }
+ 
++    private void initTitleText() {
++    	titleText.setConstrainHeightToTextHeight(true);
++    	titleText.setConstrainWidthToTextWidth(true);
++    	titleText.scale(2);
++    	titleText.setPaint(new Color(100,100,100,210));
++    	titleText.setTextPaint(Color.WHITE);
++    	titleText.setOffset(25, 25);
++    }
++    
+     public PFactory() {
+ 	init();
+ 	GraphEvents.getGraphEvents().addGraphMouseListener(this);
+-    }
++	
++	// Show the name of the state when a statechange occurs
++	StorageFactory.getSL().addStorageEventListener(new StorageEventListener() {
++			int time = 5000;
++			public void stateLoaded(String state) {
++				showTitle(state, time);
++			}
++
++		    public void stateSaved(String state) {
++		    	showTitle(state, time);
++		    }
++	});
++	initTitleText();
++	curFrame.getCamera().addChild(titleText);
++	
++	}
++
+ 
+     public GFrame init() {
+ 	//	System.out.println("init called...");
+@@ -322,6 +354,62 @@
+     public Collection getConvexHulls() {
+ 	return(hulls);
+     }
++    
++    /**
++     * Shows a title in the frame
++     * @param title the title to show
++     * @param time time in ms till title is removed
++     */
++    public void showTitle(final String title, final long timeout) {
++    	
++    	if (titleThread!=null) {
++    		titleThread.stop();
++    	}
++    	
++    	titleThread = new Thread(new Runnable() {
++
++    		public void run() {
++    			// Show title
++    			titleText.setText(title);
++    	    	titleText.setTransparency(1.0f);
++    	    	titleText.validateFullPaint();
++    	    	
++    	    	// Wait
++    	    	synchronized (this) {
++	    	    	try {
++	    	      		   wait(timeout);
++	    	      	} catch ( InterruptedException e ) {
++	    	      		e.printStackTrace();
++	    	      	}
++    	    	}
++    	    	
++    			// Fade out and remove title
++    	    	long animationDuration = 5000;
++    	    	titleText.animateToTransparency(0, animationDuration);
++			}
++    			
++    		}
++    	);
++
++    	
++    	if (timeout==-1) {
++			// Just show title
++			titleText.setText(title);
++	    	titleText.setTransparency(1.0f);
++	    	titleText.validateFullPaint();
++    	} else {
++    		// Show title and fade out after timeout
++    		titleThread.start();	
++    	}
++    }
++    
++    /**
++     * Sets the Color of the title text
++     * @param aColor
++     */
++    public void setTitleColor(Color aColor) {
++    	titleText.setPaint(aColor);
++    }
+ 
+     public void shiftClickNode(Node n) {
+     }
+Index: src/com/hp/hpl/guess/ui/VisFactory.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/VisFactory.java,v
+retrieving revision 1.2
+diff -u -r1.2 VisFactory.java
+--- src/com/hp/hpl/guess/ui/VisFactory.java	17 Nov 2005 01:43:44 -0000	1.2
++++ src/com/hp/hpl/guess/ui/VisFactory.java	2 Oct 2008 21:07:52 -0000
+@@ -153,6 +153,26 @@
+     public Collection getConvexHulls() {
+ 	return(new java.util.HashSet());
+     }
++    
++    /**
++     * Shows a title in the frame
++     * @pyexport
++     * @param title the title to show
++     * @param time time in ms till title is removed
++     */
++    public void showTitle(String title, long time) {
++    	
++    }
++    
++    
++    /**
++     * Sets the Color of the title text
++     * @pyexport
++     * @param aColor
++     */
++    public void setTitleColor(Color aColor) {
++    	
++    }
+ }
+ 
+ 	
+Index: src/com/hp/hpl/guess/storage/StorageEventListener.java
+===================================================================
+RCS file: src/com/hp/hpl/guess/storage/StorageEventListener.java
+diff -N src/com/hp/hpl/guess/storage/StorageEventListener.java
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/com/hp/hpl/guess/storage/StorageEventListener.java	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,7 @@
++package com.hp.hpl.guess.storage;
++
++public interface StorageEventListener {
++    public void stateLoaded(String state);
++
++    public void stateSaved(String state);
++}

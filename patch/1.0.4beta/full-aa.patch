@@ -1,0 +1,204 @@
+### Eclipse Workspace Patch 1.0
+#P guess
+Index: src/com/hp/hpl/guess/piccolo/GFrame.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/piccolo/GFrame.java,v
+retrieving revision 1.6
+diff -u -r1.6 GFrame.java
+--- src/com/hp/hpl/guess/piccolo/GFrame.java	6 Oct 2006 01:06:06 -0000	1.6
++++ src/com/hp/hpl/guess/piccolo/GFrame.java	1 Oct 2008 20:36:07 -0000
+@@ -69,7 +69,31 @@
+ 	    });
+     }
+ 
+-
++    /**
++     * Set's the render quality, requests int from 0..3
++     * 0 is bad, 3 is best quality
++     * @param requestedQuality 0 bad quality, 3 best quality
++     */
++    public void setQuality(int requestedQuality) {
++    	if ((requestedQuality==0) || (requestedQuality>3)) {
++    		setInteractingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
++    		setAnimatingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
++    		setDefaultRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
++    	} else if (requestedQuality==1){
++    		setInteractingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
++    		setAnimatingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
++    		setDefaultRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
++    	} else if (requestedQuality==2) {
++    		setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
++    		setAnimatingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
++    		setDefaultRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
++    	} else if (requestedQuality==3) {
++    		setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
++    		setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
++    		setDefaultRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
++    	}
++    }
++    
+     public void setFrozen(boolean state) {
+ 	//	System.out.println("frozen: " + state);
+ 	this.frozen = state;
+Index: src/com/hp/hpl/guess/jung/JungVisFrame.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/jung/JungVisFrame.java,v
+retrieving revision 1.2
+diff -u -r1.2 JungVisFrame.java
+--- src/com/hp/hpl/guess/jung/JungVisFrame.java	17 Nov 2005 02:08:06 -0000	1.2
++++ src/com/hp/hpl/guess/jung/JungVisFrame.java	1 Oct 2008 20:36:02 -0000
+@@ -73,6 +73,9 @@
+     public void removeBackgroundImage() {
+     }
+ 
++    public void setQuality(int requestedQuality) {	
++    }
++    
+     public BufferedImage getFullImage() {
+ 	return(null);
+     }
+Index: src/com/hp/hpl/guess/ui/FrameListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/FrameListener.java,v
+retrieving revision 1.1
+diff -u -r1.1 FrameListener.java
+--- src/com/hp/hpl/guess/ui/FrameListener.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/FrameListener.java	1 Oct 2008 20:36:08 -0000
+@@ -105,5 +105,10 @@
+      */
+     public void removeBackgroundImage();
+ 
++    /**
++     * @pyexport
++     */
++    public void setQuality(int requestedQuality);
++    
+     public BufferedImage getFullImage();
+ }
+Index: src/com/hp/hpl/guess/ui/DumbFrameListener.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/ui/DumbFrameListener.java,v
+retrieving revision 1.1
+diff -u -r1.1 DumbFrameListener.java
+--- src/com/hp/hpl/guess/ui/DumbFrameListener.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/ui/DumbFrameListener.java	1 Oct 2008 20:36:08 -0000
+@@ -73,6 +73,9 @@
+     public void removeBackgroundImage(){
+     }
+     
++    public void setQuality(int requestedQuality) {
++    }
++    
+     public BufferedImage getFullImage(){
+ 	return(null);
+     }
+Index: src/com/hp/hpl/guess/Guess.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/Guess.java,v
+retrieving revision 1.24
+diff -u -r1.24 Guess.java
+--- src/com/hp/hpl/guess/Guess.java	30 Sep 2008 11:29:19 -0000	1.24
++++ src/com/hp/hpl/guess/Guess.java	1 Oct 2008 20:36:01 -0000
+@@ -112,7 +112,12 @@
+     /**
+      * Internal or external consoel
+      */
+-    public static boolean guiMode = true;    
++    public static boolean guiMode = true;   
++    
++    /**
++     * Rendering quality
++     */
++    private static int renderQuality = 2;
+     
+     /**
+      * allow multiple edges between nodes?
+@@ -305,7 +310,7 @@
+ 	} catch (Exception lnfe) { 
+ 	}
+ 	
+-	LongOpt[] longopts = new LongOpt[14];
++	LongOpt[] longopts = new LongOpt[15];
+ 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
+ 	longopts[1] = new LongOpt("touchgraph", 
+ 				  LongOpt.NO_ARGUMENT, null, 't'); 
+@@ -328,7 +333,9 @@
+ 				  LongOpt.REQUIRED_ARGUMENT, null, 'b'); 
+ 	longopts[13] = new LongOpt("fitfont", 
+ 				   LongOpt.NO_ARGUMENT, null, 'g'); 
+-
++	longopts[14] = new LongOpt("quality", 
++			  LongOpt.REQUIRED_ARGUMENT, null, 'q'); 
++	
+ 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
+ 	go.setOpterr(false);
+ 	int c;
+@@ -405,6 +412,17 @@
+ 		    case 'b':
+ 			defaultFileFormat = go.getOptarg();
+ 			break;
++		    case 'q':
++				try {
++					renderQuality = Integer.parseInt(go.getOptarg());
++				} catch (Exception ne) {
++					System.out.println("Quality range is from 0 to 3 with 0 being bad and 3 the best quality. Unkown value given, setting quality to " + renderQuality + ".");
++				} 
++				if (renderQuality>3) {
++					renderQuality = 0;
++					System.out.println("Quality range is from 0 to 3 with 0 being bad and 3 the best quality. Given value to big, setting quality to " + renderQuality + ".");				
++				}
++				break;
+ 		    case ':':
+ 			System.out.print("unknown option: " + (char)c + "\n");
+ 			break;
+@@ -916,7 +934,8 @@
+ 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
+ 	myF = myFrame;
+ 	myF.setDisplayBackground(Color.black);
+-
++	myF.setQuality(renderQuality);
++	
+ 	try {
+ 	    g = new Graph(myFrame, interp, multiEdge);
+ 	    StorageFactory.getSL().refresh(g);
+Index: src/com/hp/hpl/guess/tg/TGDisplay.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/tg/TGDisplay.java,v
+retrieving revision 1.1
+diff -u -r1.1 TGDisplay.java
+--- src/com/hp/hpl/guess/tg/TGDisplay.java	5 Oct 2005 20:19:51 -0000	1.1
++++ src/com/hp/hpl/guess/tg/TGDisplay.java	1 Oct 2008 20:36:08 -0000
+@@ -150,7 +150,10 @@
+ 
+     public void removeBackgroundImage() {
+     }
+-
++    
++    public void setQuality(int requestedQuality) {
++    }
++    
+     public BufferedImage getFullImage() {
+ 	return(null);
+     }
+Index: src/com/hp/hpl/guess/prefuse/PrefuseDisplay.java
+===================================================================
+RCS file: /cvsroot/guess/guess/src/com/hp/hpl/guess/prefuse/PrefuseDisplay.java,v
+retrieving revision 1.11
+diff -u -r1.11 PrefuseDisplay.java
+--- src/com/hp/hpl/guess/prefuse/PrefuseDisplay.java	26 Oct 2006 07:56:53 -0000	1.11
++++ src/com/hp/hpl/guess/prefuse/PrefuseDisplay.java	1 Oct 2008 20:36:08 -0000
+@@ -108,6 +108,14 @@
+     protected int hops = 30;
+ 
+ 
++    public void setQuality(int requestedQuality) {
++    	if (requestedQuality>1) {
++    		this.setHighQuality(true);
++    	} else {
++    		this.setHighQuality(false);
++    	}
++    }
++    
+     public PrefuseDisplay(Graph m_graph) {
+         // create a new, empty visualization for our data
+         m_vis = new Visualization();
