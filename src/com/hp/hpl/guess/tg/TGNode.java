@@ -112,4 +112,12 @@ public class TGNode extends com.touchgraph.graphlayout.Node
     
     public void setLocation(double x, double y, double width, double height) {
     }
+    
+	public void addFieldToLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public void removeFieldFromLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
 }

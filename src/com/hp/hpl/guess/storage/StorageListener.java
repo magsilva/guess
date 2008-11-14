@@ -1,6 +1,8 @@
 package com.hp.hpl.guess.storage;
 
 import com.hp.hpl.guess.*;
+import com.hp.hpl.guess.storage.StorageEventListener;
+
 import java.util.Set;
 import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
@@ -251,6 +253,8 @@ public interface StorageListener {
     public void saveState(int state);
     
     public void saveState(String state);
+    
+    public void deleteState(String state);
 
     public Object getStatistic(Field f, String statType);
 
@@ -286,6 +290,8 @@ public interface StorageListener {
     public void addEdge(Edge e);
 
     public void exportGDF(String filename);
+    
+    public void addStorageEventListener(StorageEventListener eventListener);
 }
 
 

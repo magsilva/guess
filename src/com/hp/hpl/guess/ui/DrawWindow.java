@@ -2,24 +2,22 @@ package com.hp.hpl.guess.ui;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.event.TableModelEvent;
 
-import com.hp.hpl.guess.freehep.*;
+
 import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
 import com.hp.hpl.guess.*;
 
-import java.sql.Types;
-import java.net.URL;
 
 /**
  * @pyobj DrawWindow
  */
 public class DrawWindow extends JPanel implements Dockable, ActionListener {
 
-    private static DrawWindow singleton = null;
+	private static final long serialVersionUID = 1L;
+
+	private static DrawWindow singleton = null;
 
     public static final int RECTANGLE = 1;
     public static final int ELLIPSE = 2;
@@ -32,7 +30,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 
     private static Color myColor = Color.gray;
     
-    private static Stroke myStroke = new BasicStroke(1.0f);
+    private static Stroke myStroke = null;
 
     private static int myArrow = 0;
 
@@ -105,11 +103,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
     }
 
     private GuessJFrame myParent = null;
-
-    public Dimension getMinimumSize() {
-	return(new Dimension(80,200));
-    }
-    
+  
     public Dimension getPreferredSize() {
 	return(new Dimension(80,200));
     }
@@ -137,12 +131,24 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 	}
     }
 
+        
     private DrawWindow(String title) {
-	//setLayout(new GridLayout(3,1));
+
+    	if (Guess.getZooming()==Guess.ZOOMING_SPACE) {
+    		myStroke = new PFixedWidthStroke(1.0f);
+    	} else {
+    		myStroke = new BasicStroke(1.0f);
+    	}
+
 	setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
 
+	setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+	setOpaque(false);
+	
 	JPanel stuff = new JPanel();
+	stuff.setOpaque(false);
+	
 	stuff.setLayout(new GridLayout(2,1));
 	MouseAdapter ma = new MouseAdapter() {
 		public void mouseClicked(MouseEvent e) {
@@ -182,6 +188,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 
 	JPanel buttonPanel = new JPanel();
 	buttonPanel.setLayout(new GridLayout(3,2));
+	buttonPanel.setOpaque(false);
 	
 	SimpleButton sb = 
 	    new SimpleButton("drawsel.gif",SELECT,"Select objects");
@@ -219,7 +226,8 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 
 	JPanel selectionPanel = new JPanel();
 	selectionPanel.setLayout(new GridLayout(4,1));
-
+	selectionPanel.setOpaque(false);
+	
 	styleJCB = new JComboBox();
 	styleJCB.addItem(new ImageIcon(getClass().getResource("/images/linesolid.gif")));
 	styleJCB.addItem(new ImageIcon(getClass().getResource("/images/linedash.gif")));
@@ -274,7 +282,7 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 	c.fill = GridBagConstraints.BOTH;
 	//c.weighty = 1;
 	c.weighty = 1;
-	add(new JPanel(),c);
+	//add(new JPanel(),c);
     }
 
     public Rectangle getDefaultFrameBounds() {

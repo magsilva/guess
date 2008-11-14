@@ -10,12 +10,14 @@ import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
 
 import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.animation.AnimationFactory;
+import com.hp.hpl.guess.animation.GAnimation;
 import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
 
 public class GuessShapeNode extends PPath implements GuessPNode {
     
@@ -23,55 +25,82 @@ public class GuessShapeNode extends PPath implements GuessPNode {
     
     protected GFrame frame = null;
 
+    private Double strokeWidth = 1.0;
+    
     protected int style = VisFactory.RECTANGLE;
 
     public Node getOwner() {
 	return(owner);
     }
+    
+    public GFrame getFrame() {
+    	return(frame);
+    }
 
     public void set(String field, Object o) {
-	/*try {*/
-	if (field.equals("style")) {
-	    setStyle(((Integer)o).intValue());
-	} else if (field.equals("x")) {
-	    setLocation(((Double)o).doubleValue(),getY());
-	} else if (field.equals("y")) {
-	    setLocation(getX(),((Double)o).doubleValue());
-	} else if (field.equals("width")) {
-	    setLocation(getX(), getY(),((Double)o).doubleValue(), 
-			getHeight());
-	} else if (field.equals("height")) {
-	    setLocation(getX(), getY(),getWidth(),
-			((Double)o).doubleValue()); 
-	} else if (field.equals("label")) {
-	    //if (o == null) {
-	    //Thread.dumpStack();
-	    //}
-	    //System.out.println("class: " + o.getClass());
-	    setLabel((String)o);
-	} else if (field.equals("labelvisible")) {
-	    setLabelVisible(((Boolean)o).booleanValue());
-	} else if (field.equals("color")) {
-	    if (o instanceof Color) {
-		setPaint((Color)o);
-	    } else {
-		setPaint((Colors.getColor((String)o,(Color)getPaint())));
-	    }
-	} else if (field.equals("labelcolor")) {
-	    if (o instanceof Color) {
-		setLabelPaint((Color)o);
-	    } else {
-		setLabelPaint((Colors.getColor((String)o,(Color)getPaint())));
-	    }
-	} else if (field.equals("visible")) {
-	    setVisible(((Boolean)o).booleanValue());
-	} else if (field.equals("strokecolor")) {
-	    if (o instanceof Color) {
-		setStrokePaint((Color)o);
-	    } else {
-		setStrokePaint((Colors.getColor((String)o,(Color)getPaint())));
-	    }
-	}
+
+    	/*try {*/
+    	if (field.equals("style")) {
+    	    setStyle(((Integer)o).intValue());
+    	} else if (field.equals("x")) {	
+    	    setLocation(((Double)o).doubleValue(),getY());
+    	} else if (field.equals("y")) {
+    	    setLocation(getX(),((Double)o).doubleValue());
+     	} else if (field.equals("width")) {
+    		// If we are in ZOOMING_SPACE, then
+    		// we need to recalculate the size
+    		if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+    			setLocation(getX(), getY(),((Double)o).doubleValue() * 
+    					(1/frame.getGCamera().getViewScale()), getHeight());
+    		} else if (Guess.getZooming() == Guess.ZOOMING_ZOOM) {
+    			setLocation(getX(), getY(),((Double)o).doubleValue(), 
+    					getHeight());
+    		}
+    	} else if (field.equals("height")) {
+    		// If we are in ZOOMING_SPACE, then
+    		// we need to recalculate the size    		
+    		if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+    		    setLocation(getX(), getY(),getWidth(),
+    					((Double)o).doubleValue()* (1/frame.getGCamera().getViewScale())); 
+    		} else if (Guess.getZooming() == Guess.ZOOMING_ZOOM) {
+    		    setLocation(getX(), getY(),getWidth(),
+    					((Double)o).doubleValue()); 
+    		}
+    	} else if (field.equals("label")) {
+    	    //if (o == null) {
+    	    //Thread.dumpStack();
+    	    //}
+    	    //System.out.println("class: " + o.getClass());
+    	    setLabel((String)o);
+    	} else if (field.equals("labelvisible")) {
+    	    setLabelVisible(((Boolean)o).booleanValue());
+    	} else if (field.equals("color")) {
+    	    if (o instanceof Color) {
+    		setPaint((Color)o);
+    	    } else {
+    		setPaint((Colors.getColor((String)o,(Color)getPaint())));
+    	    }
+    	} else if (field.equals("labelcolor")) {
+    	    if (o instanceof Color) {
+    		setLabelPaint((Color)o);
+    	    } else {
+    		setLabelPaint((Colors.getColor((String)o,(Color)getPaint())));
+    	    }
+    	} else if (field.equals("visible")) {
+    	    setVisible(((Boolean)o).booleanValue());
+    	} else if (field.equals("strokewidth")) {
+    		setStrokeWidth(((Double)o).doubleValue());
+    	} else if (field.equals("strokecolor")) {
+    	    if (o instanceof Color) {
+    		setStrokePaint((Color)o);
+    	    } else {
+    		setStrokePaint((Colors.getColor((String)o,(Color)getPaint())));
+    	    }
+    	} else if (field.equals("opacity")) {
+    		if (o instanceof Float) {
+    			setTransparency((Float)o);
+    		}
+    	}
 
 	if (Guess.getMTF()) 
 	    moveToFront();
@@ -112,6 +141,8 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 		} else {
 		    return(Colors.toString(curcolor));
 		}
+	    } else if (field.equals("strokewidth")) {
+	    return(getStrokeWidth().toString());
 	    } else if (field.equals("strokecolor")) {
 		return(Colors.toString((Color)getStrokePaint()));
 	    } else if (field.equals("visible")) {
@@ -139,13 +170,38 @@ public class GuessShapeNode extends PPath implements GuessPNode {
     }
 
     public GuessShapeNode(Shape aShape, Node owner, GFrame frame, int style) {
-	super(aShape);
-	this.owner = owner;
-	this.frame = frame;
-	this.style = style;
-	this.label = owner.getName();
-	//System.out.println("Thread 1: " + Thread.currentThread().getName() + " " + owner + " " + label);
-	//setStroke(linestroke);
+		super(aShape);
+		this.owner = owner;
+		this.frame = frame;
+		this.style = style;
+		this.label = owner.getName();
+		
+	    if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+	    	setStroke(new PFixedWidthStroke(strokeWidth.floatValue()));
+	    } else {
+	    	setStroke(new BasicStroke(strokeWidth.floatValue()));
+	    }
+    }
+        
+    /**
+     * Sets the width of the border
+     * @param width stroke width
+     */
+    public void setStrokeWidth(Double width) {
+    	strokeWidth = width;
+        if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+        	setStroke(new PFixedWidthStroke((float)width.floatValue()));
+        } else {
+        	setStroke(new BasicStroke((float)width.floatValue()));
+        }
+    }
+    
+    /**
+     * Returns the width of the stroke
+     * @return stroke width
+     */
+    public Double getStrokeWidth() {
+    	return strokeWidth;
     }
 
 
@@ -205,7 +261,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 
     public void setLocation(double x1, double y1, 
 			    double width, double height) {
-
+   	
 	setBounds(x1,
 		  y1,
 		  width,
@@ -219,20 +275,29 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	double w = super.getWidth();
 	double h = super.getHeight();
 
-	//System.out.println("f: " + x1 + " " + y1);
-
-	setBounds(x1,
-		  y1,
-		  w,
-		  h);
+	setBounds(x1, y1, w, h);
 
 	owner.readjustEdges();
 	notifyHullListeners();
     }
+    
+    public boolean setBounds(double x1, double y1, double w, double h) {
+		double neww = w;
+		double newh = h;
+    	if (Guess.getZooming()==Guess.ZOOMING_SPACE) {
+	    	if (frame!=null) {
+	    	neww = w * frame.getGCamera().getViewScale();
+	    	newh = h * frame.getGCamera().getViewScale();
+	    	x1 = x1 - (neww - w)/2;
+	    	y1 = y1 - (newh - h)/2;
+	    	}
+    	}
+    	
+		return super.setBounds(x1, y1, neww, newh);
+    }
 
 
     public void setSize(double width, double height) {
-	
 	double x = super.getX();
 	double y = super.getY();
 
@@ -276,7 +341,15 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	}
     }
     
-    protected LabelText labelText = null;
+    protected LabelText labelText = new LabelText(this);
+    
+    public void addFieldToLabel(String aField) {
+    	labelText.addField(aField);
+    }
+    
+    public void removeFieldFromLabel(String aField) {
+    	labelText.removeField(aField);
+    } 
 
     public void highlight(boolean state) {
 
@@ -286,19 +359,17 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	if (!getVisible()) 
 	    return;
 
-	if (labelText == null) {
-	    labelText = new LabelText(this);
-	}
-
 	if (state) {
 	    //System.out.println("**** " + label);
 	    super.setPaint(Color.yellow);
 	    labelText.setText(label);
+	    labelText.addField("name");
 	    labelText.setPaint(new Color(100,100,100,210));
 	    labelText.setTextPaint(Color.yellow);
 	    float scaling = (float)(1/frame.getGCamera().getViewScale());
 	    labelText.setX(getX() + getWidth()+1*scaling);
 	    labelText.setY(getY() + getHeight());
+	    labelText.recalculateLocation();
 	    frame.labels.addChild(labelText);
 	    if ((label != null) && (label.equals(owner.getName()))) {
 		StatusBar.setStatus(label);
@@ -326,9 +397,6 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    }
 	}
     }
-    
-    //protected static BasicStroke linestroke = new BasicStroke((float).3);
-    protected static BasicStroke linestroke = new BasicStroke((float)3);
     
     public static String[] breakupLines(String text) { 
 	String[] toRet = null;
@@ -393,13 +461,83 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    paintLabel(g2,(float)(getX() + getWidth()+2),
 		       (float)(getY() + getHeight()),f);
 	} 
-	g2.setStroke(linestroke);
+	g2.setStroke(getStroke());
     }
 
-    public void paint(PPaintContext apc) {
-	paintOverload(apc);
-	super.paint(apc);
-    }
+    Shape oldta = null;
+    AffineTransform atTrans = null;
+    Shape ta = null;
+    
+	public void paint(PPaintContext context) {
+		paintOverload(context);
+
+		if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+			double contextScale = context.getScale();
+			Paint p = getPaint();
+			Graphics2D g2 = context.getGraphics();
+	
+	        ta = getPathReference();
+	        
+	        // Save old coordinates
+	        Rectangle2D oldRect = ta.getBounds2D();
+	
+	        // Translate to 0
+	        atTrans = AffineTransform.getTranslateInstance(-oldRect.getCenterX(), -oldRect.getCenterY());
+			ta = atTrans.createTransformedShape(ta);
+	
+	        // do scaling
+			atTrans = AffineTransform.getScaleInstance(1 / contextScale, 1 / contextScale);
+			ta = atTrans.createTransformedShape(ta);
+	
+	        // Translate to old coordinates
+			atTrans = AffineTransform.getTranslateInstance(oldRect.getCenterX(), oldRect.getCenterY());
+			ta = atTrans.createTransformedShape(ta);
+	
+			if (p != null) {
+				g2.setPaint(p);
+				g2.fill(ta);
+			}
+	
+			if (getStroke() != null && getStrokePaint() != null) {
+				g2.setPaint(getStrokePaint());
+				g2.setStroke(getStroke());
+				g2.draw(ta);
+			}
+			
+			
+			if ((oldta==null) || 
+					((oldta.getBounds2D().getHeight()-ta.getBounds2D().getHeight())*contextScale)>1.5 ||
+					((oldta.getBounds2D().getHeight()-ta.getBounds2D().getHeight())*contextScale)<-1.5) {
+				oldta = ta;
+				owner.readjustEdges();
+			}
+		
+		} else if (Guess.getZooming() == Guess.ZOOMING_ZOOM) {
+			super.paint(context);
+		}
+
+	}
+	
+
+	public PBounds getBoundsReference() {
+		if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+		PBounds newBounds = (PBounds) super.getBoundsReference().clone();
+		Double contextScale = ((GFrame)VisFactory.getFactory().getDisplay()).getGCamera().getViewScale();
+
+		newBounds.setRect(
+				newBounds.getX() + ((newBounds.getWidth() - (newBounds.getWidth() * (1 / contextScale)))/2), 
+				newBounds.getY() + ((newBounds.getHeight() - (newBounds.getHeight() * (1 / contextScale)))/2),
+				newBounds.getWidth() * (1 / contextScale),  
+				newBounds.getHeight() * (1 / contextScale)
+				);
+		
+		edu.umd.cs.piccolox.handles.PHandle.DEFAULT_HANDLE_SHAPE = new Ellipse2D.Float(0f, 0f, 6 * (float)(1/contextScale), 6 * (float)(1/contextScale));
+	
+		return newBounds;
+		} else {
+			return super.getBoundsReference();
+		}
+	}
 
     public double getDrawWidth() {
 	return(getWidth());
@@ -489,6 +627,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 				      getY()+getHeight()/2);
 	toRet[3] = new Point2D.Double(getX()+getWidth(),
 				      getY()+getHeight()/2);
+	
 	toRet[4] = new Point2D.Double(getX(),getY());
 	toRet[5] = new Point2D.Double(getX()+getWidth(),getY());
 	toRet[6] = new Point2D.Double(getX(),getY()+getHeight());

@@ -1,17 +1,10 @@
 package com.hp.hpl.guess.db;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.event.TableModelEvent;
 
-import com.jgoodies.looks.*;
-import com.hp.hpl.guess.freehep.*;
+import java.util.*;
+import javax.swing.table.*;
 import com.hp.hpl.guess.*;
 
-import java.sql.Types;
 
 public class SpreadSheetTable extends AbstractTableModel {
 

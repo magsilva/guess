@@ -150,7 +150,10 @@ public class TGDisplay extends GLPanel implements FrameListener {
 
     public void removeBackgroundImage() {
     }
-
+    
+    public void setQuality(int requestedQuality) {
+    }
+    
     public BufferedImage getFullImage() {
 	return(null);
     }

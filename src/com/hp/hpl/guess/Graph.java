@@ -1,41 +1,32 @@
 package com.hp.hpl.guess;
 
-import java.awt.*;
-import java.sql.*;
-import java.util.*;
-
+import com.hp.hpl.guess.io.*;
+import com.hp.hpl.guess.layout.*;
+import com.hp.hpl.guess.pajek.*;
 import com.hp.hpl.guess.piccolo.*;
-import com.hp.hpl.guess.tg.*;
-import com.hp.hpl.guess.prefuse.*;
 import com.hp.hpl.guess.storage.*;
 import com.hp.hpl.guess.ui.*;
-import com.hp.hpl.guess.layout.*;
 import com.hp.hpl.guess.util.*;
-import com.hp.hpl.guess.io.*;
-import javax.swing.JOptionPane;
-
-import org.apache.commons.collections.*;
 import edu.uci.ics.jung.algorithms.cluster.*;
 import edu.uci.ics.jung.algorithms.importance.*;
 import edu.uci.ics.jung.algorithms.transformation.*;
 import edu.uci.ics.jung.graph.ArchetypeEdge;
+import edu.uci.ics.jung.graph.ArchetypeGraph;
 import edu.uci.ics.jung.graph.ArchetypeVertex;
-import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.DirectedGraph;
+import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.decorators.*;
 import edu.uci.ics.jung.graph.impl.*;
+import edu.uci.ics.jung.random.generators.*;
 import edu.uci.ics.jung.utils.*;
 import edu.uci.ics.jung.visualization.*;
 import edu.uci.ics.jung.visualization.contrib.*;
-import edu.uci.ics.jung.random.generators.*;
-import edu.uci.ics.jung.graph.ArchetypeGraph;
-import edu.uci.ics.jung.visualization.Coordinates;
-import com.hp.hpl.guess.pajek.*;
-
+import java.awt.*;
+import java.sql.*;
+import java.util.*;
+import org.apache.commons.collections.Predicate;
 import org.python.core.*;
-import org.python.util.*;
 
-import com.hp.hpl.guess.ui.StatusBar;
 
 /**
  * @pyobj g
@@ -46,12 +37,12 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	/**
 	 * name->node mapping
 	 */
-	protected Hashtable nameToNode = new Hashtable();
+	protected Hashtable<String, Node> nameToNode = new Hashtable<String, Node>();
 
 	/**
 	 * id->edge mapping
 	 */
-	protected Hashtable idToEdge = new Hashtable();
+	protected Hashtable<Integer, Edge> idToEdge = new Hashtable<Integer, Edge>();
 
 	/**
 	 * schema for nodes and edges
@@ -88,6 +79,11 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	 */
 	protected String edgeWeightKey = null;
 
+	/**
+	 * The last layout
+	 */
+	private Layout lastLayout = null;
+	
 	/**
 	 * get the time of last modification
 	 */
@@ -156,7 +152,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 			boolean multiedge) 
 	{
 		if (!multiedge) {
-			Collection predicates = getEdgeConstraints();
+			Collection<Predicate> predicates = getEdgeConstraints();
 			predicates.add(NOT_PARALLEL_EDGE);
 		}
 		this.display = display;
@@ -164,6 +160,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 
 		nodeSchemaInt = new NodeSchema(this);
 		edgeSchemaInt = new EdgeSchema(this);
+
 	}
 
     /**
@@ -427,9 +424,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	 * @param n the node to remove
 	 * @pyexport
 	 */
-	public Set removeNode(Node n) 
+	public Set<AbstractElement> removeNode(Node n) 
 	{
-		HashSet toReturn = new AnnoHashSet("removeNode(" + n + ")");
+		HashSet<AbstractElement> toReturn = new AnnoHashSet("removeNode(" + n + ")");
 
 		if (n.getGraph() == null)
 			return (toReturn);
@@ -510,9 +507,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      * @param e the edge to remove
      * @pyexport
      */
-    public Set removeEdge(Edge e)
+    public Set<AbstractElement> removeEdge(Edge e)
     {
-	HashSet hs = new AnnoHashSet("removeEdge(" + e+")");
+	HashSet<AbstractElement> hs = new AnnoHashSet("removeEdge(" + e+")");
 
 		if (e.getGraph() == null)
 			return (hs);
@@ -534,7 +531,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
 	public Set remove(PySequence seq) {
 
-		Iterator it = seq.findGraphElements().iterator();
+		Iterator<SortableGraphElement> it = seq.findGraphElements().iterator();
 		HashSet hs = new AnnoHashSet("remove(...)");
 
 		while (it.hasNext()) {
@@ -831,7 +828,17 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     {
 		layout(new Rescale(this, xpercent, ypercent));
 	}
-
+    
+    
+    /**
+     * Shows only the neighbours of the node, or
+     * specify a dept.
+     */
+    public void neighbourLayout(Node center, int dept)
+    {
+		layout(new Neighbour(this, center, dept));
+	}
+    
     /**
      * places all nodes in a growing radius around center
      * @param center the node to put in the center
@@ -844,8 +851,8 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 
 	public void radialLayout(Node center, PySequence seq) {
 
-		Collection hs = seq.findEdges();
-		layout(new Radial(this, center, (HashSet) hs));
+		Collection<Edge> hs = seq.findEdges();
+		layout(new Radial(this, center, (HashSet<Edge>) hs));
 	}
 
 	/**
@@ -1133,7 +1140,25 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	 * @param mi the maximum iterations
 	 */
 	public void layout(Layout lay, int mi) {
-		final Graph gt = this;
+		
+		// If last layout was a sublayout
+		// restore visibility of nodes and edges
+		if (lastLayout instanceof SubGraphLayout) {
+			Iterator<Node> nodeIterator = getNodes().iterator();
+			while (nodeIterator.hasNext()) {
+				GraphElement node = nodeIterator.next();
+				node.getRep().set("opacity", 1.0f);
+				node.show();
+			}
+			Iterator<Node> edgeIterator = getEdges().iterator();
+			while (edgeIterator.hasNext()) {
+				GraphElement edge = edgeIterator.next();
+				edge.getRep().set("opacity", 1.0f);
+				edge.show();
+			}			
+		}
+		lastLayout = lay;
+		
 		final Layout layout = lay;
 		final int maxIters = mi;
 
@@ -1145,28 +1170,26 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		dialogLayoutStatus.setTitle("Running Layout");
 		dialogLayoutStatus.setDescription("A layout is currently being executed.");
 
-		Thread thrd = new Thread(new Runnable() {
+		Thread layouter = new Thread(new Runnable() {
 			public void run() {
-
-				// Freeze Console and show Status Dialog
-				interp.freeze(true);
-				dialogLayoutStatus.show();
-
 				try {
+
+					interp.freeze(true);
+
 					layout.initialize(new Dimension(1000, 1000));
 					if (layout.isIncremental()) {
 						int incCounter = 0;
 						long curTime = System.currentTimeMillis();
-						while (!layout.incrementsAreDone()) {
+						while (!layout.incrementsAreDone() && !dialogLayoutStatus.isCanceled()) {
 							incCounter++;
 							layout.advancePositions();
-							long test = System.currentTimeMillis() - curTime;
-
 							if ((System.currentTimeMillis() - curTime) > 1000) {
 								// Update status Dialog and Graphframe
 								dialogLayoutStatus.setDescription("Ran " + incCounter
 										+ " loops.");
-								update();
+								if (dialogLayoutStatus.isRedrawGraph()){
+									update();
+								}
 								curTime = System.currentTimeMillis();
 							}
 
@@ -1182,7 +1205,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 				} catch (Exception e) {
 					ExceptionWindow.getExceptionWindow(e);
 				}
-
+				
 				dialogLayoutStatus.hide();
 				interp.freeze(false);
 			}
@@ -1199,11 +1222,10 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 						Node node = (Node) nodes.next();
 						if (!((Boolean) node.__getattr__("fixed"))
 								.booleanValue()) {
-
 							double x = layout.getX((Node) node);
-							double y = layout.getY((Node) node);
+							double y = layout.getY((Node) node);				
 							node.__setattr__("x", new Double(x));
-							node.__setattr__("y", new Double(y));
+							node.__setattr__("y", new Double(y));							
 							if (x < minX) {
 								minX = x;
 							}
@@ -1225,7 +1247,11 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 					// System.out.println("trying to center");
 					if (display instanceof GFrame) {
 						// System.out.println("center fast");\
-						((GFrame) display).center(minX, minY, maxX, maxY, 500);
+						if (dialogLayoutStatus.isRedrawGraph()){
+							((GFrame) display).center(minX, minY, maxX, maxY, 500);
+						} else {
+							((GFrame) display).center(minX, minY, maxX, maxY, 0);
+						}
 						// System.out.println("post center fast");
 					} else {
 						// System.out.println("center");
@@ -1235,12 +1261,13 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 			}
 		});
 
-		dialogLayoutStatus.setThread(thrd);
 		if (!Guess.getSynchronous()) {
-			thrd.start();
+			layouter.start();
 		} else {
-			thrd.run();
+			layouter.run();
 		}
+		dialogLayoutStatus.show();
+	
 	}
 
     /**
@@ -1708,9 +1735,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	/**
 	 * @pyexport
 	 */
-	public Collection groupBy(PySequence seq, Field field) {
-		Hashtable map = new Hashtable();
-		Iterator it = seq.findGraphElements().iterator();
+	public Collection<SortableHashSet> groupBy(PySequence seq, Field field) {
+		Hashtable<Object, SortableHashSet> map = new Hashtable<Object, SortableHashSet>();
+		Iterator<SortableGraphElement> it = seq.findGraphElements().iterator();
 
 		while (it.hasNext()) {
 			GraphElement ge = (GraphElement) it.next();
@@ -1718,7 +1745,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 			if (!map.containsKey(attrib)) {
 				map.put(attrib, new SortableHashSet(field,(Comparable) attrib));
 			}
-			((HashSet) map.get(attrib)).add(ge);
+			((HashSet<GraphElement>) map.get(attrib)).add(ge);
 		}
 		return (map.values());
 	}
@@ -1726,7 +1753,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	/**
 	 * @pyexport
 	 */
-	public Collection groupBy(Field field) {
+	public Collection<SortableHashSet> groupBy(Field field) {
 		if (field.getType() == Field.NODE) {
 			return (groupNodesBy(field.getName()));
 		} else if (field.getType() == Field.EDGE) {

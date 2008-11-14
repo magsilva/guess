@@ -1,7 +1,6 @@
 package com.hp.hpl.guess.ui;
 
 import java.util.Collection;
-import java.awt.Color;
 import com.hp.hpl.guess.Node;
 
 public interface ConvexHull {

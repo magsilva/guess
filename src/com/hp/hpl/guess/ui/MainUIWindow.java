@@ -1,5 +1,7 @@
 package com.hp.hpl.guess.ui;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.DisplayMode;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -15,26 +17,29 @@ import java.util.prefs.Preferences;
 import java.awt.GridBagConstraints;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.Border;
+import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
+
+import com.jidesoft.swing.JideTabbedPane;
+import com.jidesoft.swing.JideTabbedPane.ColorProvider;
 
 import java.awt.*;
 
-import com.hp.hpl.guess.Guess;
-import com.hp.hpl.guess.piccolo.GFrame;
-
 public class MainUIWindow extends JFrame {
 
-    public static final int HORIZONTAL_DOCK = 1;
+
+	private static final long serialVersionUID = 1L;
+	
+	public static final int HORIZONTAL_DOCK = 1;
     public static final int VERTICAL_DOCK = 2;
 
     private Component canvas;
     private GraphicsDevice graphicsDevice;
-    private DisplayMode originalDisplayMode;
     private EventListener escapeFullScreenModeListener;
 
-    private JTabbedPane tabbedPaneH = null;
-    private JTabbedPane tabbedPaneV = null;
+    private JideTabbedPane tabbedPaneH = null;
+    private JideTabbedPane tabbedPaneV = null;
 
     private JSplitPane splitPaneH = null;
     private JSplitPane splitPaneV = null;
@@ -43,18 +48,18 @@ public class MainUIWindow extends JFrame {
 
     private final JPopupMenu jpop = new JPopupMenu("Dock Menu");
 
-    private JTabbedPane selected = null;
+    private JideTabbedPane selected = null;
     
     /**
 	* Object to save user preferences
 	*/
 	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
 
-    public JTabbedPane getHorizontalTabbedPane() {
+    public JideTabbedPane getHorizontalTabbedPane() {
 	return(tabbedPaneH);
     }
 
-    public JTabbedPane getVerticalTabbedPane() {
+    public JideTabbedPane getVerticalTabbedPane() {
 	return(tabbedPaneV);
     }
 
@@ -66,24 +71,20 @@ public class MainUIWindow extends JFrame {
 	return(splitPaneV);
     }
 
-    public Set getVerticalDockedComponents() {
-	HashSet s = new HashSet();
+    public Set<Component> getVerticalDockedComponents() {
+	HashSet<Component> s = new HashSet<Component>();
 	for (int i = 0 ; i < tabbedPaneV.getTabCount() ; i++) {
 	    s.add(tabbedPaneV.getComponentAt(i));
 	}
 	return(s);
     }
 
-    public Set getHorizontalDockedComponents() {
-	HashSet s = new HashSet();
+    public Set<Component> getHorizontalDockedComponents() {
+	HashSet<Component> s = new HashSet<Component>();
 	for (int i = 0 ; i < tabbedPaneH.getTabCount() ; i++) {
 	    s.add(tabbedPaneH.getComponentAt(i));
 	}
 	return(s);
-    }
-
-    public void enableButtons(boolean state) {
-	StatusBar.enableButtons(state);
     }
 
     public MainUIWindow(Component aCanvas) {
@@ -103,19 +104,19 @@ public class MainUIWindow extends JFrame {
 	super(aDevice.getDefaultConfiguration());
 	getContentPane().setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
-		
+	
 	graphicsDevice = aDevice;
 	
 	// Set Window Icon
 	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
     setIconImage(imageIcon.getImage());
 	
-	try {
-	    originalDisplayMode = graphicsDevice.getDisplayMode();
-	} catch (InternalError e) {
+	//try {
+	//    originalDisplayMode = graphicsDevice.getDisplayMode();
+	//} catch (InternalError e) {
 	    //ExceptionWindow.getExceptionWindow(e);
-	}
-	
+	//}
+    
 	setBounds(getDefaultFrameBounds());
 	setBackground(null);
 	
@@ -131,6 +132,10 @@ public class MainUIWindow extends JFrame {
 				userPrefs.putInt("MainWindowWidth", getWidth());
 				userPrefs.putInt("MainWindowHeight", getHeight());
 
+				// Save window position
+				userPrefs.putInt("MainWindowX", getX());
+				userPrefs.putInt("MainWindowY", getY());
+				
 			    com.hp.hpl.guess.Guess.shutdown();
 			}
 
@@ -140,43 +145,51 @@ public class MainUIWindow extends JFrame {
 	} catch (SecurityException e) {} // expected from applets
 	
 	canvas = aCanvas;
-    	
+	
 	if (canvas == null) {
 	    System.err.println("null canvas");
 	}
 	
 	
-	tabbedPaneH = new JTabbedPane();
-	//tabbedPaneH.setUI(new PSTabbedPaneUI());
-	tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
-	tabbedPaneV = createTabbedPane(JTabbedPane.LEFT);
-	//new JTabbedPane();
-	//tabbedPaneV.setUI(new PSTabbedPaneUI());
+	
+	// Add menubar
+	myMenu = new GMenuBar();
+	
+	myMenu.setPreferredSize(new Dimension(Integer.MAX_VALUE, 35));
+	myMenu.setMinimumSize(new Dimension(0, 35));
 
-	splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-					      canvas,
-					      tabbedPaneH);
-
-	splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				    tabbedPaneV,
-				    splitPaneH);
-
+	c.fill = GridBagConstraints.BOTH;
+	c.weighty = 0;
+	c.weightx = 1;
+	c.gridy = 0;
+	c.gridx = 0;
+	c.anchor = GridBagConstraints.NORTH;
+	c.ipady = 0;
+	
+	getContentPane().add(myMenu, c);
+	
+	createPanes();
+	
 	c.fill = GridBagConstraints.BOTH;
 	c.weighty = 1;
 	c.weightx = 1;
 	c.gridx = 0;
-	c.gridy = 0;
+	c.gridy = 1;
 	getContentPane().add(splitPaneV,c);
 
+	// Add statusbar
 	StatusBar jp = new StatusBar();
-
-	c.fill = GridBagConstraints.HORIZONTAL;
+	c.fill = GridBagConstraints.NONE;
 	c.weighty = 0;
 	c.gridy = 1;
+	c.anchor = GridBagConstraints.SOUTHWEST;
 	getContentPane().add(jp,c);
 
-	myMenu = new GMenuBar();
-	setJMenuBar(myMenu);
+	// Statusbar overlays splitPaneV
+	getContentPane().setComponentZOrder(jp, 0);
+	getContentPane().setComponentZOrder(splitPaneV, 1);
+
+	
 	validate(); 	
 	setFullScreenMode(fullScreenMode);
 	canvas.requestFocus();
@@ -230,9 +243,7 @@ public class MainUIWindow extends JFrame {
 		public void mousePressed(MouseEvent e) {
 		    if ((e.getButton() == MouseEvent.BUTTON2) ||
 			(e.getButton() == MouseEvent.BUTTON3)) {
-			//System.out.println(tabbedPane.getSelectedIndex());
-			//System.out.println("popup");
-			selected = (JTabbedPane)e.getComponent();
+			selected = (JideTabbedPane)e.getComponent();
 			jpop.show(e.getComponent(),
 				  e.getX(),
 				  e.getY());
@@ -243,7 +254,140 @@ public class MainUIWindow extends JFrame {
 	tabbedPaneV.addMouseListener(ma);
     }
 
-    /**
+    public final Color getBgColor() {
+    	return SystemColor.text;
+    }
+
+	private void createPanes() {
+		
+		final Color lineColor1 = new Color(224, 232, 242);
+		final Color lineColor2 = new Color(255, 255, 255);
+		final Color lineColor3 = new Color(180, 188, 197);
+		final Color lineColor4 = new Color(238, 243, 250);
+		
+		tabbedPaneH = new JideTabbedPane();
+		tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
+		tabbedPaneH.setHideOneTab(true);
+		tabbedPaneH.setBorder(BorderFactory.createEmptyBorder());
+		tabbedPaneH.setContentBorderInsets(new Insets(0,0,0,0));
+		
+		tabbedPaneV = new JideTabbedPane();
+		tabbedPaneV.setTabPlacement(JTabbedPane.LEFT);
+		tabbedPaneV.setHideOneTab(true);
+		tabbedPaneV.setBorder(BorderFactory.createEmptyBorder());
+		tabbedPaneV.setContentBorderInsets(new Insets(0,0,0,0));
+		
+		splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+			      canvas,
+			      tabbedPaneH);
+		
+		
+		splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+				    tabbedPaneV,
+				    splitPaneH);
+		
+		splitPaneH.setBorder(BorderFactory.createEmptyBorder());
+		splitPaneV.setBorder(BorderFactory.createEmptyBorder());
+		
+		splitPaneH.setOneTouchExpandable(false);
+		splitPaneV.setOneTouchExpandable(false);
+		
+		splitPaneH.setDividerSize(4);
+		splitPaneV.setDividerSize(4);
+		
+		splitPaneH.setResizeWeight(1);
+		
+		
+		tabbedPaneH.setBackground(getBgColor());
+		tabbedPaneV.setBackground(getBgColor());
+		
+		tabbedPaneH.setTabColorProvider(new ColorProvider() {
+			public Color getBackgroundAt(int arg0) {
+				if (tabbedPaneH.getSelectedIndex()==arg0) {
+					return getBgColor();
+				}
+				return getBgColor();
+			}
+
+			public Color getForegroudAt(int arg0) {
+				return Color.BLACK; 
+			}
+
+			public float getGradientRatio(int arg0) {
+				if (tabbedPaneH.getSelectedIndex()==arg0) {
+					return 0.9f;
+				}
+				return 0.5f;
+			}
+		});
+		
+		tabbedPaneV.setTabColorProvider(new ColorProvider() {
+			public Color getBackgroundAt(int arg0) {
+				if (tabbedPaneV.getSelectedIndex()==arg0) {
+					return getBgColor();
+				}
+				return getBgColor();
+			}
+
+			public Color getForegroudAt(int arg0) {
+				return Color.BLACK; 
+			}
+
+			public float getGradientRatio(int arg0) {
+				if (tabbedPaneV.getSelectedIndex()==arg0) {
+					return 0.9f;
+				}
+				return 0.5f;
+			}
+		});		
+		
+		
+		splitPaneH.setBackground(getBgColor());
+		splitPaneV.setBackground(getBgColor());
+				
+		splitPaneH.setUI(new BasicSplitPaneUI() {
+		public BasicSplitPaneDivider createDefaultDivider() {
+		  return new BasicSplitPaneDivider(this) {
+			private static final long serialVersionUID = 1L;
+
+			public void setBorder(Border b) {
+		    	Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor1);
+		    	Border b2 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor2);
+		    	Border b3 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor3);
+		    	Border b4 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor4);
+		    	 
+		    	Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
+		    	Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
+		    	Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
+		    	
+		      	super.setBorder(b1b2b3b4);
+		      }
+		  };
+		}
+		});
+		
+		splitPaneV.setUI(new BasicSplitPaneUI() {
+		public BasicSplitPaneDivider createDefaultDivider() {
+		  return new BasicSplitPaneDivider(this) {
+			  private static final long serialVersionUID = 1L;
+		      public void setBorder(Border b) {
+			    	Border b1 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor4);
+			    	Border b2 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor3);
+			    	Border b3 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor2);
+			    	Border b4 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor1);
+			    	 
+			    	Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
+			    	Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
+			    	Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
+			    	
+			      	super.setBorder(b1b2b3b4);
+		      }
+		  };
+		}
+		});
+	}
+
+	/**
      * set the location of the horizontal panel
      * @param loc the integer location, distance from top
      */
@@ -290,23 +434,6 @@ public class MainUIWindow extends JFrame {
     		return 0;
     	}
     }
-
-    public static JTabbedPane createTabbedPane(int tabPlacement){ 
-	switch(tabPlacement){ 
-        case JTabbedPane.LEFT: 
-        case JTabbedPane.RIGHT: 
-            Object textIconGap = UIManager.get("TabbedPane.textIconGap"); 
-            Insets tabInsets = UIManager.getInsets("TabbedPane.tabInsets"); 
-            UIManager.put("TabbedPane.textIconGap", new Integer(5)); 
-            UIManager.put("TabbedPane.tabInsets", new Insets(tabInsets.left, tabInsets.top, tabInsets.right, tabInsets.bottom)); 
-            JTabbedPane tabPane = new JTabbedPane(tabPlacement); 
-            UIManager.put("TabbedPane.textIconGap", textIconGap); 
-            UIManager.put("TabbedPane.tabInsets", tabInsets); 
-            return tabPane; 
-        default: 
-            return new JTabbedPane(tabPlacement); 
-	} 
-    }  
     
 
     public void dock(Dockable d) {
@@ -317,13 +444,14 @@ public class MainUIWindow extends JFrame {
 			int m3 = (int)Math.max(m1,m2);
 			
 	    	showDividers(splitPaneV, m3);
-		tabbedPaneV.addTab(null, 
-				   new VerticalTextIcon(d.getTitle(),
-							false),
-				   (Component)d);
-		tabbedPaneV.setBackgroundAt(0,Color.darkGray);
-		//tabbedPaneV.addTab(d.getTitle(),(Component)d);
-		tabbedPaneV.setSelectedComponent((Component)d);
+			tabbedPaneV.addTab(null, 
+					   new VerticalTextIcon(d.getTitle(),
+								false),
+					   (Component)d);
+			tabbedPaneV.setBackgroundAt(0,Color.darkGray);
+			//tabbedPaneV.addTab(d.getTitle(),(Component)d);
+			tabbedPaneV.setSelectedComponent((Component)d);
+
 	    } else {
 		
 		double m1 = splitPaneH.getDividerLocation();
@@ -337,8 +465,6 @@ public class MainUIWindow extends JFrame {
 	    }
 	    d.opening(true);
 	    d.attaching(true);
-	    splitPaneH.setOneTouchExpandable(true);
-	    splitPaneV.setOneTouchExpandable(true);
 	} catch (Exception e) {
 	    ExceptionWindow.getExceptionWindow(e);
 	}
@@ -492,6 +618,10 @@ public class MainUIWindow extends JFrame {
 		setSize(userPrefs.getInt("MainWindowWidth", getWidth()), 
 				userPrefs.getInt("MainWindowHeight", getHeight()));
 		
+		// Restore position
+		setLocation(userPrefs.getInt("MainWindowX", getX()),
+					userPrefs.getInt("MainWindowY", getY()));
+		
 	    validate();
 	    setVisible(true);
 	}
@@ -511,7 +641,7 @@ public class MainUIWindow extends JFrame {
     
     protected DisplayMode getBestDisplayMode(GraphicsDevice device) {
 	try {
-	    Iterator itr = getPreferredDisplayModes(device).iterator();
+	    Iterator<DisplayMode> itr = getPreferredDisplayModes(device).iterator();
 	    while (itr.hasNext()) {
 		DisplayMode each = (DisplayMode) itr.next();
 		DisplayMode[] modes = device.getDisplayModes();
@@ -529,8 +659,8 @@ public class MainUIWindow extends JFrame {
 	return null;
     }
     
-    protected Collection getPreferredDisplayModes(GraphicsDevice device) {
-	ArrayList result = new ArrayList();
+    protected Collection<DisplayMode> getPreferredDisplayModes(GraphicsDevice device) {
+	ArrayList<DisplayMode> result = new ArrayList<DisplayMode>();
 	
 	result.add(device.getDisplayMode());
 	return result;

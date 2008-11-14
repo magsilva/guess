@@ -83,4 +83,12 @@ public class PrefuseNode implements NodeListener {
     
     public void setLocation(double x, double y, double width, double height) {
     }
+    
+	public void addFieldToLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public void removeFieldFromLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
 }

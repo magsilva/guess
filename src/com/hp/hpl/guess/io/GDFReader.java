@@ -3,16 +3,10 @@ package com.hp.hpl.guess.io;
 import java.sql.*;
 import java.util.*;
 import java.io.*;
-import org.python.core.*;
 
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.storage.*;
-import com.hp.hpl.guess.db.*;
 import com.hp.hpl.guess.ui.ExceptionWindow;
-import com.hp.hpl.guess.ui.StatusBar;
-import javax.swing.table.AbstractTableModel;
-import edu.uci.ics.jung.exceptions.ConstraintViolationException;
-import com.hp.hpl.guess.db.*;
 
 public class GDFReader {
 
@@ -26,7 +20,7 @@ public class GDFReader {
 	    boolean inQuote = false;
 	    char quoteChar = '\'';
 	    char slashChar = '\\';
-	    Vector toReturn = new Vector();
+	    Vector<String> toReturn = new Vector<String>();
 	    StringBuffer curString = null;
 	    for (int i = 0 ; i < chars.length ; i++) {
 		//System.out.println(chars[i]);
@@ -85,7 +79,10 @@ public class GDFReader {
 	}
     }
 
-    private static String fixString(String init,Hashtable defs) {
+    /*
+     * Method is never used...
+     * 
+    private static String fixString(String init, Hashtable defs) {
 	String s = init.trim();
 	StringBuffer toRet = new StringBuffer();
 	
@@ -107,6 +104,7 @@ public class GDFReader {
 	}
 	return(toRet.toString());
     }
+    */
 
     private Field[] processNodeDef(Graph g, String s) {
 	return(processDef(g,s,g.getNodeSchema()));
@@ -225,9 +223,6 @@ public class GDFReader {
 	String line = null;
 	boolean inNodeDef = false;
 	boolean inEdgeDef = false;
-	
-	int nodecount = 0;
-	int edgecount = 0;
 	
 	Random rand = new Random();
 	

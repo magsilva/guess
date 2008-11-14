@@ -73,11 +73,10 @@ public class KeyBoardManager extends PBasicInputEventHandler {
 
 	
 	//System.out.println(event.getKeyCode());
-
 	if (event.getKeyCode() == 90) {
-	    AffineTransform af = new AffineTransform();
-	    af.scale(scale*.8,scale*.8);
-	    cam.animateToTransform(af,200);
+	    //AffineTransform af = new AffineTransform();
+	    //af.scale(scale*.8,scale*.8);
+	    //cam.animateToTransform(af,200);
 	    //cam.setScale(scale*.8);
 	} else if (event.getKeyCode() == 88) {
 	    AffineTransform af = new AffineTransform();

@@ -369,6 +369,9 @@ def exportJPG(filename):
 def radialLayout(center):
 	g.radialLayout(center)
 
+def neighbourLayout(start):
+	g.neighbourLayout(start)
+
 def density():
 	return g.density()
 

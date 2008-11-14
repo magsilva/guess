@@ -32,10 +32,10 @@ package com.hp.hpl.guess.ui;
 
 
 import java.io.File;
-import java.util.Hashtable;
 import java.util.Enumeration;
-import javax.swing.*;
-import javax.swing.filechooser.*;
+import java.util.Hashtable;
+
+import javax.swing.filechooser.FileFilter;
 
 /**
  * A convenience implementation of FileFilter that filters out
@@ -58,10 +58,7 @@ import javax.swing.filechooser.*;
  */
 public class SunFileFilter extends FileFilter {
 
-    private static String TYPE_UNKNOWN = "Type Unknown";
-    private static String HIDDEN_FILE = "Hidden File";
-
-    private Hashtable filters = null;
+    private Hashtable<String, SunFileFilter> filters = null;
     private String description = null;
     private String fullDescription = null;
     private boolean useExtensionsInDescription = true;
@@ -73,7 +70,7 @@ public class SunFileFilter extends FileFilter {
      * @see #addExtension
      */
     public SunFileFilter() {
-	this.filters = new Hashtable();
+	this.filters = new Hashtable<String, SunFileFilter>();
     }
 
     /**
@@ -184,7 +181,7 @@ public class SunFileFilter extends FileFilter {
      */
     public void addExtension(String extension) {
 	if(filters == null) {
-	    filters = new Hashtable(5);
+	    filters = new Hashtable<String, SunFileFilter>(5);
 	}
 	filters.put(extension.toLowerCase(), this);
 	fullDescription = null;
@@ -205,7 +202,7 @@ public class SunFileFilter extends FileFilter {
 	    if(description == null || isExtensionListInDescription()) {
  		fullDescription = description==null ? "(" : description + " (";
 		// build the description from the extension list
-		Enumeration extensions = filters.keys();
+		Enumeration<String> extensions = filters.keys();
 		if(extensions != null) {
 		    fullDescription += "." + (String) extensions.nextElement();
 		    while (extensions.hasMoreElements()) {

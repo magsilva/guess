@@ -1,23 +1,18 @@
 package com.hp.hpl.guess.ui;
 
 import javax.swing.*;
-import java.awt.event.*;
+
+import com.jidesoft.swing.JideButton;
+
 import java.awt.*;
 import java.util.*;
-
-import com.jidesoft.pane.CollapsiblePane;
-import com.jidesoft.pane.CollapsiblePanes;
-import com.jidesoft.plaf.LookAndFeelFactory;
-import com.jidesoft.swing.JideButton;
-import com.jidesoft.utils.SystemInfo;
-import com.jidesoft.utils.Lm;
-
-import com.hp.hpl.guess.*;
 
 public class DWButton extends JideButton 
     implements GuessDropListener, Interesting {
     
-    private HashSet listeners = new HashSet();
+	private static final long serialVersionUID = 1L;
+
+	private HashSet<GuessDropListener> listeners = new HashSet<GuessDropListener>();
 
     private String nm = null;
 
@@ -48,11 +43,11 @@ public class DWButton extends JideButton
     }
     
     public void receiveDrop(Object o) {
-	Iterator it = listeners.iterator();
+	Iterator<GuessDropListener> it = listeners.iterator();
 	//System.out.println(o);
 	while(it.hasNext()) {
 	    //System.out.println("calling...");
-	    ((GuessDropListener)it.next()).receiveDrop(o);
+	    it.next().receiveDrop(o);
 	}
     }
 

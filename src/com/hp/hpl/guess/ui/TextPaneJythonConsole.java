@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 
 import java.util.*;
 import javax.swing.*;
@@ -77,6 +78,13 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	super();
 	itp = new InternalTextPane(jython);
 	setViewportView(itp);
+	
+	setBorder(BorderFactory.createEmptyBorder(8, 8, 23, 8));
+	itp.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+	
+	itp.setBackground(Guess.getMainUIWindow().getBgColor());
+	setOpaque(false);
+	
     }
     
     public void create() {
@@ -270,20 +278,21 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 	public EditorPopup getMenu(Object o) {
 	    if (o instanceof PyInstance) {
-		if (((PyInstance)o).isNodeProxy()) {
-		    return(NodeEditorPopup.getPopup());
-		}
-		if (((PyInstance)o).isEdgeProxy()) {
-		    return(EdgeEditorPopup.getPopup());
-		}
+			if (((PyInstance)o).isNodeProxy()) {
+			    return(NodeEditorPopup.getPopup());
+			}
+			if (((PyInstance)o).isEdgeProxy()) {
+			    return(EdgeEditorPopup.getPopup());
+			}
 	    } else if (o instanceof PyString) {
-		return(null);
+	    	return(null);
 	    } else if (o instanceof PySequence) {
-		return(GraphElementEditorPopup.getPopup());
+	    	return(GraphElementEditorPopup.getPopup());
 	    } else if (o instanceof Throwable) {
-		return(ThrowableEditorPopup.getPopup());
+	    	return(ThrowableEditorPopup.getPopup());
 	    }
-	    return(null);
+	    
+	    return null;
 	}
 
 	/**
@@ -381,14 +390,18 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    // if we right click figure out what menu
 			    // to display
 			    if (e.getButton() == MouseEvent.BUTTON3) {
-				JEditorPane editor = 
-				    (JEditorPane) e.getSource();
-				EditorPopup mpup = getMenu(currentH);
-				if (mpup != null) {
-				    mpup.show(editor,e.getX(),e.getY(),
-					      (HashSet)currentHighlights.clone(),
-					      currentH);
-				}
+			    	JEditorPane editor = (JEditorPane) e.getSource();
+					EditorPopup mpup = getMenu(currentH);
+					if (mpup != null) {
+					    mpup.show(editor,e.getX(),e.getY(),
+						      (HashSet)currentHighlights.clone(), currentH);
+					} else {
+						MouseEvent e2 = new MouseEvent((Component)Guess.getMainUIWindow().getHorizontalTabbedPane(), e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY(), e.getClickCount(), true);
+
+						for (int i = 0; i < Guess.getMainUIWindow().getHorizontalTabbedPane().getMouseListeners().length; i++) {
+							Guess.getMainUIWindow().getHorizontalTabbedPane().getMouseListeners()[i].mousePressed(e2);
+						}
+					}
 			    }
 			}
 
@@ -624,7 +637,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 */
 	private PythonInterpreter prepareInterpreter() {
 	    jython.exec("ENV = {}");
-	    setEnvironment("PS1", ">>> ");
+	    
+	    setEnvironment("PS1", "\u00BB ");
 	    setEnvironment("PS2", "... ");
 	    setEnvironment("PATH_SEPARATOR", System.getProperty("path.separator"));
 	    setEnvironment("COLS", "80");
@@ -793,10 +807,12 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		    Guess.getMainUIWindow().getGMenuBar().editMenu;
 		JMenuItem copy = new JMenuItem("Copy from Console");
 		copy.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C,
-			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));		
+			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));	
+		copy.setIcon(new ImageIcon(getClass().getResource("/images/edit-copy.png")));
 		JMenuItem paste = new JMenuItem("Paste to Console");
 		paste.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V,
 			       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask(), false));
+		paste.setIcon(new ImageIcon(getClass().getResource("/images/edit-paste.png")));
 		
 		ActionListener cpListener = new ActionListener(  ) {
 			public void actionPerformed(ActionEvent event) {
@@ -814,6 +830,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		paste.addActionListener(cpListener);
 		editMenu.add(copy);
 		editMenu.add(paste);
+		
 	    }
 
 	    /**

@@ -108,6 +108,14 @@ public class PrefuseDisplay extends Display implements FrameListener {
     protected int hops = 30;
 
 
+    public void setQuality(int requestedQuality) {
+    	if (requestedQuality>1) {
+    		this.setHighQuality(true);
+    	} else {
+    		this.setHighQuality(false);
+    	}
+    }
+    
     public PrefuseDisplay(Graph m_graph) {
         // create a new, empty visualization for our data
         m_vis = new Visualization();

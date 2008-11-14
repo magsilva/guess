@@ -1,18 +1,10 @@
 package com.hp.hpl.guess.ui;
 
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
-import javax.swing.event.TableModelEvent;
 
-import com.jgoodies.looks.*;
-import com.hp.hpl.guess.freehep.*;
-import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.storage.StorageFactory;
-
-import java.sql.Types;
 
 /**
  * @pyobj SpreadSheet

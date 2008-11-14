@@ -2,16 +2,16 @@ package com.hp.hpl.guess.storage;
 
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.db.*;
-import java.io.StringReader;
-import java.io.BufferedReader;
 import com.hp.hpl.guess.ui.*;
+import java.io.BufferedReader;
+import java.io.StringReader;
 
 /**
  * @pyobj db
  */
 public class StorageFactory {
 
-    public static StorageListener singleton = null;
+    private static StorageListener singleton = null;
 
     public static StorageListener getSL() {
 	if (singleton == null) {

@@ -1,28 +1,29 @@
 package com.hp.hpl.guess;
 
+import com.hp.hpl.guess.action.GActionManager;
+import com.hp.hpl.guess.action.GStateAction;
+import com.hp.hpl.guess.animation.AnimationFactory;
+import com.hp.hpl.guess.animation.GAnimation;
+import com.hp.hpl.guess.db.DBServer;
 import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.prefuse.*;
+import com.hp.hpl.guess.storage.StorageFactory;
 import com.hp.hpl.guess.tg.*;
 import com.hp.hpl.guess.ui.*;
-import com.hp.hpl.guess.db.DBServer;
-import com.hp.hpl.guess.storage.StorageFactory;
-
-import java.awt.geom.*;
+import edu.uci.ics.jung.algorithms.shortestpath.*;
+import edu.uci.ics.jung.graph.impl.*;
+import edu.umd.cs.piccolo.*;
+import edu.umd.cs.piccolo.nodes.*;
+import edu.umd.cs.piccolo.util.PPaintContext;
 import java.awt.*;
+import java.awt.geom.*;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-
-import edu.uci.ics.jung.algorithms.shortestpath.*;
-
-import edu.uci.ics.jung.graph.impl.*;
-
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-
 import org.python.core.*;
 
+/** 
+ */
 public class Node extends SparseVertex implements Comparable, GraphElement
 {
     private static int nextID = 1;
@@ -44,7 +45,7 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 
     private static final Random r = new Random();
 
-    public Node(String name)
+	public Node(String name)
     {
 	this(1, 
 	     r.nextDouble()*5, 
@@ -62,6 +63,33 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 						   this);
     }
 
+    private Set<GAnimation> runningAnimations = new HashSet<GAnimation>();
+        
+    public void animate(String animationName) {
+    	GAnimation anim = AnimationFactory.getFactory()
+    		.generateNodeAnimation(animationName, this);
+    	anim.start();
+    	   	
+    	runningAnimations.add(anim);
+    }
+    
+    public void animate(String animationName, int loops) {
+    	GAnimation anim = AnimationFactory.getFactory()
+			.generateNodeAnimation(animationName, this);
+    	anim.start(loops);
+	   	
+    	runningAnimations.add(anim);
+    }
+    
+    public void animationStopAll() {
+    	Iterator<GAnimation> runningAnimIterator = runningAnimations.iterator();
+    	while (runningAnimIterator.hasNext()) {
+    		runningAnimIterator.next().stop();
+    	}
+    }
+    
+    
+    
     public String toString()
     {
 	//Thread.dumpStack();
@@ -373,7 +401,6 @@ public class Node extends SparseVertex implements Comparable, GraphElement
     }
 
     public void __setattr__(String name, Object value) {
-
 	name = name.toLowerCase();
 	
 	Field field = null;
@@ -434,7 +461,6 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 	    {
 		//updating in the rep.
 		//if (name.equals("label")) 
-		//  System.out.println("-----" + name + " to " + value);
 		rep.set(name, value);
 	    }
 
@@ -454,8 +480,8 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 			Node b = edge.getNode2();
 			if ((a.__getattr__("visible").equals(Boolean.TRUE)) &&
 			    (b.__getattr__("visible").equals(Boolean.TRUE))) {
-			    if (edge.__getattr__("visible").equals(Boolean.FALSE)) 
-				edge.__setattr__("visible", Boolean.TRUE);
+			    //if (edge.__getattr__("visible").equals(Boolean.FALSE)) 
+				//edge.__setattr__("visible", Boolean.TRUE);
 			    
 			} else {
 			    if (edge.__getattr__("visible").equals(Boolean.TRUE))
@@ -596,9 +622,13 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 	rep.setLocation(x1,y1);
     }
 
-    public void endMove(double x1, double y1) {
-	// do the regular thing
-	setLocation(x1,y1);
+    public void endMove(final double x1, final double y1) {
+		GStateAction nodeAction = new GStateAction() {
+			public void actionContent() {
+				setLocation(x1,y1);
+			}
+		};
+		GActionManager.runAction(nodeAction, "Move Node");
     }
     
     /*public void setSize(double width,double height) {
@@ -718,6 +748,19 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 		}
 
 		return values;
+	}
+	
+	public void addFieldToLabel(String aField) {
+		rep.addFieldToLabel(aField);
+	}
+
+	public void removeFieldFromLabel(String aField) {
+		rep.removeFieldFromLabel(aField);
+	}	
+	
+	public void addField() {
+		//rep.addFieldToLabel("color");
+		__setattr__("visible", Boolean.FALSE);
 	}
 
 }

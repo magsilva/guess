@@ -1,11 +1,15 @@
 package edu.umd.cs.piccolox.handles;
 
+import java.awt.BasicStroke;
+
 import java.awt.Cursor;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.SwingConstants;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
 
 import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.PNode;
@@ -47,7 +51,12 @@ public class GuessPHandle extends PBoundsHandle {
     }
 						    
     public GuessPHandle(PBoundsLocator aLocator) {
-	super(aLocator);
+		super(aLocator);
+	    if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+	    	setStroke(new PFixedWidthStroke(0.5f));
+	    } else {
+	    	setStroke(new BasicStroke(0.5f));
+	    }
     }
     
     public void startHandleDrag(Point2D aLocalPoint, PInputEvent aEvent) {

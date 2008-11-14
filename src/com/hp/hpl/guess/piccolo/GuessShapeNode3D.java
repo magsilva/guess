@@ -1,21 +1,19 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
 
 import com.hp.hpl.guess.Guess;
-import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.StatusBar;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessShapeNode3D extends GuessShapeNode {
 
@@ -181,7 +179,7 @@ public class GuessShapeNode3D extends GuessShapeNode {
 	    paintLabel(g2,(float)(getX() + getWidth()+2),
 		       (float)(getY() + getHeight()),f);
 	} 
-	g2.setStroke(linestroke);
+	g2.setStroke(getStroke());
     }
 }
     

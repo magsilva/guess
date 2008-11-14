@@ -1,14 +1,13 @@
 package com.hp.hpl.guess.ui;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.event.TableModelEvent;
 
-import com.jgoodies.looks.*;
-import com.hp.hpl.guess.freehep.*;
+import com.hp.hpl.guess.action.GActionManager;
+import com.hp.hpl.guess.action.GStateAction;
 import com.hp.hpl.guess.*;
 
 import java.sql.Types;
@@ -22,8 +21,8 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 
     private GuessTableModel gtm = null;
 
-    private JLabel jl = new JLabel("Information Window",
-				   JLabel.CENTER);
+    private JLabel jl = new JLabel("Element Properties",
+				   JLabel.LEFT);
 
     protected boolean visible = false;
 
@@ -76,7 +75,6 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 	    } else {
 		gtm.details((Edge)n);
 	    }
-	    jl.setText(n.toString());
 	}
     }
 
@@ -114,16 +112,23 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 
 	GraphEvents.getGraphEvents().addGraphMouseListener(this);
 
+	setOpaque(false);
+	
 	gtm = new GuessTableModel();
 	JTable table = new JTable(gtm);
+	table.setBackground(Guess.getMainUIWindow().getBgColor());
+	table.setFillsViewportHeight(true);
+	
 	JScrollPane scrollpane = new JScrollPane(table);
+	
+	scrollpane.setOpaque(false);
+	scrollpane.setBorder(BorderFactory.createEmptyBorder(5,8,8,4));
+	
 	setLayout(new GridBagLayout());
 	GridBagConstraints c = new GridBagConstraints();
 
-	Font fnt = jl.getFont();
-	fnt = fnt.deriveFont(Font.BOLD,15);
-	jl.setFont(fnt);
-
+	jl.setBorder(BorderFactory.createEmptyBorder(8, 8, 0, 8));
+	
 	c.fill = GridBagConstraints.HORIZONTAL;
 	c.weighty = 0;
 	c.weightx = 1;
@@ -261,35 +266,40 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 	    }
 	}
 
-	public void setValueAt(Object value, int row, int col) {
-	    String f = null;
-	    Field fld = null;
-	    if (lastSel != null) {
-		if (lastSel instanceof Node) {
-		    f = (String)nFields.elementAt(row);
-		    fld = Guess.getGraph().getNodeSchema().getField(f);
-		} else {
-		    f = (String)eFields.elementAt(row);
-		    fld = Guess.getGraph().getEdgeSchema().getField(f);
-		}
-		try {
-		    if ((fld.getSQLType() == Types.INTEGER) ||
-			(fld.getSQLType() == Types.TINYINT) ||
-			(fld.getSQLType() == Types.SMALLINT) ||
-			(fld.getSQLType() == Types.BIGINT)) {
-			lastSel.__setattr__(f,new Integer((String)value));
-		    } else if (fld.getSQLType() == Types.BOOLEAN) {
-			lastSel.__setattr__(f,new Boolean((String)value));
-		    } else if (fld.isNumeric()) {
-			lastSel.__setattr__(f,new Double((String)value));
-		    } else {
-			lastSel.__setattr__(f,value);
-		    }
-		} catch (Exception e) {
-		    ExceptionWindow.getExceptionWindow(e);
-		}
-		fireTableCellUpdated(row, col);
-	    }
+	public void setValueAt(final Object value, final int row, final int col) {
+		GStateAction infoWindowAction = new GStateAction() {
+			public void actionContent() {
+				String f = null;
+			    Field fld = null;
+			    if (lastSel != null) {
+				if (lastSel instanceof Node) {
+				    f = (String)nFields.elementAt(row);
+				    fld = Guess.getGraph().getNodeSchema().getField(f);
+				} else {
+				    f = (String)eFields.elementAt(row);
+				    fld = Guess.getGraph().getEdgeSchema().getField(f);
+				}
+				try {
+				    if ((fld.getSQLType() == Types.INTEGER) ||
+					(fld.getSQLType() == Types.TINYINT) ||
+					(fld.getSQLType() == Types.SMALLINT) ||
+					(fld.getSQLType() == Types.BIGINT)) {
+					lastSel.__setattr__(f,new Integer((String)value));
+				    } else if (fld.getSQLType() == Types.BOOLEAN) {
+					lastSel.__setattr__(f,new Boolean((String)value));
+				    } else if (fld.isNumeric()) {
+					lastSel.__setattr__(f,new Double((String)value));
+				    } else {
+					lastSel.__setattr__(f,value);
+				    }
+				} catch (Exception e) {
+				    ExceptionWindow.getExceptionWindow(e);
+				}
+				fireTableCellUpdated(row, col);
+			    }
+			}
+		};
+		GActionManager.runAction(infoWindowAction, "Edit Properties");
 	}
 
     }

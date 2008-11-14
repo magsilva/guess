@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.piccolo;
 
 import edu.umd.cs.piccolo.*;
+import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolo.nodes.*;
 import edu.umd.cs.piccolox.nodes.*;
@@ -269,10 +270,19 @@ public class GuessTextNode extends PText implements GuessPNode {
 	    setStyle(style);
 	}
 
-	borderShape.setFrame(getX()-4,
+	if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+		float scaling = (float)(1/((GFrame)VisFactory.getFactory().getDisplay()).getGCamera().getViewScale());
+		borderShape.setFrame(getX(),
+			     getY(),
+			     getWidth(),
+			     getHeight());
+		
+	} else if (Guess.getZooming() == Guess.ZOOMING_ZOOM) {
+		borderShape.setFrame(getX()-4,
 			     getY()-4,
 			     getWidth() + 8,
 			     getHeight() + 8);
+	}
 		
 	g2.fill(borderShape);
 	g2.setPaint(strokePaint);
@@ -280,11 +290,60 @@ public class GuessTextNode extends PText implements GuessPNode {
 	g2.draw(borderShape);
     }
 
-    public void paint(PPaintContext apc) {
-	paintInternal(apc);
-	super.paint(apc);
-    }
+    float oldScaling = 0f;
+    
+	public void paint(PPaintContext context) {
 
+		paintInternal(context);
+		if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+
+			Graphics2D g2 = context.getGraphics();
+			float scaling = (float)(1/((GFrame)VisFactory.getFactory().getDisplay()).getGCamera().getViewScale());
+			Font f = g2.getFont();
+			f = f.deriveFont((float)(10*scaling));
+			g2.setFont(f);
+			g2.drawString(getLabel(),(float)(getX() + (8 * scaling)), (float)(getY() + (10 * scaling)));
+			
+
+
+			if (scaling!=oldScaling) {
+				oldScaling = scaling;
+				owner.readjustEdges();
+			}
+			
+
+			
+		} else if (Guess.getZooming() == Guess.ZOOMING_ZOOM) {
+			paintInternal(context);
+			super.paint(context);
+		}
+		
+		
+    }	
+	
+	
+	public PBounds getBoundsReference() {
+		if ((Guess.getZooming() == Guess.ZOOMING_SPACE) &&
+				(borderShape != null)) {
+			
+			PBounds newBounds = (PBounds) super.getBoundsReference().clone();
+			float scaling = (float)(1/((GFrame)VisFactory.getFactory().getDisplay()).getGCamera().getViewScale());
+			
+			
+			newBounds.setRect(
+					newBounds.getX() + ((newBounds.getWidth() - (newBounds.getWidth() * scaling))/2), 
+					newBounds.getY() + ((newBounds.getHeight() - (newBounds.getHeight() * scaling))/2),
+					newBounds.getWidth() * scaling,  
+					newBounds.getHeight() * scaling
+					);
+	
+			
+			edu.umd.cs.piccolox.handles.PHandle.DEFAULT_HANDLE_SHAPE = new Ellipse2D.Float(0f, 0f, 6 * scaling, 6 * scaling);
+			return newBounds;
+		}
+		return super.getBoundsReference();
+	}
+	
     public static int ZOOM_SIZE = 40;
 
 
@@ -352,7 +411,12 @@ public class GuessTextNode extends PText implements GuessPNode {
 		setVisible(((Boolean)o).booleanValue());
 	    } else if (field.equals("labelsize")) {
 		setLabelSize(((Integer)o).intValue());
-	    }
+	    } else if (field.equals("opacity")) {
+			if (o instanceof Float) {
+				setTransparency((Float)o);
+			}
+		}
+	    
 	    if (Guess.getMTF()) 
 		moveToFront();
 	} catch (Exception e) {
@@ -469,4 +533,17 @@ public class GuessTextNode extends PText implements GuessPNode {
 				      getY()+getHeight()/2);
 	return(toRet);
     }
+    
+	public void addFieldToLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public void removeFieldFromLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+	
+	public GFrame getFrame() {
+		return frame;
+	}
+
 }

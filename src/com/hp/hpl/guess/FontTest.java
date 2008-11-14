@@ -26,10 +26,9 @@ public class FontTest {
 	}
     }
     
-    public static Vector getValid(String teststring) {
+    public static Vector<Font> getValid(String teststring) {
 	Vector<Font> validFonts = new Vector<Font>();
 	java.awt.Font[] allfonts = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
-	int fontcount = 0;
 	for (int j = 0; j < allfonts.length; j++) {
 	    if (allfonts[j].canDisplayUpTo(teststring) == -1) {
 		validFonts.add(allfonts[j]);

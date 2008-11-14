@@ -2,17 +2,19 @@ package com.hp.hpl.guess.ui;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 import javax.swing.*;
 
-import com.jgoodies.looks.*;
+import com.jgoodies.looks.HeaderStyle;
+import com.jgoodies.looks.Options;
 
 import com.hp.hpl.guess.freehep.*;
 import com.hp.hpl.guess.*;
 
 public class GuessJFrame extends JFrame {
 
-    private JMenuBar jm = new JMenuBar();
+	private static final long serialVersionUID = 1630559633511657461L;
+
+	private JMenuBar jm = new JMenuBar();
 
     private Dockable dockable = null;
 
@@ -42,7 +44,7 @@ public class GuessJFrame extends JFrame {
 		public void actionPerformed(ActionEvent event) {
 		    if (event.getActionCommand().equals("Dock")) {
 			getContentPane().removeAll();
-			hide();
+			setVisible(false);
 			Guess.getMainUIWindow().dock(dc);
 		    }
 		}
@@ -67,8 +69,8 @@ public class GuessJFrame extends JFrame {
     }
 
     public void initMenus() {
-
-	jm.putClientProperty(Options.HEADER_STYLE_KEY, Boolean.TRUE);
+    
+	jm.putClientProperty(Options.HEADER_STYLE_KEY, HeaderStyle.SINGLE);
 	JMenu fileMenu = new JMenu("File");
 	JMenuItem jmi = new JMenuItem("Export Image");
 	jmi.addActionListener(new ActionListener() {

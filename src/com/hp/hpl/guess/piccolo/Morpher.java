@@ -9,6 +9,8 @@ import edu.umd.cs.piccolo.activities.*;
 import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.PRoot;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * @pyobj Morpher
@@ -18,12 +20,26 @@ public class Morpher {
 
     private static Color invisiblecolor = null;
 
-
+    private static Set<ActionListener> actionListeners = new HashSet<ActionListener>();
+    
+    
+    public static void addActionListener(ActionListener aAl) {
+    	actionListeners.add(aAl);
+    }
+    
+    public static void removeActionListener(ActionListener aAl) {
+    	actionListeners.remove(aAl);
+    }
+    
     public static Color getInvisible() {
 	return(invisiblecolor);
     }
 
     public static void morph(Graph g, String state, long duration) {
+    	morph(g, state, duration, true);
+    }
+    
+    public static void morph(final Graph g, final String state, long duration, boolean blockEvents) {
 	// 500
 	
 	Color background = 
@@ -34,7 +50,7 @@ public class Morpher {
 		      background.getGreen(),
 		      0);
 
-	StorageListener sl = StorageFactory.getSL();
+	final StorageListener sl = StorageFactory.getSL();
 
 	Vector v = sl.getNodesNotInCurrent(g,state);
 	for (int i = 0 ; i < v.size() ; i++) {
@@ -104,9 +120,9 @@ public class Morpher {
 	GuessEdgeActivity[] eActs = new GuessEdgeActivity[eset.size()];
 
 	EdgeSchema es = g.getEdgeSchema();
-	fields = new Field[]{ns.getField("color"),
-			     ns.getField("visible"),
-			     ns.getField("width")};
+	fields = new Field[]{es.getField("color"),
+				es.getField("visible"),
+				es.getField("width")};
 	
 	it = eset.iterator();
 
@@ -145,9 +161,25 @@ public class Morpher {
 	    eActs[i].setStartTime(start);
 	    pas.addActivity(eActs[i]);
 	}
+
 	
-	pr.waitForActivities();
-	sl.loadState(g,state);
+	if (blockEvents) {
+		pr.waitForActivities();
+		sl.loadState(g,state);
+		
+	} else {
+		pas.addActivity(new PActivity(0, 0, start + duration) {
+			protected  void	activityFinished() {
+				sl.loadState(g,state);
+				Iterator<ActionListener> alIterator = actionListeners.iterator();
+		    	while (alIterator.hasNext()) {
+		    		alIterator.next().actionPerformed(new ActionEvent(this, 0, "finished"));
+		    	}
+			}
+		}, true);
+	}
+	
+	
     }
 
     public static void morph(Graph g, int state, long duration) {

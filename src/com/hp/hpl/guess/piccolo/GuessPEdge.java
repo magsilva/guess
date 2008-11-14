@@ -1,25 +1,23 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
 import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
-import edu.umd.cs.piccolo.activities.*;
 import java.util.*;
 
 import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
 
 public class GuessPEdge extends PPath implements EdgeListener {
     
-    private Edge owner = null;
+	private static final long serialVersionUID = 1L;
+
+	private Edge owner = null;
     
     private GFrame frame = null;
 
@@ -61,7 +59,12 @@ public class GuessPEdge extends PPath implements EdgeListener {
 		    labelColor = 
 			(Colors.getColor((String)o,(Color)getColor()));
 		}
-	    }
+	    } else if (field.equals("opacity")) {
+			if (o instanceof Float) {
+				setTransparency((Float)o);
+			}
+		}
+	    
 	    if (Guess.getMTF()) 
 		moveToFront();
 	} catch (Exception e) {
@@ -115,8 +118,13 @@ public class GuessPEdge extends PPath implements EdgeListener {
     }
 
     public void setLineWidth(double width) {
-	setStroke(new BasicStroke((float)width));
-	readjust();
+        if (Guess.getZooming() == Guess.ZOOMING_SPACE) {
+        	setStroke(new PFixedWidthStroke((float)width));
+        } else {
+        	setStroke(new BasicStroke((float)width));
+        }
+
+        readjust();
     }
 
     Color curcolor = Color.black;
@@ -207,7 +215,11 @@ public class GuessPEdge extends PPath implements EdgeListener {
     }
 
     public double getLineWidth() {
-	return((double)((BasicStroke)getStroke()).getLineWidth());
+    	if (getStroke() instanceof PFixedWidthStroke) {
+    		return((double)((PFixedWidthStroke)getStroke()).getLineWidth());
+    	} else {
+    		return((double)((BasicStroke)getStroke()).getLineWidth());
+    	}
     }
 
 
@@ -241,7 +253,7 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	}
     }
 
-    private static LabelText labelText = new LabelText(new Point2D.Double(0,0));
+    private static LabelText labelText = new LabelText();
     public void highlightOld(boolean state) {
 	if (labelText.getParent() == null) {
 	    frame.labels.addChild(labelText);
@@ -313,53 +325,53 @@ public class GuessPEdge extends PPath implements EdgeListener {
     }
 
     public void readjust() {
-	java.util.List l = 
-	    new java.util.ArrayList(owner.getIncidentVertices());
-	GuessPNode node1 = (GuessPNode)((Node)l.get(0)).getRep();
-	GuessPNode node2 = node1;
-	if (l.size() > 1) {
-	    node2 = (GuessPNode)((Node)l.get(1)).getRep();
-	}
-	if (node1 != node2) {
-	    if (VisFactory.getFactory().getDirected()) {
-		
-		Point2D pa = new Point2D.Double(0,0);
-		Point2D pb = new Point2D.Double(0,0);
-		findEndPoints(node1,node2,pa,pb);
-		double x1 = pa.getX();
-		double y1 = pa.getY();
-		double x2 = pb.getX();
-		double y2 = pb.getY();
+    	java.util.List l = 
+    	    new java.util.ArrayList(owner.getIncidentVertices());
+    	GuessPNode node1 = (GuessPNode)((Node)l.get(0)).getRep();
+    	GuessPNode node2 = node1;
+    	if (l.size() > 1) {
+    	    node2 = (GuessPNode)((Node)l.get(1)).getRep();
+    	}
+    	if (node1 != node2) {
+    	    if (VisFactory.getFactory().getDirected()) {
+    		
+    		Point2D pa = new Point2D.Double(0,0);
+    		Point2D pb = new Point2D.Double(0,0);
+    		findEndPoints(node1,node2,pa,pb);
+    		double x1 = pa.getX();
+    		double y1 = pa.getY();
+    		double x2 = pb.getX();
+    		double y2 = pb.getY();
 
 
-		if (VisFactory.getFactory().getDirected()) {
-		    // get angle of line from 0 - 360
-		    double cx = (x1 + x2)/2;
-		    double cy = (y1 + y2)/2;
-		    double thetaRadians = 
-			Math.atan2(( y1 - y2),
-				   (x1 - x2));
-		    double buffer = Math.max(2,
-					     Arrow.getArrowLength(x1,y1,
-								  x2,y2,
-								  getLineWidth()) / 2);
-		    //System.out.println(" " + buffer);
+    		if (VisFactory.getFactory().getDirected()) {
+    		    // get angle of line from 0 - 360
+    			if (Guess.getZooming()==Guess.ZOOMING_ZOOM) {
+    		    double cx = (x1 + x2)/2;
+    		    double cy = (y1 + y2)/2;
+    		    double thetaRadians = Math.atan2(( y1 - y2), (x1 - x2));
+    		    double buffer = Math.max(2,
+    		    		Arrow.getArrowLength(x1,y1, x2,y2, getLineWidth()) / 2);
+    		    //System.out.println(" " + buffer);
 
-		    double radius = (Math.sqrt(Math.pow(x1-x2,2)+
-					       Math.pow(y1-y2,2)) / 2)-buffer;
+    		    double radius = (Math.sqrt(Math.pow(x1-x2,2)+
+    					       Math.pow(y1-y2,2)) / 2)-buffer;
 
-		    double tx1 = radius * Math.cos(thetaRadians) + cx;
-		    double ty1 = radius * Math.sin(thetaRadians) + cy;
+    		    double tx1 = radius * Math.cos(thetaRadians) + cx;
+    		    double ty1 = radius * Math.sin(thetaRadians) + cy;
 
-		    thetaRadians += Math.PI;
+    		    thetaRadians += Math.PI;
 
-		    double tx2 = radius * Math.cos(thetaRadians) + cx;
-		    double ty2 = radius * Math.sin(thetaRadians) + cy;
+    		    double tx2 = radius * Math.cos(thetaRadians) + cx;
+    		    double ty2 = radius * Math.sin(thetaRadians) + cy;
 
-		    setShape(new Line2D.Double(tx1,ty1,tx2,ty2));
-		} else {
-		    setShape(new Line2D.Double(x1,y1,x2,y2));
-		}
+    		    setShape(new Line2D.Double(tx1,ty1,tx2,ty2));
+    			} else {
+    		    setShape(new Line2D.Double(x1,y1,x2,y2));
+    			}
+    		} else {
+    		    setShape(new Line2D.Double(x1,y1,x2,y2));
+    		}
 
 		if (owner instanceof DirectedEdge) {
 		    if (((Node)(((DirectedEdge)owner).getSource())).getRep() == node1) {
@@ -620,7 +632,7 @@ public class GuessPEdge extends PPath implements EdgeListener {
     public static String[] breakupLines(String text) { 
 	String[] toRet = null;
 	StringTokenizer st = new StringTokenizer(text,"\n");
-	Vector v = new Vector();
+	Vector<String> v = new Vector<String>();
 	while (st.hasMoreTokens()) {
 	    v.addElement(st.nextToken());
 	}
@@ -647,11 +659,10 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	}
 	
 	FontMetrics fontMetrics = 
-	    Toolkit.getDefaultToolkit().getFontMetrics(font); 
+		Toolkit.getDefaultToolkit().getFontMetrics(font); 
 	
 	int fontHeight = fontMetrics.getHeight(); 
-	int fontAscent = fontMetrics.getAscent(); 
-	
+
 	int num_lines = multiLineLabel.length; 
 	float height; 
 	int i; 
@@ -695,13 +706,19 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	    return;
 	}
 
+	
+	double arrowWidth = getLineWidth(); 
+	if (Guess.getZooming()==Guess.ZOOMING_SPACE) {
+		arrowWidth = arrowWidth * (1/frame.getGCamera().getViewScale());
+	}
+	
 	if (arrow_style == ARROW_BOTH) {
-	    Arrow.drawArrow(g2,p1,p2,Arrow.SLEEK,getLineWidth());
-	    Arrow.drawArrow(g2,p2,p1,Arrow.SLEEK,getLineWidth());
+	    Arrow.drawArrow(g2,p1,p2,Arrow.SLEEK,arrowWidth);
+	    Arrow.drawArrow(g2,p2,p1,Arrow.SLEEK,arrowWidth);
 	} else if (arrow_style == ARROW_START) {
-	    Arrow.drawArrow(g2,p2,p1,Arrow.SLEEK,getLineWidth());
+	    Arrow.drawArrow(g2,p2,p1,Arrow.SLEEK,arrowWidth);
 	} else if (arrow_style == ARROW_END) {
-	    Arrow.drawArrow(g2,p1,p2,Arrow.SLEEK,getLineWidth());
+	    Arrow.drawArrow(g2,p1,p2,Arrow.SLEEK,arrowWidth);
 	}
 
 

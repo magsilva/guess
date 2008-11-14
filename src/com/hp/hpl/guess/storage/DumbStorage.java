@@ -10,7 +10,17 @@ public class DumbStorage implements StorageListener {
 
     public DumbStorage() {
     }
+    
+    //private HashSet<StorageEventListener> listeners = new HashSet<StorageEventListener>();
+    public void addStorageEventListener(StorageEventListener eventListener) {
+    //	listeners.add(eventListener);
+    	throw(new Error("Unsupported function"));
+    }
 
+    public void deleteState(String state) {
+    	System.err.println("deleteState is not implementet yet.");
+    }
+    
     public void findMatchingNodes(Query q) {
 	Iterator it = q.getGraph().getVertices().iterator();
 	while (it.hasNext())

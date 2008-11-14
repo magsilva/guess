@@ -1,36 +1,60 @@
 
 package com.hp.hpl.guess;
 
-import java.awt.*;
+import gnu.getopt.Getopt;
+import gnu.getopt.LongOpt;
+
+import java.applet.AppletContext;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
-
-import javax.swing.*;
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Properties;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
-import com.hp.hpl.guess.*;
-import org.python.core.*;
-import org.python.util.*;
+import javax.swing.UIManager;
 
-import edu.uci.ics.jung.graph.*;
-import com.hp.hpl.guess.storage.*;
-import com.hp.hpl.guess.ui.*;
-import gnu.getopt.*;
+import org.python.core.PyException;
+import org.python.core.PyFunction;
+import org.python.core.PySyntaxError;
+import org.python.core.PySystemState;
+import org.python.util.PythonInterpreter;
+
+import com.hp.hpl.guess.action.GActionManager;
+import com.hp.hpl.guess.action.GStateAction;
+import com.hp.hpl.guess.animation.AnimationFactory;
+import com.hp.hpl.guess.layout.Neighbour;
+import com.hp.hpl.guess.layout.Radial;
+import com.hp.hpl.guess.piccolo.GFrame;
 import com.hp.hpl.guess.r.R;
-import com.hp.hpl.guess.util.GuessPyStringMap;
-import java.applet.AppletContext;
+import com.hp.hpl.guess.storage.StorageFactory;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.FrameListener;
+import com.hp.hpl.guess.ui.GMenuBar;
+import com.hp.hpl.guess.ui.GraphEvents;
+import com.hp.hpl.guess.ui.InfoWindow;
+import com.hp.hpl.guess.ui.MainUIWindow;
+import com.hp.hpl.guess.ui.NodeEditorPopup;
+import com.hp.hpl.guess.ui.ShapeDB;
+import com.hp.hpl.guess.ui.StatusBar;
+import com.hp.hpl.guess.ui.SunFileFilter;
+import com.hp.hpl.guess.ui.TextPaneJythonConsole;
+import com.hp.hpl.guess.ui.VideoWindow;
+import com.hp.hpl.guess.ui.VisFactory;
+import com.hp.hpl.guess.ui.welcomeDialog;
 import com.hp.hpl.guess.util.intervals.Tracker;
-
-import com.jgoodies.looks.FontSizeHints;
-import com.jgoodies.looks.LookUtils;
 import com.jgoodies.looks.Options;
-import com.jidesoft.utils.Lm;
+import com.jidesoft.plaf.LookAndFeelFactory;
 
 
 /**
@@ -82,7 +106,7 @@ public class Guess
     /**
      * we also can take a list of files to execute
      */
-    private static Vector pythonToExec = null;
+    private static Vector<String> pythonToExec = null;
 
     /**
      * are we running inside an applet
@@ -112,7 +136,12 @@ public class Guess
     /**
      * Internal or external consoel
      */
-    public static boolean guiMode = true;    
+    public static boolean guiMode = true;   
+    
+    /**
+     * Rendering quality
+     */
+    private static int renderQuality = 3;
     
     /**
      * allow multiple edges between nodes?
@@ -120,10 +149,55 @@ public class Guess
     private static boolean multiEdge = false;
 
     /**
+     * Object to get user preferences set by the menu
+     */
+	private static Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
+
+	/**
      * Object to save user preferences
      */
 	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");    
-    
+	
+	
+	/**
+	 * Zooming or Spacing
+	 */
+	public static final int ZOOMING_ZOOM = 1;
+	public static final int ZOOMING_SPACE = 2;
+	private static int zoomingMode = userPrefs.getInt("zoomingMode", Guess.ZOOMING_ZOOM);
+	
+	public static void setZooming(int zoom) {
+		// Not a new zooming mode
+		if (zoom==zoomingMode) return;
+		
+		// Just for Piccolo atm
+		if ((zoom == ZOOMING_SPACE) && (VisFactory.getUIMode()!=VisFactory.PICCOLO)) {
+			System.err.println("Spacing is just implemented for Piccolo at the moment.");
+			return;
+		}
+		
+		zoomingMode = zoom;
+		
+		// Save current mode
+		userPrefs.putInt("zoomingMode", zoom);
+		
+		// Scale to 1
+		((GFrame)myF).getCamera().setViewScale(1);
+		
+		// Reinit strokes, so that a PFixedWidthStroke is
+		// used instead of BasicStroke if zoomingMode is 
+		// ZOOMING_SPACE, or the other way around if 
+		// ZOOMING_ZOOM is used.
+		interpSingleton.exec("g.edges.width = g.edges.width");
+		interpSingleton.exec("g.nodes.strokewidth = 1.5");
+		
+		// center view
+		((GFrame)myF).centerFast();
+	}
+	
+	public static int getZooming() {
+		return zoomingMode;
+	}
     /**
      * allow multiple edges
      */
@@ -222,7 +296,7 @@ public class Guess
      * set the frame used for synchro issues
      * @param gf the frame 
      */
-    private static void setFrame(FrameListener gf) {
+    public static void setFrame(FrameListener gf) {
 	myF = gf;
     }
 
@@ -295,17 +369,16 @@ public class Guess
     public static void main(String[] argv)
 	throws Exception {
 
-	Lm.verifyLicense("GUESS", "GUESS",
-			 "kaiS04IaJ.QjUq.ZLB0OWobuNMddGb41");
+	//Lm.verifyLicense("GUESS", "GUESS",
+	//		 "kaiS04IaJ.QjUq.ZLB0OWobuNMddGb41");
 
 	try {
-	    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-
+		//UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
 	    configureUI();
 	} catch (Exception lnfe) { 
 	}
 	
-	LongOpt[] longopts = new LongOpt[14];
+	LongOpt[] longopts = new LongOpt[16];
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
@@ -327,8 +400,10 @@ public class Guess
 	longopts[12] = new LongOpt("fileformat", 
 				  LongOpt.REQUIRED_ARGUMENT, null, 'b'); 
 	longopts[13] = new LongOpt("fitfont", 
-				   LongOpt.NO_ARGUMENT, null, 'g'); 
-
+				   LongOpt.NO_ARGUMENT, null, 'g');
+	longopts[14] = new LongOpt("reset", LongOpt.NO_ARGUMENT, null, 'r');
+	longopts[15] = new LongOpt("quality", LongOpt.REQUIRED_ARGUMENT, null, 'q'); 
+	
 	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
 	go.setOpterr(false);
 	int c;
@@ -405,6 +480,24 @@ public class Guess
 		    case 'b':
 			defaultFileFormat = go.getOptarg();
 			break;
+		    case 'r':
+			Preferences globalPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");
+			globalPrefs.removeNode();
+			globalPrefs.flush();
+			System.out.println("Settings cleared. Good Bye.");
+			System.exit(0);
+			break;
+		    case 'q':
+				try {
+					renderQuality = Integer.parseInt(go.getOptarg());
+				} catch (Exception ne) {
+					System.out.println("Quality range is from 0 to 3 with 0 being bad and 3 the best quality. Unkown value given, setting quality to " + renderQuality + ".");
+				} 
+				if (renderQuality>3) {
+					renderQuality = 0;
+					System.out.println("Quality range is from 0 to 3 with 0 being bad and 3 the best quality. Given value to big, setting quality to " + renderQuality + ".");				
+				}
+				break;
 		    case ':':
 			System.out.print("unknown option: " + (char)c + "\n");
 			break;
@@ -430,7 +523,7 @@ public class Guess
 		(argv[i].endsWith(".Py")) ||
 		(argv[i].endsWith(".PY"))) {
 		if (pythonToExec == null) {
-		    pythonToExec = new Vector();
+		    pythonToExec = new Vector<String>();
 		}
 		pythonToExec.addElement(argv[i]);
 	    } else {
@@ -540,78 +633,41 @@ public class Guess
      * process (see the main loop for an example)
      */
     public static void getDataBase() {
-    	// Create Buttons
-    	JButton btnOpenDatabase = new JButton("Open Database...");
-    	btnOpenDatabase.setMnemonic('O');
-    	JButton btnImportGraph = new JButton("Import Graph...");
-    	btnImportGraph.setMnemonic('I');
-    	JButton btnCreateEmpty = new JButton("Create Empty");
-    	btnCreateEmpty.setMnemonic('C');    	
-		Object[] options = new Object[]{btnOpenDatabase, btnImportGraph, btnCreateEmpty};
+    	
+    	final welcomeDialog wd = new welcomeDialog();
+    	wd.setVisible(true);
+    	
+    	int wdResult = wd.getUsersChoice();
 
-	    
-		// Create Dialog
-		JOptionPane pane = new JOptionPane((Object)"What kind of database do you want GUESS to start with?", 
-				 JOptionPane.PLAIN_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, null, options, options[userPrefs.getInt("LastButtonSelection", 0)]);
-		
-		final JDialog jd = pane.createDialog("Choose Database - GUESS");
+    	
+    	if (wdResult==-1) {
+    		getDataBase();
+    		return;
+    		
+    	} else if ((wdResult==wd.DB_OPEN_DATABASE) && 
+    		(existingChooser(wd.getFileNameOpenDatabase()))) {
+    		return;
+    		
+    	} else if ((wdResult==wd.DB_IMPORT_GRAPH_MEMORY) && 
+    			(newChooser(false, wd.getFileNameImportGraph(),
+    					wd.getNameImportGraph(), wd.getDirectoryImportGraph()))) {
+    		return;
+    	} else if ((wdResult==wd.DB_IMPORT_GRAPH_PERSISTENT) && 
+    			(newChooser(true, wd.getFileNameImportGraph(),
+    					wd.getNameImportGraph(), wd.getDirectoryImportGraph())))  {
+    		return;
+    	} else if ((wdResult==wd.DB_CREATE_EMPTY) && (emptyChooser())) {
+    		return;
+    		
+    	} else {
+    		System.out.println("Could not create a database.");
+    		System.exit(0);
+    	}
 
-		// Set Window Icon
-		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
-		jd.setIconImage(imageIcon.getImage());
-		
-		
-		try {
-			jd.addWindowListener(new WindowAdapter() {
-				public void windowClosing(WindowEvent e) {
-					// User did not choose anything but to exit 
-					System.exit(0);
-				}
-			});
-			
-		} catch (SecurityException e) {
-			// expected from applets
-		    System.err.println("Could not add Window Listener");
-		}		
+   
+    getDataBase();
+	return;
 
-		
-		
-		//Create ActionListener for Buttons
-		ActionListener listChooseDB = new ActionListener() {
-			public void actionPerformed(ActionEvent ae){
-				if (ae.getActionCommand().equals("Open Database...")) {
-				    // user wants an existing database, let them
-				    // pick one and then return
-					userPrefs.putInt("LastButtonSelection", 0);
-				    if (existingChooser()) {
-				    	jd.dispose();
-				    	return;
-				    }
-				} else if (ae.getActionCommand().equals("Import Graph...")) {
-				    // user wants to pick to load
-					userPrefs.putInt("LastButtonSelection", 1);
-				    if (newChooser()) {
-				    	jd.dispose();
-				    	return;
-				    }
-				} else if (ae.getActionCommand().equals("Create Empty")) {
-					// user wants an empty database
-					userPrefs.putInt("LastButtonSelection", 2);
-				    if (emptyChooser()) {
-				    	jd.dispose();
-						return;
-					 }				
-				}
-			}
-		};
-		
-		// Set ActionsListener for Buttons
-		btnOpenDatabase.addActionListener(listChooseDB);
-		btnImportGraph.addActionListener(listChooseDB);
-		btnCreateEmpty.addActionListener(listChooseDB);
-	
-		//Show Dialog
-		jd.setVisible(true);
     }
 
 
@@ -619,26 +675,10 @@ public class Guess
      * user seems to want to select from an existing database 
      * @return true if succeeded, false otherwise
      */
-    private static boolean existingChooser() {
+    private static boolean existingChooser(String fileName) {
 	try {
-	    String toLoad = userPrefs.get("OpenDatabasePath", ".");
-	    JFileChooser chooser = 
-		new JFileChooser(new File(toLoad).getCanonicalPath());
-	    SunFileFilter filter = new SunFileFilter();
-	    filter.addExtension("properties");
-	    chooser.setFileFilter(filter);
-	    int returnVal = chooser.showOpenDialog(null);
-	    
-	    if(returnVal == JFileChooser.APPROVE_OPTION) {
-		String fileName = 
-		    chooser.getSelectedFile().getAbsolutePath();
-		fileName = fileName.substring(0,fileName.length()-11);
-
-		// Save Path
-		userPrefs.put("OpenDatabasePath", chooser.getSelectedFile().getAbsolutePath());
 		StorageFactory.useDBServer(fileName);
 		return(true);
-	    }
 	} catch (Exception e) {
 	    exceptionHandle(e);
 	}
@@ -649,104 +689,58 @@ public class Guess
      * user seems to want to select from new file
      * @return true if succeeded, false otherwise
      */
-    private static boolean newChooser() {
+    private static boolean newChooser(boolean isPersistent, String fileName, 
+    		String dbName, String directory) {
 	try {
-
-	    // PICK THE FILE TO LOAD
-	    
-	    PickFile chooser = new PickFile();
-
-	    File returnVal = chooser.showDialog();
-	    
-	    if(returnVal != null) {
+    
+		String fileExtension = "";
+		File f = new File(fileName);
 		
-		String fileName = 
-		    returnVal.getAbsolutePath();
-		SunFileFilter filter = 
-		    new SunFileFilter();
-
-		String fileExtension = filter.getExtension(returnVal);
-		
-		if (chooser.isPersistent()) {
-		    String directory = 
-			chooser.getDirectory().getCanonicalPath();
-		    String dbName = chooser.getName();
-		    if (fileExtension.equalsIgnoreCase("dl")) {
-			// added for Patrick
-			StorageFactory.useDBServer(directory + 
-						   sep + 
-						   dbName);
-			StorageFactory.createEmpty();
-			
-			doLater = "g.makeFromDL(\""+
-			    fileName.replace('\\','/')+
-			    "\")";
-		    }  else if ((fileExtension.equalsIgnoreCase("xml")) ||
-				(fileExtension.equalsIgnoreCase("graphml"))) {
-			StorageFactory.useDBServer(directory + 
-						   sep + 
-						   dbName);
-			StorageFactory.createEmpty();
-			
-			doLater = "g.makeFromGML(\""+
-			    fileName.replace('\\','/')+
-			    "\")";
-		    } else if ((fileExtension.equalsIgnoreCase("net")) ||
-			       (fileExtension.equalsIgnoreCase("paj")) ||
-			       (fileExtension.equalsIgnoreCase("pajek"))) {
-			StorageFactory.useDBServer(directory + 
-						   sep + 
-						   dbName);
-			StorageFactory.createEmpty();
-			
-			doLater = "g.makeFromPajek(\""+
-			    fileName.replace('\\','/')+
-			    "\")";
-		    } else {
-			StorageFactory.useDBServer(directory + 
-						   sep + 
-						   dbName);
-			StorageFactory.loadFromFile(fileName);
-		    }
-		    return(true);
-		} else {
- 		    //System.out.println("using in memory database");
-		    if ((fileExtension.equalsIgnoreCase("dl"))) {
-			// added for Patrick
- 			StorageFactory.useDBServer();
- 			StorageFactory.createEmpty();
-
- 			doLater = "g.makeFromDL(\""+
- 			    fileName.replace('\\','/')+
- 			    "\")";
- 		    } else if ((fileExtension.equalsIgnoreCase("xml")) ||
- 			(fileExtension.equalsIgnoreCase("graphml"))) {
-
- 			StorageFactory.useDBServer();
- 			StorageFactory.createEmpty();
-
- 			doLater = "g.makeFromGML(\""+
- 			    fileName.replace('\\','/')+
- 			    "\")";
- 		    } else if ((fileExtension.equalsIgnoreCase("net")) ||
-			       (fileExtension.equalsIgnoreCase("paj")) ||
-			       (fileExtension.equalsIgnoreCase("pajek"))) {
-
- 			StorageFactory.useDBServer();
- 			StorageFactory.createEmpty();
-
- 			doLater = "g.makeFromPajek(\""+
- 			    fileName.replace('\\','/')+
- 			    "\")";
- 		    } else { 
- 			StorageFactory.useDBServer();
-			StorageFactory.loadFromFile(fileName);
-		    }
- 		    return(true);
-		}
-	    } else {
-		return(false);
+	    if (f.exists()) {
+	    	SunFileFilter filter = new SunFileFilter();
+	    	fileExtension = filter.getExtension(f);
 	    }
+	    
+		if (fileExtension.equalsIgnoreCase("dl")) {
+			// added for Patrick
+		    if (isPersistent) {
+				StorageFactory.useDBServer(directory + sep + dbName);
+			} else {
+				StorageFactory.useDBServer();
+			}
+			StorageFactory.createEmpty();
+			doLater = "g.makeFromDL(\""+ fileName.replace('\\','/')+"\")";
+				
+		}  else if ((fileExtension.equalsIgnoreCase("xml")) ||
+			(fileExtension.equalsIgnoreCase("graphml"))) {
+		    if (isPersistent) {
+				StorageFactory.useDBServer(directory + sep + dbName);
+			} else {
+				StorageFactory.useDBServer();
+			}
+			StorageFactory.createEmpty();
+			doLater = "g.makeFromGML(\""+fileName.replace('\\','/')+ "\")";
+				
+		} else if ((fileExtension.equalsIgnoreCase("net")) ||
+			   (fileExtension.equalsIgnoreCase("paj")) ||
+			   (fileExtension.equalsIgnoreCase("pajek"))) {
+		    if (isPersistent) {
+				StorageFactory.useDBServer(directory + sep + dbName);
+			} else {
+				StorageFactory.useDBServer();
+			}
+			StorageFactory.createEmpty();
+			doLater = "g.makeFromPajek(\""+ fileName.replace('\\','/')+ "\")";
+				
+		} else {
+		    if (isPersistent) {
+				StorageFactory.useDBServer(directory + sep + dbName);
+			} else {
+				StorageFactory.useDBServer();
+			}
+			StorageFactory.loadFromFile(fileName);
+		}
+		return(true);
 	} catch (Exception e) {
 	    exceptionHandle(e);
 	}
@@ -772,27 +766,16 @@ public class Guess
     /**
      * do some initial setup to the UI look and feel
      */
-    public static void configureUI() {
-	//ClearLookManager.setMode(ClearLookMode.DEBUG);
-
-        UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
-        Options.setGlobalFontSizeHints(FontSizeHints.MIXED);
-        Options.setDefaultIconSize(new Dimension(18, 18));
-        
-        String lafName =
-            LookUtils.IS_OS_WINDOWS_XP
-                ? Options.getCrossPlatformLookAndFeelClassName()
-                : Options.getSystemLookAndFeelClassName();
-
-
-	//	System.out.println(lafName + " " + LookUtils.IS_OS_WINDOWS_XP);
-
+    public static void configureUI() {      	   
         try {
-            UIManager.setLookAndFeel(lafName);
+            UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
+            UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
+            LookAndFeelFactory.setDefaultStyle(LookAndFeelFactory.VSNET_STYLE_WITHOUT_MENU);
         } catch (Exception e) {
             System.err.println("Can't set look & feel");
-	    exceptionHandle(e);
+            exceptionHandle(e);
         }
+        
     }
 
     static BufferedReader reader = null;
@@ -895,13 +878,10 @@ public class Guess
 	    textMode = false;
 	}
 
-	//System.out.println("before");
-
 	final InterpreterAbstraction interp = getInterpreter();
 
-	//System.out.println("after");
 	final int uiMode2 = uiMode;
-
+	
 	try {
 	    javax.swing.SwingUtilities.invokeAndWait(new Runnable() { 
 		    public void run() {
@@ -911,11 +891,19 @@ public class Guess
 	} catch (Exception e) {
 	    exceptionHandle(e);
 	}
+	
+	// Set animation factory
+	AnimationFactory.setFactory(uiMode);
 	  
-
 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
-	myF = myFrame;
-	myF.setDisplayBackground(Color.black);
+	setFrame(myFrame);
+	
+	// Set the background color
+	int colorred = userPrefsMenu.getInt("backgroundcolor-red", Color.black.getRed());
+	int colorgreen = userPrefsMenu.getInt("backgroundcolor-green", Color.black.getGreen());
+	int colorblue = userPrefsMenu.getInt("backgroundcolor-blue", Color.black.getBlue());
+	myF.setDisplayBackground(new Color(colorred, colorgreen, colorblue));
+	myF.setQuality(renderQuality);
 
 	try {
 	    g = new Graph(myFrame, interp, multiEdge);
@@ -934,15 +922,15 @@ public class Guess
 	interp.exec("nodes = g.vertices");
 	interp.exec("edges = g.edges");
 	*/
-	Iterator nodes = g.getVertices().iterator();
+	Iterator<?> nodes = g.getVertices().iterator();
 	while (nodes.hasNext())
 	    {
 		Node node = (Node)nodes.next();
 		interp.setImmutable(node.getName(), node);
 	    }
-	Enumeration en = Colors.colors.keys();
+	Enumeration<String> en = Colors.colors.keys();
 	while(en.hasMoreElements()) {
-	    String key = (String)en.nextElement();
+	    String key = en.nextElement();
 	    Color val = (Color)Colors.colors.get(key);
 	    interp.setImmutable(key,val.toString());
 	}
@@ -950,6 +938,82 @@ public class Guess
 	if (g.containsDirected()) {
 	    VisFactory.getFactory().setDirected(true);
 	}
+	
+	
+	
+	// set context menu layouts
+	NodeEditorPopup.addLayoutItem("Neighbour (Level 1)").addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			GStateAction layoutAction = new GStateAction() {
+				public void actionContent() {
+					Iterator<GraphElement> nodeIterator = NodeEditorPopup.getSelected().iterator();
+					while (nodeIterator.hasNext()) {
+						GraphElement next = (GraphElement) nodeIterator.next();
+						if (next instanceof Node) {
+							Guess.getGraph().layout(new Neighbour(Guess.getGraph(), (Node) next, 1));
+						}
+					}
+				}
+			};
+			GActionManager.runAction(layoutAction, "Neighbour Level 1");
+			StatusBar.setStatus("Neighbour Level 1");
+		}
+	});
+	
+	NodeEditorPopup.addLayoutItem("Neighbour (Level 2)").addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			GStateAction layoutAction = new GStateAction() {
+				public void actionContent() {
+					Iterator<GraphElement> nodeIterator = NodeEditorPopup.getSelected().iterator();
+					while (nodeIterator.hasNext()) {
+						GraphElement next = (GraphElement) nodeIterator.next();
+						if (next instanceof Node) {
+							Guess.getGraph().layout(new Neighbour(Guess.getGraph(), (Node) next, 2));
+						}
+					}
+				}
+			};
+			GActionManager.runAction(layoutAction, "Neighbour Level 2");
+			StatusBar.setStatus("Neighbour Level 2");
+		}
+	});
+	
+	NodeEditorPopup.addLayoutItem("Neighbour (Level 3)").addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			GStateAction layoutAction = new GStateAction() {
+				public void actionContent() {
+					Iterator<GraphElement> nodeIterator = NodeEditorPopup.getSelected().iterator();
+					while (nodeIterator.hasNext()) {
+						GraphElement next = (GraphElement) nodeIterator.next();
+						if (next instanceof Node) {
+							Guess.getGraph().layout(new Neighbour(Guess.getGraph(), (Node) next, 3));
+						}
+					}
+				}
+			};
+			GActionManager.runAction(layoutAction, "Neighbour Level 3");
+			StatusBar.setStatus("Neighbour Level 3");
+		}
+	});
+	
+	NodeEditorPopup.addLayoutItem("Radial").addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			GStateAction layoutAction = new GStateAction() {
+				public void actionContent() {
+					Iterator<GraphElement> nodeIterator = NodeEditorPopup.getSelected().iterator();
+					while (nodeIterator.hasNext()) {
+						GraphElement next = (GraphElement) nodeIterator.next();
+						if (next instanceof Node) {
+							Guess.getGraph().layout(new Radial(Guess.getGraph(), (Node) next));
+						}
+					}
+				}
+			};
+			GActionManager.runAction(layoutAction, "Radial Layout");
+			StatusBar.setStatus("Radial Layout");
+		}
+	});
+	
     }
 
     public static void initRest(int uiMode, boolean guiMode, boolean textMode) 
@@ -1021,7 +1085,7 @@ public class Guess
 	//interp.set("cs",cs);
 	//cs.setVisible(true);
 
-	Iterator fields = g.getEdgeSchema().fields();
+	Iterator<?> fields = g.getEdgeSchema().fields();
 	while (fields.hasNext())
 	{
 		Field field = (Field)fields.next();
@@ -1045,8 +1109,6 @@ public class Guess
 			tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
 		    myWin.dock(tpjc);
 		    
-			Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
-			
 			// Show console?
 			if (!userPrefsMenu.getBoolean("openConsole", true)) {
 				getMainUIWindow().close(tpjc);
@@ -1055,6 +1117,10 @@ public class Guess
 			if (userPrefsMenu.getBoolean("openInformationWindow", false)) {
 				InfoWindow.create();
 			}
+			// show video window?
+			if (userPrefsMenu.getBoolean("openVideoWindow", false)) {
+				VideoWindow.create();
+			}			
 			// run in fullscreen?
 			if (userPrefsMenu.getBoolean("openFullscreen", false)) {
 				Guess.getMainUIWindow().setFullScreenMode(true);
@@ -1083,9 +1149,9 @@ public class Guess
 	} 
 	
 	if (pythonToExec != null) {
-	    Iterator it = pythonToExec.iterator();
+	    Iterator<String> it = pythonToExec.iterator();
 	    while(it.hasNext()) {
-		final String fl = (String)it.next();
+		final String fl = it.next();
 		try {
 		    javax.swing.SwingUtilities.invokeAndWait(new Runnable() { 
 			    public void run() {
@@ -1156,16 +1222,13 @@ public class Guess
 					catch(Throwable e2) {
 					    exceptionHandle(e2);	    
 					}
-					StatusBar.runProgressBar(false);
 				    } catch(Throwable e3) {
 					exceptionHandle(e3);
-					StatusBar.runProgressBar(false);
 				    }
 				myFrame.repaint();
 			    } 
 			}); 
 		} catch (InterruptedException e) {
-		    StatusBar.runProgressBar(false);
 		    exceptionHandle(e);
 		}
 		checkFrozen(interp);
@@ -1237,3 +1300,4 @@ public class Guess
 	    }
     }
 }
+

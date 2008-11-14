@@ -2,16 +2,24 @@ package com.hp.hpl.guess.piccolo;
 
 import java.awt.*;
 import java.awt.geom.*;
+
+import com.hp.hpl.guess.action.GStateAction;
+import com.hp.hpl.guess.storage.StorageEventListener;
+import com.hp.hpl.guess.storage.StorageFactory;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.*;
+
 import edu.umd.cs.piccolo.PNode;
-import org.python.core.PySequence;
+import edu.umd.cs.piccolo.nodes.PText;
+
 import java.util.Collection;
 
-public class PFactory extends VisFactory implements UIListener {
+public class PFactory extends VisFactory implements UIListener, StorageEventListener {
 
     private GFrame curFrame = null;
-
+    PText titleText = new PText();
+    Thread titleThread = null;
+    
     private static long lastModTime = System.currentTimeMillis();
     
     public static void updateTime() {
@@ -22,10 +30,36 @@ public class PFactory extends VisFactory implements UIListener {
 	return(lastModTime);
     }
 
+    private void initTitleText() {
+    	titleText.setConstrainHeightToTextHeight(true);
+    	titleText.setConstrainWidthToTextWidth(true);
+    	titleText.scale(2);
+    	titleText.setPaint(new Color(100,100,100,210));
+    	titleText.setTextPaint(Color.WHITE);
+    	titleText.setOffset(25, 25);
+    }
+    
+ 
+    int time = 5000;
+    public void stateLoaded(String state) {
+    	showTitle(state, time);
+    }
+
+    public void stateSaved(String state) {
+    	showTitle(state, time);
+    }
+
+    
     public PFactory() {
 	init();
 	GraphEvents.getGraphEvents().addGraphMouseListener(this);
-    }
+	StorageFactory.getSL().addStorageEventListener(this);
+	
+	initTitleText();
+	curFrame.getCamera().addChild(titleText);
+	
+	}
+
 
     public GFrame init() {
 	//	System.out.println("init called...");
@@ -321,6 +355,65 @@ public class PFactory extends VisFactory implements UIListener {
 
     public Collection getConvexHulls() {
 	return(hulls);
+    }
+    
+    /**
+     * Shows a title in the frame
+     * @param title the title to show
+     * @param time time in ms till title is removed
+     */
+    public void showTitle(final String title, final long timeout) {
+    	if (title.charAt(0)==GStateAction.delimiter.charAt(0)) {
+    		return;
+    	}
+    	
+    	if (titleThread!=null) {
+    		titleThread.stop();
+    	}
+    	
+    	titleThread = new Thread(new Runnable() {
+
+    		public void run() {
+    			// Show title
+    			titleText.setText(title);
+    	    	titleText.setTransparency(1.0f);
+    	    	titleText.validateFullPaint();
+    	    	
+    	    	// Wait
+    	    	synchronized (this) {
+	    	    	try {
+	    	      		   wait(timeout);
+	    	      	} catch ( InterruptedException e ) {
+	    	      		e.printStackTrace();
+	    	      	}
+    	    	}
+    	    	
+    			// Fade out and remove title
+    	    	long animationDuration = 5000;
+    	    	titleText.animateToTransparency(0, animationDuration);
+			}
+    			
+    		}
+    	);
+
+    	
+    	if (timeout==-1) {
+			// Just show title
+			titleText.setText(title);
+	    	titleText.setTransparency(1.0f);
+	    	titleText.validateFullPaint();
+    	} else {
+    		// Show title and fade out after timeout
+    		titleThread.start();	
+    	}
+    }
+    
+    /**
+     * Sets the Color of the title text
+     * @param aColor
+     */
+    public void setTitleColor(Color aColor) {
+    	titleText.setPaint(aColor);
     }
 
     public void shiftClickNode(Node n) {

@@ -10,7 +10,6 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -34,7 +33,9 @@ import edu.umd.cs.piccolo.nodes.PText;
 public class FontDialog extends StandardDialog implements
       ListSelectionListener, ActionListener {
 
-    private static final int MIN_SIZE = 6;
+	private static final long serialVersionUID = 1L;
+	
+	private static final int MIN_SIZE = 6;
     private static final int MAX_SIZE = 72;
     private static final int DEFAULT_SIZE = 12;
 
@@ -42,10 +43,6 @@ public class FontDialog extends StandardDialog implements
 						      12 );
     public static final Font BOLD_FONT = new Font( "SansSerif", Font.BOLD, 12 );
     
-    private static final int DIALOG_ICON_SIZE = 48;
-    private static final int DIALOG_TEXT_WIDTH = Toolkit.getDefaultToolkit()
-	.getScreenSize().width / 4;
-
     private Font createdFont = DEFAULT_FONT;
     private boolean antialiased = false;
     private JLabel info;
@@ -57,7 +54,9 @@ public class FontDialog extends StandardDialog implements
     private JCheckBox antialiasBox = new JCheckBox( "Antialiased" );
     private JTextArea textArea = new JTextArea() {
 	    
-	    public void paint( Graphics g ) {
+		private static final long serialVersionUID = 1L;
+
+		public void paint( Graphics g ) {
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
 				     (antialiased ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
@@ -85,7 +84,7 @@ public class FontDialog extends StandardDialog implements
 	node = n;
 	singleton.apply();
 	singleton.setModal(true);
-	singleton.show();
+	singleton.setVisible(true);
 	return(singleton);
     }
 	    
@@ -279,7 +278,7 @@ public class FontDialog extends StandardDialog implements
     }
 
     private JComponent createSizeComp() {
-	ArrayList list = new ArrayList();
+	ArrayList<SizeEntry> list = new ArrayList<SizeEntry>();
 	for ( int i = MIN_SIZE; i < MAX_SIZE; i++ ) {
 	    list.add( new SizeEntry( new Integer( i ) ) );
 	}
@@ -323,7 +322,7 @@ public class FontDialog extends StandardDialog implements
     }
 
     private JComponent createStyleList() {
-	ArrayList list = new ArrayList();
+	ArrayList<StyleEntry> list = new ArrayList<StyleEntry>();
 	list.add( new StyleEntry( "Plain", Font.PLAIN ) );
 	list.add( new StyleEntry( "Bold", Font.BOLD ) );
 	list.add( new StyleEntry( "Italic", Font.ITALIC ) );

@@ -2,7 +2,7 @@ package com.hp.hpl.guess.layout;
 
 import java.util.*;
 import com.hp.hpl.guess.*;
-import java.awt.geom.*;
+
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
 import edu.uci.ics.jung.graph.Vertex;
@@ -25,9 +25,9 @@ public class Physics extends AbstractLayout {
 
     static final double COULOMBS_CONSTANT = (double)8987500000.0;
 
-    Hashtable pendingForces = new Hashtable();
-    Hashtable layer = new Hashtable();
-    Hashtable locations = new Hashtable();
+    Hashtable<Node, Coordinates> pendingForces = new Hashtable<Node, Coordinates>();
+    Hashtable<Node, Integer> layer = new Hashtable<Node, Integer>();
+    Hashtable<Node, Coordinates> locations = new Hashtable<Node, Coordinates>();
 
     private List my_nodes = null;
 

@@ -32,7 +32,7 @@ public abstract class Schema {
 	return fields.values().iterator();
     }
 
-    private Hashtable fields = new Hashtable();
+    private Hashtable<String, Field> fields = new Hashtable<String, Field>();
 
     public void addField(Field f) {
 	fields.put(f.getName(),f);
@@ -55,7 +55,7 @@ public abstract class Schema {
 	addField(f);
     }
 
-    public Enumeration getFields() {
+    public Enumeration<Field> getFields() {
 	return(fields.elements());
     }
 

@@ -75,4 +75,12 @@ public class JungVisNode extends SparseVertex implements NodeListener {
 	data.put("width",new Double(width));
 	data.put("height",new Double(height));
     }
+
+	public void addFieldToLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public void removeFieldFromLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
 }

@@ -1,21 +1,15 @@
 package com.hp.hpl.guess.ui;
 
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.awt.GridBagConstraints;
 
 import javax.swing.*;
-import javax.swing.SwingUtilities;
-import java.awt.*;
-import javax.swing.border.LineBorder;
+
 
 public class SimpleButton extends JButton {
 
-    private static final LineBorder unclicked = new LineBorder(Color.gray,1);
-    private static final LineBorder clicked = new LineBorder(Color.blue,1);
+	private static final long serialVersionUID = 1L;
 
-    Dimension size = new Dimension(20,20);
+	Dimension size = new Dimension(20,20);
     
     public int bType = 0;
     
@@ -29,25 +23,20 @@ public class SimpleButton extends JButton {
 	this.bType = bType;
 	if (tt != null)
 	    setToolTipText(tt);
-	setBorder(unclicked);
     }
     
     public void click(boolean state) {
-	if(state) {
-	    setBorder(clicked);
-	} else {
-	    setBorder(unclicked);
-	}
+	    setSelected(state);
     }
 
     public Dimension getMinimumSize() {
-	return(size);
+    	return(size);
     }
     public Dimension getMaximumSize() {
-	return(size);
+    	return(size);
     }
     
     public Dimension getPreferredSize() {
-	return(size);
+    	return(size);
     }
 }

@@ -4,6 +4,7 @@ import java.util.*;
 
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.DirectedEdge;
+import edu.uci.ics.jung.graph.Element;
 import edu.uci.ics.jung.graph.impl.DirectedSparseEdge;
 import edu.uci.ics.jung.graph.Vertex;
 import edu.uci.ics.jung.algorithms.transformation.DirectionTransformer;
@@ -14,8 +15,8 @@ public abstract class EadesGreedyDAG {
     public static void removeLoopsAndTwoCycles(DirectedGraph graph) {
 
 	// remove self loops
-	HashSet toRemove = new HashSet();
-	Iterator it = graph.getEdges().iterator();
+	HashSet<Element> toRemove = new HashSet<Element>();
+	Iterator<Element> it = graph.getEdges().iterator();
 	while(it.hasNext()) {
 	    DirectedEdge de = (DirectedEdge)it.next();
 	    if (de.getSource() == de.getDest()) {

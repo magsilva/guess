@@ -1,11 +1,8 @@
 package com.hp.hpl.guess.ui;
 
-import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
 import java.util.*;
 import com.hp.hpl.guess.*;
 
@@ -57,8 +54,8 @@ public class FieldModWindow extends JDialog {
 	private JButton applyButton = new JButton();
 	private JButton closeButton = new JButton();
 
-	Collection nodes = null;
-	Collection edges = null;
+	Collection<?> nodes = null;
+	Collection<?> edges = null;
 
 	boolean showingNodes = false;
 	boolean showingEdges = false;
@@ -78,7 +75,7 @@ public class FieldModWindow extends JDialog {
 		return (singleton);
 	}
 
-	public static FieldModWindow getFieldModWindow(Collection n, Collection e) {
+	public static FieldModWindow getFieldModWindow(Collection<?> n, Collection<?> e) {
 		if (singleton == null) {
 			singleton = new FieldModWindow(n, e);
 		} else {
@@ -87,7 +84,7 @@ public class FieldModWindow extends JDialog {
 		return (singleton);
 	}
 
-	public void setNE(Collection nodes, Collection edges) {
+	public void setNE(Collection<?> nodes, Collection<?> edges) {
 		tabbedpane.setEnabledAt(0, true);
 		tabbedpane.setEnabledAt(1, true);
 		
@@ -115,7 +112,7 @@ public class FieldModWindow extends JDialog {
 	/**
 	 * Default constructor
 	 */
-	private FieldModWindow(Collection nodes, Collection edges) {
+	private FieldModWindow(Collection<?> nodes, Collection<?> edges) {
 
 		createPanel();
 
@@ -224,9 +221,9 @@ public class FieldModWindow extends JDialog {
 	 * Fills the list of Nodes with data
 	 * @param Nodes
 	 */
-	public void loadNodesData(Collection c) {
+	public void loadNodesData(Collection<?> c) {
 		modelNodes.removeAllElements();
-		Iterator it = c.iterator();
+		Iterator<?> it = c.iterator();
 		while (it.hasNext()) {
 			modelNodes.addElement(it.next());
 		}
@@ -239,9 +236,9 @@ public class FieldModWindow extends JDialog {
 	 * Fills the list of Edges with data
 	 * @param Edges
 	 */
-	public void loadEdgesData(Collection c) {
+	public void loadEdgesData(Collection<?> c) {
 		modelEdges.removeAllElements();
-		Iterator it = c.iterator();
+		Iterator<?> it = c.iterator();
 		while (it.hasNext()) {
 			modelEdges.addElement(it.next());
 		}

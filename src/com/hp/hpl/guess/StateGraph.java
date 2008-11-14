@@ -4,35 +4,26 @@ import java.awt.*;
 import java.sql.*;
 import java.util.*;
 import com.hp.hpl.guess.piccolo.*;
-import com.hp.hpl.guess.tg.*;
-import com.hp.hpl.guess.prefuse.*;
 import com.hp.hpl.guess.storage.*;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.layout.*;
 import com.hp.hpl.guess.util.*;
 import com.hp.hpl.guess.io.*;
-import javax.swing.JOptionPane;
 
-import org.apache.commons.collections.*;
 import edu.uci.ics.jung.algorithms.cluster.*;
 import edu.uci.ics.jung.algorithms.importance.*;
 import edu.uci.ics.jung.algorithms.transformation.*;
 import edu.uci.ics.jung.graph.ArchetypeEdge;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.DirectedGraph;
-import edu.uci.ics.jung.graph.decorators.*;
 import edu.uci.ics.jung.graph.impl.*;
 import edu.uci.ics.jung.utils.*;
 import edu.uci.ics.jung.visualization.*;
 import edu.uci.ics.jung.visualization.contrib.*;
 import edu.uci.ics.jung.random.generators.*;
 import edu.uci.ics.jung.graph.ArchetypeGraph;
-import edu.uci.ics.jung.visualization.Coordinates;
 
 import org.python.core.*;
-import org.python.util.*;
-
-import com.hp.hpl.guess.ui.StatusBar;
 
 /**
  *
@@ -833,7 +824,6 @@ public class StateGraph extends Graph {
 	 * @param mi the maximum iterations
 	 */
 	public void layout(Layout lay, int mi) {
-		final Graph gt = this;
 		final Layout layout = lay;
 		final int maxIters = mi;
 
@@ -848,16 +838,14 @@ public class StateGraph extends Graph {
 		Thread thrd = new Thread(new Runnable() {
 			public void run() {
 
-				// Freeze Console and show Status Dialog
 				interp.freeze(true);
-				dialogLayoutStatus.show();
 
 				try {
 					layout.initialize(new Dimension(1000, 1000));
 					if (layout.isIncremental()) {
 						int incCounter = 0;
 						long curTime = System.currentTimeMillis();
-						while (!layout.incrementsAreDone()) {
+						while (!layout.incrementsAreDone() && !dialogLayoutStatus.isCanceled()) {
 							incCounter++;
 							layout.advancePositions();
 							long test = System.currentTimeMillis() - curTime;
@@ -866,7 +854,9 @@ public class StateGraph extends Graph {
 								// Update status Dialog and Graphframe
 								dialogLayoutStatus.setDescription("Ran " + incCounter
 										+ " loops.");
-								update();
+								if (dialogLayoutStatus.isRedrawGraph()){
+									update();
+								}
 								curTime = System.currentTimeMillis();
 							}
 
@@ -925,7 +915,11 @@ public class StateGraph extends Graph {
 					// System.out.println("trying to center");
 					if (display instanceof GFrame) {
 						// System.out.println("center fast");\
-						((GFrame) display).center(minX, minY, maxX, maxY, 500);
+						if (dialogLayoutStatus.isRedrawGraph()){
+							((GFrame) display).center(minX, minY, maxX, maxY, 500);
+						} else {
+							((GFrame) display).center(minX, minY, maxX, maxY, 0);
+						}
 						// System.out.println("post center fast");
 					} else {
 						// System.out.println("center");
@@ -935,12 +929,13 @@ public class StateGraph extends Graph {
 			}
 		});
 
-		dialogLayoutStatus.setThread(thrd);
 		if (!Guess.getSynchronous()) {
 			thrd.start();
 		} else {
 			thrd.run();
 		}
+		dialogLayoutStatus.show();
+	
 	}
 
     /**
@@ -1250,8 +1245,8 @@ public class StateGraph extends Graph {
     /**
      * 
      */
-    public Collection sortBy(PySequence seq, Field field) {
-	ArrayList list = new ArrayList();
+    public Collection<GraphElement> sortBy(PySequence seq, Field field) {
+	ArrayList<SortableGraphElement> list = new ArrayList<SortableGraphElement>();
 	for (int i = 0; i < seq.__len__(); i++) {
 	    GraphElement ge =
 		(GraphElement)((PyInstance)seq.__finditem__(i)).__tojava__(GraphElement.class);

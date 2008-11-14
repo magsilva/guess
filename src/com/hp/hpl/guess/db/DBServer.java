@@ -8,7 +8,7 @@ import org.python.core.*;
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.storage.*;
 import com.hp.hpl.guess.ui.ExceptionWindow;
-import com.hp.hpl.guess.ui.StatusBar;
+
 import javax.swing.table.AbstractTableModel;
 import edu.uci.ics.jung.exceptions.ConstraintViolationException;
 
@@ -24,7 +24,7 @@ public class DBServer implements StorageListener {
     public static final boolean NODE = true;
     public static final boolean EDGE = false;
 
-    private static HashSet tableList = new HashSet();
+    private static HashSet<String> tableList = new HashSet<String>();
 
     public Statement getStatement() throws SQLException {
        	if (conn != null) {
@@ -34,8 +34,8 @@ public class DBServer implements StorageListener {
 	}
     }
 
-    public Set getStates() {
-	HashSet hs = new HashSet(); 
+    public Set<String> getStates() {
+	HashSet<String> hs = new HashSet<String>(); 
 	try {
 	    DatabaseMetaData dmb = conn.getMetaData();
 	    ResultSet rs = dmb.getTables(null,null,null,null);
@@ -88,8 +88,8 @@ public class DBServer implements StorageListener {
 	return(tableList.contains(toTest.toLowerCase()));
     }
 
-    private Set getAllStates() {
-	HashSet hs = new HashSet(); 
+    private Set<String> getAllStates() {
+	HashSet<String> hs = new HashSet<String>(); 
 	try {
 	    DatabaseMetaData dmb = conn.getMetaData();
 	    ResultSet rs = dmb.getTables(null,null,null,null);
@@ -107,7 +107,7 @@ public class DBServer implements StorageListener {
 	return(hs);
     }
 
-    private Hashtable preparedStatements = new Hashtable();
+    private Hashtable<String, PreparedStatement> preparedStatements = new Hashtable<String, PreparedStatement>();
 
     private boolean commitState = false;
     
@@ -259,10 +259,13 @@ public class DBServer implements StorageListener {
 				     " from edges where __EDGEID = " + 
 				     e.getID());
 	    } else {
-		// value from another state
-		rs = st.executeQuery("SELECT " + toSelect.toString() + 
-				     " from edges_"+s+" where __EDGEID = " + 
-				     e.getID());
+	    	// escape state string
+	    	s = Base32.encode(s);
+	    	
+	    	// value from another state
+			rs = st.executeQuery("SELECT " + toSelect.toString() + 
+					     " from edges_"+s+" where __EDGEID = " + 
+					     e.getID());
 	    }
 	    Object[] toRet = new Object[f.length];
 	    while(rs.next()) {
@@ -298,6 +301,9 @@ public class DBServer implements StorageListener {
 				     " from nodes where name = '" + 
 				     n.getName() + "'");
 	    } else {
+	    	// escape state string
+	    	s = Base32.encode(s);
+
 		rs = st.executeQuery("SELECT " + toSelect.toString() + 
 				     " from nodes_"+s+" where name = '" + 
 				     n.getName() + "'");
@@ -332,7 +338,7 @@ public class DBServer implements StorageListener {
     public PreparedStatement getStatement(String prep) throws SQLException {
 
 	// let's see if we've cached the statement
-	PreparedStatement st = (PreparedStatement)preparedStatements.get(prep);
+	PreparedStatement st = preparedStatements.get(prep);
 
 	if (st != null) {
 	    return(st);
@@ -348,10 +354,10 @@ public class DBServer implements StorageListener {
     }
 
     public void closeStatements() {
-	Iterator it = preparedStatements.values().iterator();
+	Iterator<PreparedStatement> it = preparedStatements.values().iterator();
 	while(it.hasNext()) {
 	    try {
-		PreparedStatement ps = (PreparedStatement)it.next();
+		PreparedStatement ps = it.next();
 		ps.close();
 	    } catch (Exception e) {
 		
@@ -385,8 +391,6 @@ public class DBServer implements StorageListener {
 	    ResultSetMetaData rsmd = rs.getMetaData();
 	    int colmax = rsmd.getColumnCount();
 	    int i;
-	    Object o = null;
-	    
 	    String[] names = new String[colmax];
 	    int[] types = new int[colmax];
 	    
@@ -421,7 +425,6 @@ public class DBServer implements StorageListener {
 	    // next lets get the default values
 
 	} catch (Exception e) {
-	    
 	    ExceptionWindow.getExceptionWindow(e);
 	    throw new Error(e.toString());
 	}
@@ -513,12 +516,12 @@ public class DBServer implements StorageListener {
 		//	System.out.println(sb.toString());
 
 		// iterate on getAllStates
-		Iterator it = getAllStates().iterator();
+		Iterator<String> it = getAllStates().iterator();
 		while (it.hasNext()) {
 		    // insert the new field into ever state
 		    // we need to be able to move between states
 		    // without crashing
-		    String st = (String)it.next();
+		    String st = it.next();
 		    //System.out.println("state: " + st);
 		    if (f.getType() == Field.NODE) { 
 			update("ALTER TABLE nodes" + st + " " + sb.toString());
@@ -718,16 +721,16 @@ public class DBServer implements StorageListener {
 	
         Class.forName("org.hsqldb.jdbcDriver");
 
-	if (db_file_name_prefix.equals(".")) {
-	    conn = DriverManager.getConnection("jdbc:hsqldb:mem:aname",
-					       "sa",                 
-					       "");    
-	} else {
-	    conn = DriverManager.getConnection("jdbc:hsqldb:file:"
-					       + db_file_name_prefix,
-					       "sa",                 
-					       "");    
-	}
+        if (db_file_name_prefix.equals(".")) {
+		    conn = DriverManager.getConnection("jdbc:hsqldb:mem:aname",
+						       "sa",                 
+						       "");    
+		} else {
+		    conn = DriverManager.getConnection("jdbc:hsqldb:file:"
+						       + db_file_name_prefix,
+						       "sa",                 
+						       "");    
+		}
     }
 
     public void shutdownConn() throws SQLException {
@@ -818,10 +821,8 @@ public class DBServer implements StorageListener {
 	//System.out.println(expression);
 
         Statement st = null;
-        ResultSet rs = null;
- 
         st = conn.createStatement();
-        rs = st.executeQuery(expression); 
+        st.executeQuery(expression); 
         st.close();
     }
 
@@ -929,7 +930,7 @@ public class DBServer implements StorageListener {
     }                                       //void dump( ResultSet rs
 					    //)
 
-    public void getNodeColumn(Hashtable ht,
+    public void getNodeColumn(Hashtable<String, Object> ht,
 			      String column,
 			      String limit) throws Exception {
 	Statement st = null;
@@ -951,11 +952,11 @@ public class DBServer implements StorageListener {
 	st.close(); 
     }
 
-    private String getStateString(Set s) {
+    private String getStateString(Set<String> s) {
 	StringBuffer sb = new StringBuffer();
-	Iterator it = s.iterator();
+	Iterator<String> it = s.iterator();
 	while(it.hasNext()) {
-	    String st = (String)it.next();
+	    String st = it.next();
 	    sb.append(st);
 	    if (it.hasNext())
 		sb.append(",");
@@ -963,12 +964,12 @@ public class DBServer implements StorageListener {
 	return(sb.toString());
     }
 
-    private String getDisambigString(Set s, String col) {
+    private String getDisambigString(Set<String> s, String col) {
 	StringBuffer sb = new StringBuffer();
-	Iterator it = s.iterator();
+	Iterator<String> it = s.iterator();
 	String prev = null;
 	while(it.hasNext()) {
-	    String st = (String)it.next();
+	    String st = it.next();
 	    if (prev != null) {
 		sb.append(" AND ("+prev+"."+col+"="+st + "."+col+")");
 	    }
@@ -982,16 +983,14 @@ public class DBServer implements StorageListener {
 	    Statement st = null;
 	    ResultSet rs = null;
 	    
-	    HashSet hs = new HashSet();
-	    
 	    st = conn.createStatement();    
 
-	    Set s = q.getStates(null);
+	    Set<String> s = q.getStates(null);
 	    //s.add("nodes");
 	    String tables = getStateString(s);
 	    
-	    Iterator it = s.iterator();
-	    String first = (String)it.next();
+	    Iterator<String> it = s.iterator();
+	    String first = it.next();
 
 	    String disamb = "";
 	    if (s.size() > 1) {
@@ -1014,7 +1013,7 @@ public class DBServer implements StorageListener {
 		String name = rs.getString("name");
 		Node gn = q.getGraph().getNodeByName(name);
 		if (gn == null) {
-		    gn = (Node)unusedNodes.get(name);
+		    gn = unusedNodes.get(name);
 		}
 		//if (gn != null) 
 		//System.out.println(gn);
@@ -1031,10 +1030,8 @@ public class DBServer implements StorageListener {
 	    Statement st = null;
 	    ResultSet rs = null;
 	    
-	    HashSet hs = new HashSet();
-	    
 	    st = conn.createStatement();    
-	    Set s = q.getStates(null);
+	    Set<String> s = q.getStates(null);
 	    //s.add("nodes");
 	    String tables = getStateString(s);
 
@@ -1043,8 +1040,8 @@ public class DBServer implements StorageListener {
 		disamb = getDisambigString(s,"__EDGEID");
 	    }
 
-	    Iterator it = s.iterator();
-	    String first = (String)it.next();
+	    Iterator<String> it = s.iterator();
+	    String first = it.next();
 
 	    //System.out.println("SELECT "+first+"."+
 	    //	       "__EDGEID FROM "+tables+" WHERE " + 
@@ -1058,7 +1055,7 @@ public class DBServer implements StorageListener {
 		int name = rs.getInt("__EDGEID");
 		Edge gn = q.getGraph().getEdgeByID(new Integer(name));
 		if (gn == null) {
-		    gn = (Edge)unusedEdges.get(new Integer(name));
+		    gn = unusedEdges.get(new Integer(name));
 		}
 		//System.out.println(q + " " + gn + " " + name);
 		q.append(new PyJavaInstance(gn));
@@ -1083,16 +1080,16 @@ public class DBServer implements StorageListener {
 	    st = conn.createStatement();
 	    rs = st.executeQuery("SELECT name,label,x,y,visible,"+
 				 "color,fixed,style,width,height,"+
-				 "labelvisible,labelcolor,strokecolor,"+
+				 "labelvisible,labelcolor,strokewidth,strokecolor,"+
 				 "image,labelsize from nodes"); 
 	    
-	    Hashtable map = new Hashtable();
 	    while(rs.next()) {
 		String name = rs.getString("name");
 		double x = rs.getDouble("x");
 		double y = rs.getDouble("y");
 		String color = rs.getString("color");
 		String labelcolor = rs.getString("labelcolor");
+		double strokewidth = rs.getDouble("strokewidth");
 		String strokecolor = rs.getString("strokecolor");
 		boolean vis = rs.getBoolean("visible");
 		String label = rs.getString("label");
@@ -1103,13 +1100,14 @@ public class DBServer implements StorageListener {
 		double height = rs.getDouble("height");
 		String image = rs.getString("image");
 		int labelsize = rs.getInt("labelsize");
+		
 
 		// is it in the database
 		Node n = g.getNodeByName(name);
 
 		if (n == null) {
 		    // is it around but unused?
-		    n = (Node)unusedNodes.get(name);
+		    n = unusedNodes.get(name);
 		    if (n != null) {
 			unusedNodes.remove(name);
 		    }
@@ -1139,6 +1137,8 @@ public class DBServer implements StorageListener {
 		}
 
 		n.__setattr__("color",color);
+		n.__setattr__("labelcolor", labelcolor);
+		n.__setattr__("strokewidth", strokewidth);
 		n.__setattr__("strokecolor",strokecolor);
 		n.__setattr__("fixed",new Boolean(fixed));
 		n.__setattr__("visible",new Boolean(vis));
@@ -1172,7 +1172,7 @@ public class DBServer implements StorageListener {
 		Edge e = g.getEdgeByID(new Integer(id));
 		if (e == null) {
 		    //  System.out.println("\tnot in graph");
-		    e = (Edge)unusedEdges.get(new Integer(id));
+		    e = unusedEdges.get(new Integer(id));
 		    if (e != null) {
 			//System.out.println("\tin unused edges");
 			unusedEdges.remove(new Integer(id));
@@ -1278,8 +1278,6 @@ public class DBServer implements StorageListener {
 	return(singleton);
     }
 
-    private boolean inmem = false;
-
     public static DBServer getDBServer() {
 	try {
 	    if (singleton == null) {
@@ -1299,7 +1297,6 @@ public class DBServer implements StorageListener {
 	}
 	
 	singleton = new DBServer(".");
-	singleton.inmem = true;
 	return(singleton);
     }
 
@@ -1309,9 +1306,6 @@ public class DBServer implements StorageListener {
 
     public void shutdown() {
 	resetSingleton();
-
-	StatusBar.setStatus("Shutting down database");
-	StatusBar.runProgressBar(true);
 
 	closeStatements();
 	try {
@@ -1324,7 +1318,6 @@ public class DBServer implements StorageListener {
 	} catch (Exception ex3) {
 	    ExceptionWindow.getExceptionWindow(ex3);
 	}
-	StatusBar.runProgressBar(false);
     }
 
     public void alter(String columnname, String query) {
@@ -1344,7 +1337,7 @@ public class DBServer implements StorageListener {
 
 
 
-    public static Hashtable nodedefs = new Hashtable();
+    public static Hashtable<String, String> nodedefs = new Hashtable<String, String>();
 
     static {
 	nodedefs.put("name","NAME VARCHAR(32) PRIMARY KEY");
@@ -1352,8 +1345,8 @@ public class DBServer implements StorageListener {
 	nodedefs.put("y","Y DOUBLE DEFAULT 500");
 	nodedefs.put("visible","VISIBLE BOOLEAN DEFAULT true");
 	nodedefs.put("color","COLOR VARCHAR(32) DEFAULT 'cornflowerblue'");
-	nodedefs.put("strokecolor",
-		     "STROKECOLOR VARCHAR(32) DEFAULT 'cadetblue'");
+	nodedefs.put("strokewidth", "STROKEWIDTH DOUBLE DEFAULT 1");
+	nodedefs.put("strokecolor","STROKECOLOR VARCHAR(32) DEFAULT 'cadetblue'");
 	nodedefs.put("labelcolor","LABELCOLOR VARCHAR(32) DEFAULT NULL");
 	nodedefs.put("fixed","FIXED BOOLEAN DEFAULT false");
 	nodedefs.put("style","STYLE TINYINT DEFAULT 2");
@@ -1365,7 +1358,7 @@ public class DBServer implements StorageListener {
 	nodedefs.put("labelsize","LABELSIZE INT DEFAULT 12");
     }
 
-    public static Hashtable edgedefs = new Hashtable();
+    public static Hashtable<String, String> edgedefs = new Hashtable<String, String>();
 
     static {
 	edgedefs.put("color","COLOR VARCHAR(32) DEFAULT 'dandelion'");
@@ -1382,7 +1375,7 @@ public class DBServer implements StorageListener {
 	edgedefs.put("labelsize","LABELSIZE INT DEFAULT 12");
     }
 
-    public static String fixString(String init,Hashtable defs) {
+    public static String fixString(String init,Hashtable<String, String> defs) {
 	String s = init.trim();
 	StringBuffer toRet = new StringBuffer();
 	
@@ -1430,6 +1423,9 @@ public class DBServer implements StorageListener {
 	db.alter("color",
 	      "ALTER TABLE nodes"+
 	      " ADD COLUMN color VARCHAR(32) default 'cornflowerblue'");
+	db.alter("strokewidth",
+		      "ALTER TABLE nodes"+
+		      " ADD COLUMN strokewidth DOUBLE default 1");	
 	db.alter("strokecolor",
 	      "ALTER TABLE nodes"+
 	      " ADD COLUMN strokecolor VARCHAR(32) default 'cadetblue'");
@@ -1485,6 +1481,9 @@ public class DBServer implements StorageListener {
 	db.alter("color",
 	      "ALTER TABLE nodes_def"+
 	      " ADD COLUMN color VARCHAR(32) default 'cornflowerblue'");
+	db.alter("strokewidth",
+		      "ALTER TABLE nodes_def"+
+		      " ADD COLUMN strokewidth DOUBLE default 1");	
 	db.alter("strokecolor",
 	      "ALTER TABLE nodes_def"+
 	      " ADD COLUMN strokecolor VARCHAR(32) default 'cadetblue'");
@@ -1660,7 +1659,7 @@ public class DBServer implements StorageListener {
 	    boolean inQuote = false;
 	    char quoteChar = '\'';
 	    char slashChar = '\\';
-	    Vector toReturn = new Vector();
+	    Vector<String> toReturn = new Vector<String>();
 	    StringBuffer curString = null;
 	    for (int i = 0 ; i < chars.length ; i++) {
 		//System.out.println(chars[i]);
@@ -1728,7 +1727,7 @@ public class DBServer implements StorageListener {
 
 	DBServer db = this;
 
-	HashSet seenEdge = new HashSet();
+	HashSet<String> seenEdge = new HashSet<String>();
 
 	try {
             db.query("SET AUTOCOMMIT TRUE");
@@ -1777,7 +1776,6 @@ public class DBServer implements StorageListener {
 	
 	Random rand = new Random();
 	
-	boolean lookupID = false;
 	int node1Column = 0;
 	int node2Column = 0;
 	int directedColumn = -1;
@@ -1818,8 +1816,6 @@ public class DBServer implements StorageListener {
 		    ResultSetMetaData rsmd = rs.getMetaData();
 		    int colmax = rsmd.getColumnCount();
 		    int i;
-		    Object o = null;
-		   
 		    //System.out.println(colmax);
 		    // keep track of the column names/types so we 
 		    // can quote things correctly
@@ -1855,7 +1851,6 @@ public class DBServer implements StorageListener {
 		    ResultSetMetaData rsmd = rs.getMetaData();
 		    int colmax = rsmd.getColumnCount();
 		    int i;
-		    Object o = null;
 		    enames = new String[colmax];
 		    etypes = new int[colmax];
 		    for (i = 0; i < colmax; ++i) {
@@ -2091,8 +2086,154 @@ public class DBServer implements StorageListener {
 	saveState(""+statenum);
     }
 
+    /**
+     * Base32 - encodes and decodes RFC3548 Base32
+     * (see http://www.faqs.org/rfcs/rfc3548.html )
+     *
+     * @author Robert Kaye
+     * @author Gordon Mohr
+     * @author Johannes Pfeiffer
+     */
+    public static class Base32 {
+        private static final String base32Chars =
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+        private final static int[] base32Lookup =
+        { 0xFF,0xFF,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F, // '0', '1', '2', '3', '4', '5', '6', '7'
+          0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF, // '8', '9', ':', ';', '<', '=', '>', '?'
+          0xFF,0x00,0x01,0x02,0x03,0x04,0x05,0x06, // '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+          0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E, // 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'
+          0x0F,0x10,0x11,0x12,0x13,0x14,0x15,0x16, // 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'
+          0x17,0x18,0x19,0xFF,0xFF,0xFF,0xFF,0xFF, // 'X', 'Y', 'Z', '[', '\', ']', '^', '_'
+          0xFF,0x00,0x01,0x02,0x03,0x04,0x05,0x06, // '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g'
+          0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0D,0x0E, // 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o'
+          0x0F,0x10,0x11,0x12,0x13,0x14,0x15,0x16, // 'p', 'q', 'r', 's', 't', 'u', 'v', 'w'
+          0x17,0x18,0x19,0xFF,0xFF,0xFF,0xFF,0xFF  // 'x', 'y', 'z', '{', '|', '}', '~', 'DEL'
+        };
+
+        /**
+         * Encodes String to a Base32 String.
+         *
+         * @param toEncode String to encode.
+         * @return Encoded String <code>toEncode</code> as a String.
+         *
+         */
+        public static String encode(final String toEncode) {
+			return encode(toEncode.getBytes());
+        }
+        
+        /**
+         * Encodes byte array to Base32 String.
+         *
+         * @param bytes Bytes to encode.
+         * @return Encoded byte array <code>bytes</code> as a String.
+         *
+         */
+        public static String encode(final byte[] bytes) {
+            int i = 0, index = 0, digit = 0;
+            int currByte, nextByte;
+            StringBuffer base32 = new StringBuffer((bytes.length + 7) * 8 / 5);
+
+            while (i < bytes.length) {
+                currByte = (bytes[i] >= 0) ? bytes[i] : (bytes[i] + 256); // unsign
+
+                /* Is the current digit going to span a byte boundary? */
+                if (index > 3) {
+                    if ((i + 1) < bytes.length) {
+                        nextByte =
+                            (bytes[i + 1] >= 0) ? bytes[i + 1] : (bytes[i + 1] + 256);
+                    } else {
+                        nextByte = 0;
+                    }
+
+                    digit = currByte & (0xFF >> index);
+                    index = (index + 5) % 8;
+                    digit <<= index;
+                    digit |= nextByte >> (8 - index);
+                    i++;
+                } else {
+                    digit = (currByte >> (8 - (index + 5))) & 0x1F;
+                    index = (index + 5) % 8;
+                    if (index == 0)
+                        i++;
+                }
+                base32.append(base32Chars.charAt(digit));
+            }
+
+            return base32.toString();
+        }
+
+        /**
+         * Decodes the given Base32 String to a raw byte array.
+         *
+         * @param base32
+         * @return Decoded <code>base32</code> String as a raw byte array.
+         */
+        public static byte[] decode(final String base32) {
+            int i, index, lookup, offset, digit;
+            byte[] bytes = new byte[base32.length() * 5 / 8];
+
+            for (i = 0, index = 0, offset = 0; i < base32.length(); i++) {
+                lookup = base32.charAt(i) - '0';
+
+                /* Skip chars outside the lookup table */
+                if (lookup < 0 || lookup >= base32Lookup.length) {
+                    continue;
+                }
+
+                digit = base32Lookup[lookup];
+
+                /* If this digit is not in the table, ignore it */
+                if (digit == 0xFF) {
+                    continue;
+                }
+
+                if (index <= 3) {
+                    index = (index + 5) % 8;
+                    if (index == 0) {
+                        bytes[offset] |= digit;
+                        offset++;
+                        if (offset >= bytes.length)
+                            break;
+                    } else {
+                        bytes[offset] |= digit << (8 - index);
+                    }
+                } else {
+                    index = (index + 5) % 8;
+                    bytes[offset] |= (digit >>> index);
+                    offset++;
+
+                    if (offset >= bytes.length) {
+                        break;
+                    }
+                    bytes[offset] |= digit << (8 - index);
+                }
+            }
+            return bytes;
+        }
+    }
+    
+    public void deleteState(String statenum) {
+    	// escape state string
+    	statenum = Base32.encode(statenum);
+
+        try {
+            query("DROP TABLE nodes_"+statenum);
+        } catch (SQLException ex2) {
+	}
+
+        try {
+            query("DROP TABLE edges_"+statenum);
+        } catch (SQLException ex2) {
+       }
+    }
+    
     public void saveState(String statenum) {
 	
+		// escape state string
+    	String orgstatenum = statenum;
+		statenum = Base32.encode(statenum);
+		
+		
 	tableList.clear();
 
         try {
@@ -2130,44 +2271,44 @@ public class DBServer implements StorageListener {
 	    
 	    ExceptionWindow.getExceptionWindow(e);
 	}
-	Iterator it = listeners.iterator();
+	Iterator<StorageEventListener> it = listeners.iterator();
 	while(it.hasNext()) {
-	    ((DBEventListener)it.next()).stateSaved(statenum);
+	    it.next().stateSaved(orgstatenum);
 	}
-	StatusBar.setState(statenum);
     }
 
-    Hashtable unusedEdges = new Hashtable();
-    Hashtable unusedNodes = new Hashtable();
+    Hashtable<Integer, Edge> unusedEdges = new Hashtable<Integer, Edge>();
+    Hashtable<String, Node> unusedNodes = new Hashtable<String, Node>();
 
-    public Collection getRemovedNodes() {
+    public Collection<Node> getRemovedNodes() {
 	return(unusedNodes.values());
     }
 
     public Node getRemovedNode(String n) {
-	return((Node)unusedNodes.get(n));
+	return unusedNodes.get(n);
     }
 
-    public Collection getRemovedEdges() {
+    public Collection<Edge> getRemovedEdges() {
 	return(unusedEdges.values());
     }
 
     public Edge getRemovedEdge(String e) {
-	return((Edge)unusedEdges.get(e));
+	return unusedEdges.get(e);
     }
 
-    public Vector getNodesNotInCurrent(Graph g, int statenum) {
+    public Vector<Node> getNodesNotInCurrent(Graph g, int statenum) {
 	return(getNodesNotInCurrent(g,""+statenum));
     }
 
-    public Vector getNodesNotInCurrent(Graph g, String statenum) {
-	Vector toReturn = new Vector();
+    public Vector<Node> getNodesNotInCurrent(Graph g, String statenum) {
+	Vector<Node> toReturn = new Vector<Node>();
 	try {
 	    Statement st = null;
 	    ResultSet rs = null;
 	    
-	    HashSet hs = new HashSet();
-	    
+		// escape state string
+		statenum = Base32.encode(statenum);
+
 	    st = conn.createStatement();    
 	    rs = st.executeQuery("SELECT name from nodes_"+
 				 statenum +
@@ -2175,7 +2316,7 @@ public class DBServer implements StorageListener {
 	    
 	    while(rs.next()) {
 		String name = rs.getString("name");
-		Node gn = (Node)unusedNodes.get(name);
+		Node gn = unusedNodes.get(name);
 		if (gn == null) {
 		    System.out.println("I can't find an edge in the cache, did you load all the states before running a morph?");
 		}
@@ -2190,17 +2331,18 @@ public class DBServer implements StorageListener {
 	return(toReturn);
     }
 
-    public Vector getEdgesNotInCurrent(Graph g, int statenum) {
+    public Vector<Edge> getEdgesNotInCurrent(Graph g, int statenum) {
 	return(getEdgesNotInCurrent(g,""+statenum));
     }
 
-    public Vector getEdgesNotInCurrent(Graph g, String statenum) {
-	Vector toReturn = new Vector();
+    public Vector<Edge> getEdgesNotInCurrent(Graph g, String statenum) {
+	Vector<Edge> toReturn = new Vector<Edge>();
 	try {
 	    Statement st = null;
 	    ResultSet rs = null;
 	    
-	    HashSet hs = new HashSet();
+		// escape state string
+		statenum = Base32.encode(statenum);
 	    
 	    st = conn.createStatement();    
 	    rs = st.executeQuery("SELECT __EDGEID from edges_"+
@@ -2209,7 +2351,7 @@ public class DBServer implements StorageListener {
 	    
 	    while(rs.next()) {
 		int eid = rs.getInt("__EDGEID");
-		Edge ge = (Edge)unusedEdges.get(new Integer(eid));
+		Edge ge = unusedEdges.get(new Integer(eid));
 		if (ge == null) {
 		    System.out.println("I can't find an edge in the cache, did you load all the states before running a morph?");
 		}
@@ -2239,6 +2381,10 @@ public class DBServer implements StorageListener {
     public void loadState(Graph g, String statenum) {
 
 
+	// escape state string
+    String orgstatenum = statenum;
+	statenum = Base32.encode(statenum);
+
 	// lets deal with edges
 
 	// step one, find/remove the edges that are in the state we're 
@@ -2249,9 +2395,7 @@ public class DBServer implements StorageListener {
 	try {
 	    Statement st = null;
 	    ResultSet rs = null;
-	    
-	    HashSet hs = new HashSet();
-	    
+
 	    st = conn.createStatement();    
 	    rs = st.executeQuery("SELECT __EDGEID from edges"+
 				 " minus select __EDGEID from edges_"+
@@ -2277,8 +2421,6 @@ public class DBServer implements StorageListener {
 	try {
 	    Statement st = null;
 	    ResultSet rs = null;
-	    
-	    HashSet hs = new HashSet();
 	    
 	    st = conn.createStatement();    
 	    rs = st.executeQuery("SELECT name from nodes"+
@@ -2337,10 +2479,10 @@ public class DBServer implements StorageListener {
 
 	// step 4, read contraints
 	NodeSchema ns = g.getNodeSchema();
-	Enumeration en = ns.getFields();
+	Enumeration<Field> en = ns.getFields();
 	while(en.hasMoreElements()) {
 	    try {
-		Field f = (Field)en.nextElement();
+		Field f = en.nextElement();
 		//System.out.println("f: " + f.getName() + " " + f.getDefault());
 		if (f.getDefault() != null) {
 		    if ((f.getSQLType() == Types.VARCHAR) ||
@@ -2371,7 +2513,7 @@ public class DBServer implements StorageListener {
 	en = es.getFields();
 	while(en.hasMoreElements()) {
 	    try {
-		Field f = (Field)en.nextElement();
+		Field f = en.nextElement();
 		if (f.getDefault() != null) {
 		    if ((f.getSQLType() == Types.VARCHAR) ||
 			(f.getSQLType() == Types.CHAR) ||
@@ -2400,11 +2542,9 @@ public class DBServer implements StorageListener {
 
 	refresh(g);
 
-	StatusBar.setState(statenum);
-
-	Iterator it = listeners.iterator();
+	Iterator<StorageEventListener> it = listeners.iterator();
 	while(it.hasNext()) {
-	    ((DBEventListener)it.next()).stateLoaded(statenum);
+	    it.next().stateLoaded(orgstatenum);
 	}
     }
 
@@ -2679,7 +2819,7 @@ public class DBServer implements StorageListener {
     }
     
     public void removeComplete(Edge edge) {
-	Set s = getStates();
+	Set<String> s = getStates();
 
 	if (containsTable(EDGE,"_deleted"))
 	    s.add("_deleted");
@@ -2689,7 +2829,7 @@ public class DBServer implements StorageListener {
 	} catch (Exception ex) {
 	    ExceptionWindow.getExceptionWindow(ex);
 	}
-	Iterator it = s.iterator();
+	Iterator<String> it = s.iterator();
 	while(it.hasNext()) {
 	    try {
 		query("DELETE FROM edges_"+it.next()+
@@ -2702,7 +2842,7 @@ public class DBServer implements StorageListener {
     }
 
     public void removeComplete(Node node) {
-	Set s = getStates();
+	Set<String> s = getStates();
 
 	if (containsTable(NODE,"_deleted"))
 	    s.add("_deleted");
@@ -2712,7 +2852,7 @@ public class DBServer implements StorageListener {
 	} catch (Exception ex) {
 	    ExceptionWindow.getExceptionWindow(ex);
 	}
-	Iterator it = s.iterator();
+	Iterator<String> it = s.iterator();
 	while(it.hasNext()) {
 	    try {
 		query("DELETE FROM nodes_"+it.next()+
@@ -2872,9 +3012,8 @@ public class DBServer implements StorageListener {
 	}
     }
 
-    private HashSet listeners = new HashSet();
-
-    public void addDBEventListener(DBEventListener dbl) {
-	listeners.add(dbl);
+    private HashSet<StorageEventListener> listeners = new HashSet<StorageEventListener>();
+    public void addStorageEventListener(StorageEventListener dbl) {
+    	listeners.add(dbl);
     }
 }

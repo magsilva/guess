@@ -1,16 +1,12 @@
 package com.hp.hpl.guess.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
 import javax.swing.*;
-import com.jgoodies.looks.*;
-import com.hp.hpl.guess.freehep.*;
-import com.hp.hpl.guess.*;
 
 public abstract class DockableAdapter extends JPanel implements Dockable {
     
-    public int getDirectionPreference() {
+	private static final long serialVersionUID = 1L;
+
+	public int getDirectionPreference() {
 	return(MainUIWindow.HORIZONTAL_DOCK);
     }
 
@@ -21,7 +17,7 @@ public abstract class DockableAdapter extends JPanel implements Dockable {
     public void attaching(boolean state) {
 	//System.out.println("attaching: " + state);
 	if ((state == true) && (myParent != null))
-	    myParent.hide();	
+	    myParent.setVisible(false);	
     }
 
     public String getTitle() {

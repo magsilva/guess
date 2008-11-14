@@ -180,7 +180,7 @@ public final class Field implements Comparable, Interesting {
     {
 	//if (value != null)
 	//  System.out.print("Converted " + value.getClass()+"\n");
-	
+
 	if (value instanceof PyObject)
 	    {
 		Class javaClass;

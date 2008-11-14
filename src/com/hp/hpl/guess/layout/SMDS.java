@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.layout;
 
 import com.hp.hpl.guess.*;
+
 import java.util.*;
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
@@ -31,12 +32,12 @@ public class SMDS extends AbstractLayout {
     
     Graph g = null;
 
-    HashMap locations = new HashMap();
+    HashMap<Node, Coordinates> locations = new HashMap<Node, Coordinates>();
 
     public SMDS(Graph g) {
 	super(g);
 	this.g = g;
-	Iterator it = g.getNodes().iterator();
+	Iterator<?> it = g.getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    locations.put(n, new Coordinates(n.getX(),
@@ -59,10 +60,10 @@ public class SMDS extends AbstractLayout {
 	    }
 	}
 
-	Hashtable index = new Hashtable();
-	ArrayList al = new ArrayList(nodecount);
+	Hashtable<Node, Integer> index = new Hashtable<Node, Integer>();
+	ArrayList<Node> al = new ArrayList<Node>(nodecount);
 
-	Iterator it = g.getEdges().iterator();
+	Iterator<?> it = g.getEdges().iterator();
 	while(it.hasNext()) {
 	    Edge e = (Edge)it.next();
 	    Node n1 = e.getNode1();
@@ -114,7 +115,7 @@ public class SMDS extends AbstractLayout {
 
     private static void eigensystem(double[][] ap, int n, 
 				    double[][] vp, double[] dp) {
-	int nrotations = jacobi(ap, n, dp, vp);
+	jacobi(ap, n, dp, vp);
 	eigsrt(dp, vp, n);
 	return;
     }
@@ -149,7 +150,6 @@ public class SMDS extends AbstractLayout {
     public static void b_to_x(int n, double[][] b, double[][] x, int xdim) {
 	double[][] v;
 	double[] d;
-	double c;
 	int i,j;
    
     

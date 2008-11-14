@@ -3,12 +3,18 @@ package org.python.core;
 
 import com.hp.hpl.guess.*;
 import com.hp.hpl.guess.ui.*;
+import com.hp.hpl.guess.util.SortableHashSet;
+
 import java.util.HashSet;
 import java.util.Collection;
+import java.util.Iterator;
 
 class SeqFuncs extends PyBuiltinFunctionSet
 {
-    SeqFuncs(String name, int index, int argcount) {
+
+	private static final long serialVersionUID = -3548875734656801098L;
+
+	SeqFuncs(String name, int index, int argcount) {
         super(name, index, argcount, argcount, true, null);
     }
 
@@ -103,7 +109,8 @@ class SeqFuncs extends PyBuiltinFunctionSet
 // abstract?
 abstract public class PySequence extends PyObject
 {
-    public String annotation = null;
+	private static final long serialVersionUID = 6627538758063872595L;
+	public String annotation = null;
 
     public String getAnnotation() {
 	return(annotation);
@@ -258,7 +265,7 @@ abstract public class PySequence extends PyObject
 
     public PyObject __and__(PyObject o)
     {
-	HashSet set1 = new HashSet();
+	HashSet<GraphElement> set1 = new HashSet<GraphElement>();
 
 	if (o instanceof PySequence) {
 
@@ -301,7 +308,7 @@ abstract public class PySequence extends PyObject
     
     public PyObject __or__(PyObject o)
     {
-	HashSet set1 = new HashSet();
+	HashSet<GraphElement> set1 = new HashSet<GraphElement>();
 
 	if (o instanceof PySequence) {
 
@@ -374,8 +381,6 @@ abstract public class PySequence extends PyObject
 
         if (!seq.isSequenceType())
              throw Py.TypeError(msg);
-
-        int n = seq.__len__();
 
         PyList list = new PyList();
         PyObject item;
@@ -692,6 +697,56 @@ abstract public class PySequence extends PyObject
 	{
 		__setattr__("visible", new PyInteger(0));
 	}
+	
+   
+    public void animate(String animationName, int loops){
+		Iterator<Edge> edgeIterator = findEdges().iterator();
+		while (edgeIterator.hasNext()) {
+			edgeIterator.next().animate(animationName, loops);
+		}
+		Iterator<Node> nodeIterator = findNodes().iterator();
+		while (nodeIterator.hasNext()) {
+			nodeIterator.next().animate(animationName, loops);
+		}
+    }
+    
+    public void animationStopAll() {
+		Iterator<Edge> edgeIterator = findEdges().iterator();
+		while (edgeIterator.hasNext()) {
+			edgeIterator.next().animationStopAll();
+		}
+		Iterator<Node> nodeIterator = findNodes().iterator();
+		while (nodeIterator.hasNext()) {
+			nodeIterator.next().animationStopAll();
+		}
+    }
+	
+    public void animate(String animationName) {
+		Iterator<Edge> edgeIterator = findEdges().iterator();
+		while (edgeIterator.hasNext()) {
+			edgeIterator.next().animate(animationName);
+		}
+		Iterator<Node> nodeIterator = findNodes().iterator();
+		while (nodeIterator.hasNext()) {
+			nodeIterator.next().animate(animationName);
+		}
+    }
+		
+	public void addFieldToLabel(String aField)
+	{
+		Iterator<Node> nodeIterator = findNodes().iterator();
+		while (nodeIterator.hasNext()) {
+			nodeIterator.next().addFieldToLabel(aField);
+		}
+	}
+	
+	public void removeFieldFromLabel(String aField)
+	{
+		Iterator<Node> nodeIterator = findNodes().iterator();
+		while (nodeIterator.hasNext()) {
+			nodeIterator.next().removeFieldFromLabel(aField);
+		}
+	}
 
 	public PyObject __sub__(PyObject object)
 	{
@@ -743,7 +798,7 @@ abstract public class PySequence extends PyObject
 	
 	PyList edges = new PyList();
 	
-	HashSet seen = new HashSet();
+	HashSet<PyObject> seen = new HashSet<PyObject>();
 	for (int i = 0; i < __len__(); i++) {
 
 	    if (!((PyInstance)get(i)).isNodeProxy())
@@ -793,7 +848,7 @@ abstract public class PySequence extends PyObject
 	return edges;
     }
 
-    public Collection groupBy(Field f) {
+    public Collection<SortableHashSet> groupBy(Field f) {
 	return(Guess.getGraph().groupBy(this,f));
     }
 
@@ -805,8 +860,8 @@ abstract public class PySequence extends PyObject
 	return(Guess.getGraph().sortBy(this,f));
     }
 
-    public Collection findNodes() {
-	HashSet fe = new HashSet();
+    public Collection<Node> findNodes() {
+	HashSet<Node> fe = new HashSet<Node>();
 	findNodes(this,fe);
 	return(fe);
     }
@@ -830,8 +885,8 @@ abstract public class PySequence extends PyObject
 	}
     }
 
-    public Collection findEdges() {
-	HashSet fe = new HashSet();
+    public Collection<Edge> findEdges() {
+	HashSet<Edge> fe = new HashSet<Edge>();
 	findEdges(this,fe);
 	return(fe);
     }

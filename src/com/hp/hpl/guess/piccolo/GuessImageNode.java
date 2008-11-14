@@ -69,7 +69,12 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	    } else {
 		setLabelPaint((Colors.getColor((String)o,(Color)getPaint())));
 	    }
-	} 
+	}  else if (field.equals("opacity")) {
+		if (o instanceof Float) {
+			setTransparency((Float)o);
+		}
+	}
+	
 	if (Guess.getMTF()) 
 	    moveToFront();
     
@@ -516,4 +521,16 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	return(toRet);
     }
 
+	public void addFieldToLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public void removeFieldFromLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public GFrame getFrame() {
+		return frame;
+	}
+    
 }

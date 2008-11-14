@@ -530,11 +530,9 @@ public class GEM extends AbstractLayout {
 
 
 	while (temperature > stop_temperature && iteration < stop_iteration) {
-	    //com.hp.hpl.guess.ui.StatusBar.setValue((int)stop_iteration,
 	    //			       (int)iteration);
 	    a_round();
 	}
-	//com.hp.hpl.guess.ui.StatusBar.setValue(100,0);
     }
 
 

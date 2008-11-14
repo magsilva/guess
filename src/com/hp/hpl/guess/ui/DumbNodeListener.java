@@ -54,4 +54,12 @@ public class DumbNodeListener implements NodeListener {
 	this.width = width;
 	this.height = height;
     }
+
+    public void addFieldToLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
+
+	public void removeFieldFromLabel(String field) {
+		System.out.println("Not implemented yet");
+	}
 }

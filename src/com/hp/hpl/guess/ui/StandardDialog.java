@@ -11,14 +11,12 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.Box;
-import javax.swing.FocusManager;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -32,26 +30,27 @@ import javax.swing.border.EtchedBorder;
  * StandardDialog.java - created on 17.11.2003
  * 
  * @author Michaela Behling
+ * 
+ * Made some small bugfixes on 05.11.2008 Johannes Pfeiffer 
  */
 
 public class StandardDialog extends JDialog implements KeyEventDispatcher,
       WindowFocusListener {
 
-   public static final int APPROVE = 1;
-   public static final int CANCEL = 0;
-   public static final int ABORT = 2;
 
-   private JButton approveButton = null;
-   private final ArrayList buttonList = new ArrayList();
-   private final JPanel buttons = new JPanel( new BorderLayout( 0, 0 ) );
-   private JButton cancelButton = null;
-   private JButton abortButton = null;
-   private boolean disposeOnClose = true;
+	private static final long serialVersionUID = 5911970787007002592L;
+	public static final int APPROVE = 1;
+	public static final int CANCEL = 0;
+	public static final int ABORT = 2;
 
-   private JComponent firstFocusComponent = null;
-   private final boolean ignoreEscapeKey;
+	private JButton approveButton = null;
+	private final ArrayList<JButton> buttonList = new ArrayList<JButton>();
+	private final JPanel buttons = new JPanel( new BorderLayout( 0, 0 ) );
+	private JButton cancelButton = null;
+	private JButton abortButton = null;
+	private boolean disposeOnClose = true;
 
-   private boolean ignoreKeys = true;
+	private final boolean ignoreEscapeKey;
 
    private final JPanel leftButtons = new JPanel( new FlowLayout(
          FlowLayout.LEFT, 0, 0 ) );
@@ -246,7 +245,7 @@ public class StandardDialog extends JDialog implements KeyEventDispatcher,
    private void resizeButtons() {
       int maxHeight = 0;
       int h;
-      Iterator it = buttonList.iterator();
+      Iterator<JButton> it = buttonList.iterator();
       while ( it.hasNext() ) {
          h = ((JButton) it.next()).getPreferredSize().height;
          if ( h > maxHeight ) {
@@ -274,11 +273,9 @@ public class StandardDialog extends JDialog implements KeyEventDispatcher,
    }
 
    protected final void setFirstFocusComponent( JComponent c ) {
-      firstFocusComponent = c;
    }
 
    private final void setIgnoreKeys( boolean b ) {
-      ignoreKeys = b;
    }
 
    public void windowGainedFocus( WindowEvent e ) {

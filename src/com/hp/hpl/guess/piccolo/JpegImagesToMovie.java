@@ -7,7 +7,6 @@ import java.awt.Dimension;
 import javax.media.*;
 import javax.media.control.*;
 import javax.media.protocol.*;
-import javax.media.protocol.DataSource;
 import javax.media.datasink.*;
 import javax.media.format.VideoFormat;
 
@@ -48,7 +47,7 @@ public class JpegImagesToMovie
 	// Put the Processor into configured state so we can set
 	// some processing options on the processor.
 	p.configure();
-	if (!waitForState(p, p.Configured)) {
+	if (!waitForState(p, Processor.Configured)) {
 	    System.err.println("Failed to configure the processor.");
 	    return false;
 	}
@@ -72,7 +71,7 @@ public class JpegImagesToMovie
 	// We are done with programming the processor.  Let's just
 	// realize it.
 	p.realize();
-	if (!waitForState(p, p.Realized)) {
+	if (!waitForState(p, Controller.Realized)) {
 	    System.err.println("Failed to realize the processor.");
 	    return false;
 	}
@@ -388,7 +387,7 @@ public class JpegImagesToMovie
 	    buf.setOffset(0);
 	    buf.setLength(initdata.length);
 	    buf.setFormat(format);
-	    buf.setFlags(buf.getFlags() | buf.FLAG_KEY_FRAME);
+	    buf.setFlags(buf.getFlags() | Buffer.FLAG_KEY_FRAME);
 	}
 
 	byte[] initdata = null;

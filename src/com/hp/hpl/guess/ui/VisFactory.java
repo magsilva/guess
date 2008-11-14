@@ -153,6 +153,26 @@ public abstract class VisFactory {
     public Collection getConvexHulls() {
 	return(new java.util.HashSet());
     }
+    
+    /**
+     * Shows a title in the frame
+     * @pyexport
+     * @param title the title to show
+     * @param time time in ms till title is removed
+     */
+    public void showTitle(String title, long time) {
+    	
+    }
+    
+    
+    /**
+     * Sets the Color of the title text
+     * @pyexport
+     * @param aColor
+     */
+    public void setTitleColor(Color aColor) {
+    	
+    }
 }
 
 	

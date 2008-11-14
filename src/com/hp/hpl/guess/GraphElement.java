@@ -11,9 +11,10 @@ public interface GraphElement extends Comparable {
     public void show();
     
     public void hide();
-    
+     
     //Returns a hashtable of field names and values.
     public Map values();
 
     public GraphElementListener getRep();
+
 }

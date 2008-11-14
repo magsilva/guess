@@ -1,6 +1,5 @@
 package com.hp.hpl.guess.util.intervals;
 
-import com.hp.hpl.guess.*;
 import java.util.*;
 
 public class RangeManager {
@@ -19,8 +18,8 @@ public class RangeManager {
 	}
     }
 
-    public List parseRange(String range) {
-	ArrayList toRet = new ArrayList();
+    public List<HiLow> parseRange(String range) {
+	ArrayList<HiLow> toRet = new ArrayList<HiLow>();
 	String[] ranges = range.split(",");
 	for (int i = 0 ; i < ranges.length ; i++ ) {
 	    try {

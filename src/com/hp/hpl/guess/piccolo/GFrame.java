@@ -3,11 +3,13 @@ package com.hp.hpl.guess.piccolo;
 import edu.umd.cs.piccolo.*;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.P3DRect;
 import com.hp.hpl.guess.*;
+
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.*;
-import java.awt.BasicStroke;
 import edu.umd.cs.piccolo.util.PBounds;
+import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolox.event.MySelectionHandler;
 import edu.umd.cs.piccolox.handles.PHandle;
 import edu.umd.cs.piccolo.activities.*;
@@ -15,15 +17,13 @@ import java.util.*;
 
 import com.hp.hpl.guess.ui.FrameListener;
 import com.hp.hpl.guess.ui.Colors;
-import com.hp.hpl.guess.ui.StatusBar;
 import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.VisFactory;
 import com.hp.hpl.guess.freehep.HEPWriter;
 
 import javax.swing.SwingUtilities;
-import javax.swing.JPanel;
 
 import org.python.core.PySequence;
-import org.python.core.PyObject;
 import org.python.core.PyInstance;
 
 import com.sun.image.codec.jpeg.*;
@@ -32,9 +32,7 @@ import java.awt.*;
 import java.io.*;
 
 import java.awt.print.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
 
-import org.freehep.graphicsio.ImageGraphics2D;
 
 /**
  * The frame for the Piccolo interface.  This provides the high level
@@ -44,39 +42,76 @@ import org.freehep.graphicsio.ImageGraphics2D;
  */
 public class GFrame extends PCanvas implements FrameListener {
 
-    boolean frozen = false;
+	private static final long serialVersionUID = 1L;
+
+	boolean frozen = false;
 
     JpegImagesToMovie jitm = null;
 
-    Vector frameBuffer = new Vector();
+    Vector<byte[]> frameBuffer = new Vector<byte[]>();
 
     public int fileCounter = 0;
-
-    private boolean auto = true;
 
     private boolean movieMode = false;
 
     public GFrame() {
 	super(); 
-	//initialize();
-	//repaint();
+
 	SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    //		    System.out.println("run...");
 		    initialize();
 		    repaint();
 		}
 	    });
+	
+	// Show overview
+	this.addMouseListener(new MouseAdapter() {
+		public void mouseClicked(MouseEvent e) {
+			if (e.getButton() == MouseEvent.BUTTON2) {
+				PreviewPopup overview = new PreviewPopup((GFrame) 
+						VisFactory.getFactory().getDisplay(), true);
+				overview.showUpInCorner((GFrame) 
+						VisFactory.getFactory().getDisplay(), "", 
+						e.getX(), 
+						e.getY());
+			}
+		}
+	});
+	
     }
 
-
+    /**
+     * Set's the render quality, requests int from 0..3
+     * 0 is bad, 3 is best quality
+     * @param requestedQuality 0 bad quality, 3 best quality
+     */
+    public void setQuality(int requestedQuality) {
+    	if ((requestedQuality==0) || (requestedQuality>3)) {
+    		setInteractingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
+    		setAnimatingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
+    		setDefaultRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
+    	} else if (requestedQuality==1){
+    		setInteractingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
+    		setAnimatingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
+    		setDefaultRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+    	} else if (requestedQuality==2) {
+    		setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+    		setAnimatingRenderQuality(PPaintContext.LOW_QUALITY_RENDERING);
+    		setDefaultRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+    	} else if (requestedQuality==3) {
+    		setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+    		setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+    		setDefaultRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+    	}
+    }
+    
     public void setFrozen(boolean state) {
 	//	System.out.println("frozen: " + state);
 	this.frozen = state;
 	if (state == false) {
-	    Iterator it = hulls.getChildrenIterator();
+	    Iterator<?> it = hulls.getChildrenIterator();
 	    while(it.hasNext()) {
-		ConvexHullNode chn = (ConvexHullNode)it.next();
+		ConvexHullNode chn = (ConvexHullNode) it.next();
 		chn.setFrozen(state);
 	    }
 	    repaint();
@@ -124,7 +159,6 @@ public class GFrame extends PCanvas implements FrameListener {
 	if (movieMode = true) {
 	    stopMovie();
 	}
-	this.auto = auto;
 	movieMode = true;
 	Rectangle b = getBounds();
 	jitm = new JpegImagesToMovie((int)b.width,(int)b.height,fps,filename);
@@ -154,7 +188,7 @@ public class GFrame extends PCanvas implements FrameListener {
      */
     public void flushBuffer() {
 	for (int i = 0 ; i < frameBuffer.size() ; i++) {
-	    byte[] b = (byte[])frameBuffer.elementAt(i);
+	    byte[] b = frameBuffer.elementAt(i);
 	    if (jitm != null) {
 		jitm.getISS().loadBuffer(b);
 	    }
@@ -366,10 +400,9 @@ public class GFrame extends PCanvas implements FrameListener {
 	if (o instanceof Integer) {
 	    int tcount = 0;
 	    if (((Integer)o).intValue() == 1) {
-		ListIterator li = 
-		    (ListIterator)nodes.getChildrenIterator();
+		ListIterator<?> li = nodes.getChildrenIterator();
 		while (li.hasNext()) {
-		    PNode n = (PNode)li.next();
+		    PNode n = (PNode) li.next();
 		    if (!n.getVisible()) {
 			continue;
 		    }
@@ -466,7 +499,7 @@ public class GFrame extends PCanvas implements FrameListener {
 	} 
 
 	if (o instanceof Collection) {
-	    Iterator it = ((Collection)o).iterator();
+	    Iterator<?> it = ((Collection<?>)o).iterator();
 	    while(it.hasNext()) {
 		Object elem = it.next();
 		if (elem instanceof Node) {
@@ -585,11 +618,7 @@ public class GFrame extends PCanvas implements FrameListener {
 	} else {
 	    javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		    public void run() { 
-			//System.out.println("anim 2");
-			PTransformActivity pta = 
-			    getGCamera().animateViewToCenterBounds(r2d,
-								   true,
-								   tm);
+		    	getGCamera().animateViewToCenterBounds(r2d, true, tm);
 		    } 
 		}); 
 	}
@@ -814,7 +843,7 @@ public class GFrame extends PCanvas implements FrameListener {
 
     private static PText pt = new PText();
 
-    public Collection getSelected() {
+    public Collection<?> getSelected() {
 	return(pseh.getSelection());
     }
 
@@ -857,9 +886,6 @@ public class GFrame extends PCanvas implements FrameListener {
     public java.awt.Color getDisplayBackground() {
 	return(this.getBackground());
     }
-
-    private static boolean testMode = true;
-
 
     public void exportGIF(String filename) {
 	HEPWriter.export(filename,this,HEPWriter.GIF);
@@ -929,7 +955,7 @@ public class GFrame extends PCanvas implements FrameListener {
 	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		public void run() { 
 		    //System.out.println("anim 3");
-		    PTransformActivity pta = 
+		   // PTransformActivity pta = 
 			getGCamera().animateViewToCenterBounds(r2d,
 							       true,
 							       2000);
@@ -971,7 +997,7 @@ public class GFrame extends PCanvas implements FrameListener {
 	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		public void run() { 
 		    //System.out.println("anim 4");
-		    PTransformActivity pta = 
+		    //PTransformActivity pta = 
 			getGCamera().animateViewToCenterBounds(r2d,
 							       true,
 							       2000);
@@ -979,8 +1005,6 @@ public class GFrame extends PCanvas implements FrameListener {
 	    });
     }
 
-    private boolean fs = false;
-    
     public void saveState(String filename) {
 	try {
 	    FileOutputStream fos = new FileOutputStream(filename);
@@ -1060,8 +1084,8 @@ public class GFrame extends PCanvas implements FrameListener {
 	    trans = getFullImageSize();
 	}
 
-	double minX = trans.getX() * scale;
-	double minY = trans.getY() * scale;
+	//double minX = trans.getX() * scale;
+	//double minY = trans.getY() * scale;
 	double maxW = trans.getWidth() * scale;
 	double maxH = trans.getHeight() * scale;
 	

@@ -5,7 +5,7 @@ import java.util.regex.*;
 
 public abstract class Helper {
 
-    private static HashSet stopwords = new HashSet();
+    private static HashSet<String> stopwords = new HashSet<String>();
  
     private static String[] res = new String[]{
 	"ADD",

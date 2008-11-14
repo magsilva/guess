@@ -20,7 +20,7 @@ public abstract class Query extends PyList
     private int type;
     boolean forced = false;
 
-    public abstract Set getStates(Set init);
+    public abstract Set<String> getStates(Set init);
 
     public Query(Graph graph, int type)
     {

@@ -43,14 +43,14 @@ import java.awt.Color;
  */
 public abstract class Colors {
 
-    public static Hashtable colors = new Hashtable();
+    public static Hashtable<String, Color> colors = new Hashtable<String, Color>();
 
     public static void main(String[] args) {
-	ArrayList st = new ArrayList(colors.keySet());
+	ArrayList<String> st = new ArrayList<String>(colors.keySet());
 	Collections.sort(st);
 	System.out.println("<FONT FACE=ARIAL><TABLE>");
 	int cnt = 0;
-	Iterator it = st.iterator();
+	Iterator<String> it = st.iterator();
 	while(it.hasNext()) {
 	    if (cnt == 0) {
 		System.out.println("<TR>");
@@ -282,7 +282,7 @@ public abstract class Colors {
     /**
      * @pyexport
      */
-    public static ArrayList generateColors(String startC, 
+    public static ArrayList<Object> generateColors(String startC, 
 					   String endC, 
 					   int inBetween) {
 	return(generateColors(getColor(startC,Color.red),
@@ -290,11 +290,11 @@ public abstract class Colors {
 			      inBetween));
     }
     
-    public static ArrayList generateColors(Color startColor,
+    public static ArrayList<Object> generateColors(Color startColor,
 					   Color endColor,
 					   int inBetween) {
 
-	ArrayList al = new ArrayList(inBetween);
+	ArrayList<Object> al = new ArrayList<Object>(inBetween);
 
 	double red = 0;
 	double green = 0;
@@ -326,7 +326,7 @@ public abstract class Colors {
     /**
      * @pyexport
      */
-    public static ArrayList generateColors(String startC, 
+    public static ArrayList<Object> generateColors(String startC, 
 					   String middleC,
 					   String endC,
 					   int inBetween) {
@@ -336,12 +336,12 @@ public abstract class Colors {
 			      inBetween));
     }
 
-    public static ArrayList generateColors(Color sColor,
+    public static ArrayList<Object> generateColors(Color sColor,
 					   Color mColor,
 					   Color eColor,
 					   int inBetween) {
 
-	ArrayList al = new ArrayList(inBetween);
+	ArrayList<Object> al = new ArrayList<Object>(inBetween);
 
 	double red = 0;
 	double green = 0;

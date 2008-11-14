@@ -1,17 +1,11 @@
 package com.hp.hpl.guess.ui;
 
 import javax.swing.*;
-import java.awt.event.*;
 import java.awt.*;
 import java.util.*;
 
 import com.jidesoft.pane.CollapsiblePane;
 import com.jidesoft.pane.CollapsiblePanes;
-import com.jidesoft.plaf.LookAndFeelFactory;
-import com.jidesoft.swing.JideButton;
-import com.jidesoft.utils.SystemInfo;
-import com.jidesoft.utils.Lm;
-import com.jidesoft.swing.MultilineLabel;
 
 import com.hp.hpl.guess.*;
 
@@ -48,7 +42,8 @@ public class DragWindow extends JPanel implements Dockable {
     }
 
     private DragWindow() {
-        LookAndFeelFactory.installJideExtension(LookAndFeelFactory.OFFICE2003_STYLE);
+        //LookAndFeelFactory.installJideExtension(LookAndFeelFactory.OFFICE2003_STYLE);
+    	
         CollapsiblePanes pane = new CollapsiblePanes();
 	pane.setPreferredSize(new Dimension(240,490));
 	CollapsiblePane info = new CollapsiblePane("Draggable Menu System");

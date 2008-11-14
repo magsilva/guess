@@ -11,12 +11,12 @@ package edu.uci.ics.jung.random.generators;
 import java.util.Random;
 
 import edu.uci.ics.jung.graph.ArchetypeGraph;
-import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.Vertex;
 import edu.uci.ics.jung.graph.decorators.Indexer;
 import edu.uci.ics.jung.graph.impl.SparseVertex;
 import edu.uci.ics.jung.graph.impl.DirectedSparseEdge;
 import edu.uci.ics.jung.graph.impl.DirectedSparseGraph;
+import edu.uci.ics.jung.random.generators.GraphGenerator;
 
 /**
  *

@@ -97,6 +97,7 @@ public class GraphElementEditorPopup extends EditorPopup {
 	    if (i==0) {
 	    	Font DefaultFont = jmi1.getFont();
 	    	jmi1.setFont(DefaultFont.deriveFont(Font.BOLD));
+	    	addSeparator();
 	    }
 	}
     }

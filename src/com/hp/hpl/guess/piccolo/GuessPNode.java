@@ -10,6 +10,8 @@ import java.awt.geom.Point2D;
 
 public interface GuessPNode extends NodeListener {
 
+	public GFrame getFrame();
+	
     public Node getOwner();
 
     public void moveDone(double x, double y);

@@ -9,8 +9,6 @@ package com.hp.hpl.guess.piccolo;
  */
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -18,82 +16,24 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
+import javax.swing.border.Border;
+
 
 import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.nodes.*;
 import edu.umd.cs.piccolo.util.PBounds;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
- /**
-  * This is a button which is designed to be the corner component of a
-  * <code>JScrollPane</code>. It triggers a popup menu which holds a 
-  * scaled image of the component contained inside the 
-  * <code>JScrollPane</code>.
-  */
-  
-public class PreviewCorner extends JButton implements MouseListener {
-    
-    private String _corner;
-    private PreviewPopup _previewPopup;
 
-    public PreviewCorner(GFrame myF,
-			 ImageIcon zoomIcon,
-			 boolean doCloseAfterClick,
-			 String corner) {
-	
-	super(zoomIcon);
-	this._corner = corner;
-	
-	_previewPopup = new PreviewPopup(myF, doCloseAfterClick);
-	
-	setToolTipText("View a miniature of scrollpane content and navigate");
-	
-	// The action listener is used to trigger the popup menu.
-	addMouseListener(this);
-	setBorder(null);
-    }
-	
-    public PreviewCorner(GFrame myF,
-			 ImageIcon zoomIcon,
-			 String corner) {
-	
-	this(myF, zoomIcon, false, corner);
-    }
-
-    public void mouseClicked(MouseEvent e) {
-	_previewPopup.showUpInCorner(this, _corner,
-				     e.getX(),
-				     e.getY());
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
-    }
-
-    public void mousePressed(MouseEvent e) {
-    }
-
-    public void mouseReleased(MouseEvent e) {
-    }
-
-}
-
-class PreviewPopup
+public class PreviewPopup
     extends JPopupMenu
     implements MouseListener, MouseMotionListener {
 
-    //    private static Robot robot = null;
+	private static final long serialVersionUID = 1L;
+
+	//    private static Robot robot = null;
     
     private PCamera _camera;
     
@@ -229,23 +169,24 @@ class PreviewPopup
 	//double startY = Math.max(0,(pb.getY() - _origin.getY()) * _ratio);
 	//System.out.println("cursor should be at: " + startX + " " + startY);
 
-	int dx = componentIcon.getIconWidth() + DELTA;
-	int dy = componentIcon.getIconHeight() + DELTA;
-	
-	// Shows the popup menu at the right place.
-	this.show(c, dx, dy);
-	
 	//int origx = c.getX() + c.getWidth() + DELTA;
 	//int origy = c.getY() + c.getHeight() + DELTA;
+	
+	// Shows the popup menu at the right place.
+	//this.show(c,origx, origy);
+	this.show(c,mouseX, mouseY);
+	
 	//System.out.println(origx + " " + origy); 
 	//robot.mouseMove(origx + 10, origy + 10);
     }
     
     public JLabel createCursor() {
-	JLabel label = new JLabel();
-	label.setBorder(BorderFactory.createLineBorder(Color.black));
-	label.setVisible(false);
-	return label;
+		JLabel label = new JLabel();
+		Border blackBorder = BorderFactory.createLineBorder(Color.BLACK);
+		Border whiteBorder = BorderFactory.createLineBorder(Color.WHITE);
+		label.setBorder(BorderFactory.createCompoundBorder(blackBorder, whiteBorder));
+		label.setVisible(false);
+		return label;
     }
     
     public void mouseClicked(MouseEvent e) {

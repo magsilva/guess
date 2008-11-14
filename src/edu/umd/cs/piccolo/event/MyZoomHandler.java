@@ -14,6 +14,7 @@ import java.awt.*;
 
 import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.ui.*;
+
 import java.util.HashSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -46,8 +47,33 @@ public class MyZoomHandler extends PZoomEventHandler {
 
 	    e.pushCursor(CursorFactory.getCursor(CursorFactory.ZOOM));
 	    super.mousePressed(e);
-	}	    
+	}
     }
+    
+	/**
+	 * Mousewheel is rotated
+	 * @param event
+	 */
+	public void mouseWheelRotated(PInputEvent event) {
+		double currentScale = owner.getGCamera().getViewScale();
+		double scaleDelta = 1.0f - (0.17f * event.getWheelRotation());
+		double newScale = currentScale * scaleDelta;
+		
+		// Do not zoom further if at minimum zoom level
+		if (newScale < getMinScale()) {
+			owner.getGCamera().setViewScale(getMinScale());
+			return;
+		}
+		// Do not zoom further if at maximum zoom level
+		if ((getMaxScale() > 0) && (newScale > getMaxScale())) {
+			owner.getGCamera().setViewScale(getMaxScale());
+			return;
+		}
+		
+		// Scale camera
+		Point2D pos = event.getPosition();
+		owner.getGCamera().scaleViewAboutPoint(scaleDelta, pos.getX(), pos.getY());
+	}
 
     public void mouseReleased(PInputEvent e) {
 	super.mouseReleased(e);

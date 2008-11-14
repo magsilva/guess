@@ -73,6 +73,9 @@ public class JungVisFrame extends GraphZoomScrollPane
     public void removeBackgroundImage() {
     }
 
+    public void setQuality(int requestedQuality) {	
+    }
+    
     public BufferedImage getFullImage() {
 	return(null);
     }

@@ -105,5 +105,10 @@ public interface FrameListener {
      */
     public void removeBackgroundImage();
 
+    /**
+     * @pyexport
+     */
+    public void setQuality(int requestedQuality);
+    
     public BufferedImage getFullImage();
 }
