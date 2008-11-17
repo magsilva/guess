@@ -5,11 +5,13 @@ import com.hp.hpl.guess.prefuse.*;
 import com.hp.hpl.guess.jung.*;
 import com.hp.hpl.guess.tg.*;
 import com.hp.hpl.guess.*;
+
 import java.awt.Color;
 
 import org.python.core.PySequence;
 import org.python.core.PyInstance;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Vector;
 
 /**
@@ -117,7 +119,7 @@ public abstract class VisFactory {
      * @pyexport
      */
     public ConvexHull createConvexHull(PySequence seq, String c) {
-	Vector v = new Vector();
+	Vector<Node> v = new Vector<Node>();
 	for (int i = 0; i < seq.__len__(); i++)
 	    {
 		Node element =
@@ -128,7 +130,7 @@ public abstract class VisFactory {
     }
 
   
-    public ConvexHull createConvexHull(Collection s, Color c) {
+    public ConvexHull createConvexHull(Collection<Node> s, Color c) {
 	return(null);
     }
 
@@ -150,8 +152,8 @@ public abstract class VisFactory {
     /**
      * @pyexport
      */
-    public Collection getConvexHulls() {
-	return(new java.util.HashSet());
+    public Collection<ConvexHull> getConvexHulls() {
+	return(new HashSet<ConvexHull>());
     }
     
     /**

@@ -20,15 +20,15 @@ public abstract class Schema {
 	}
     }
 
-    public Collection fieldNames() {
+    public Collection<String> fieldNames() {
 	return(fields.keySet());
     }
 
-    public Collection allFields() {
+    public Collection<Field> allFields() {
 	return(fields.values());
     }
 
-    public Iterator fields() { 
+    public Iterator<Field> fields() { 
 	return fields.values().iterator();
     }
 

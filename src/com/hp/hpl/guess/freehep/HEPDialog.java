@@ -1,43 +1,51 @@
 package com.hp.hpl.guess.freehep;
 
-import com.hp.hpl.guess.piccolo.GFrame;
-import com.hp.hpl.guess.Guess;
-
-import org.freehep.util.export.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.io.*;
-import java.util.*;
-import java.util.List;
+import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.Vector;
 import java.util.prefs.Preferences;
 
-import javax.swing.*;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.awt.geom.*;
-import javax.swing.event.*;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-
-import org.freehep.util.UserProperties;
-
-import org.freehep.graphicsio.gif.GIFExportFileType;
-import org.freehep.graphicsio.jpg.JPGExportFileType;
-import org.freehep.graphicsio.png.PNGExportFileType;
-import org.freehep.graphicsio.ppm.PPMExportFileType;
-import org.freehep.graphicsio.raw.RawExportFileType;
 import org.freehep.graphicsio.cgm.CGMExportFileType;
 import org.freehep.graphicsio.emf.EMFExportFileType;
+import org.freehep.graphicsio.gif.GIFExportFileType;
 import org.freehep.graphicsio.java.JAVAExportFileType;
+import org.freehep.graphicsio.jpg.JPGExportFileType;
 import org.freehep.graphicsio.pdf.PDFExportFileType;
+import org.freehep.graphicsio.png.PNGExportFileType;
+import org.freehep.graphicsio.ppm.PPMExportFileType;
 import org.freehep.graphicsio.ps.EPSExportFileType;
 import org.freehep.graphicsio.ps.PSExportFileType;
+import org.freehep.graphicsio.raw.RawExportFileType;
 import org.freehep.graphicsio.svg.SVGExportFileType;
 import org.freehep.graphicsio.swf.SWFExportFileType;
+import org.freehep.util.export.ExportFileType;
+
+import com.hp.hpl.guess.piccolo.GFrame;
 
 /**
  * An "Export" dialog for saving components as graphic files.
@@ -46,6 +54,8 @@ import org.freehep.graphicsio.swf.SWFExportFileType;
  * @version $Id$
  */
 public class HEPDialog extends JOptionPane {
+	
+	private static final long serialVersionUID = -5708203726450453533L;
 	
 	/**
 	 * Buttons
@@ -82,8 +92,8 @@ public class HEPDialog extends JOptionPane {
 	 */
 	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
 
-	private static Vector list = new Vector();
-	private static HashMap efts = new HashMap();
+	private static Vector<ExportFileType> list = new Vector<ExportFileType>();
+	private static HashMap<ExportFileType, Integer> efts = new HashMap<ExportFileType, Integer>();
 
 	static {
 		addAllExportFileTypes();
@@ -256,8 +266,6 @@ public class HEPDialog extends JOptionPane {
 	{
 
 		super(null, JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
-		this.creator = creator;
-
 		try {
 			if (baseDir == null)
 				baseDir = System.getProperty("user.home");
@@ -327,7 +335,7 @@ public class HEPDialog extends JOptionPane {
 
 		JDialog dlg = createDialog(parent, title);
 		dlg.pack();
-		dlg.show();
+		dlg.setVisible(true);
 	}
 
 	private ExportFileType currentType() {
@@ -346,7 +354,7 @@ public class HEPDialog extends JOptionPane {
 		if (f != null)
 			dlg.setSelectedFile(new File(f));
 		dlg.setFileFilter(currentType().getFileFilter());
-		if (dlg.showDialog(this, "Select") == dlg.APPROVE_OPTION) {
+		if (dlg.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION) {
 			return dlg.getSelectedFile().getAbsolutePath();
 		} else {
 			return null;
@@ -407,7 +415,6 @@ public class HEPDialog extends JOptionPane {
 		super.setValue(value);
 	}
 
-	private String creator;
 	private GFrame gframe = null;
 	private Component component = null;
 	private static double scaling = 1;
@@ -463,6 +470,8 @@ public class HEPDialog extends JOptionPane {
 	}
 
 	private static class SaveAsRenderer extends DefaultListCellRenderer {
+		private static final long serialVersionUID = -2766383579391267646L;
+
 		public Component getListCellRendererComponent(JList list, Object value,
 				int index, boolean isSelected, boolean cellHasFocus) {
 			super.getListCellRendererComponent(list, value, index, isSelected,

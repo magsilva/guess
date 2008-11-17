@@ -3,6 +3,7 @@ package com.hp.hpl.guess;
 import java.awt.*;
 import java.sql.*;
 import java.util.*;
+
 import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.storage.*;
 import com.hp.hpl.guess.ui.*;
@@ -14,6 +15,7 @@ import edu.uci.ics.jung.algorithms.cluster.*;
 import edu.uci.ics.jung.algorithms.importance.*;
 import edu.uci.ics.jung.algorithms.transformation.*;
 import edu.uci.ics.jung.graph.ArchetypeEdge;
+import edu.uci.ics.jung.graph.ArchetypeVertex;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.DirectedGraph;
 import edu.uci.ics.jung.graph.impl.*;
@@ -79,7 +81,7 @@ public class StateGraph extends Graph {
 	addNode(node);
 	
 	//fill in default values for this node.
-	Iterator fields = nodeSchema.fields();
+	Iterator<Field> fields = nodeSchema.fields();
 	while (fields.hasNext())
 	    {
 		Field field = (Field)fields.next();
@@ -108,7 +110,7 @@ public class StateGraph extends Graph {
 	    StorageFactory.getSL().addEdge(e);
 	    addEdgeNoCheck(e);
 	    //fill in default values for this edge.
-	    Iterator fields = edgeSchema.fields();
+	    Iterator<Field> fields = edgeSchema.fields();
 	    while (fields.hasNext())
 		{
 		    Field field = (Field)fields.next();
@@ -172,7 +174,7 @@ public class StateGraph extends Graph {
 	addEdgeNoCheck(edge);
 	
 	//fill in default values for this edge.
-	Iterator fields = edgeSchema.fields();
+	Iterator<Field> fields = edgeSchema.fields();
 	while (fields.hasNext())
 	    {
 		Field field = (Field)fields.next();
@@ -213,7 +215,7 @@ public class StateGraph extends Graph {
 	addEdgeNoCheck(edge);
 	
 	//fill in default values for this edge.
-	Iterator fields = edgeSchema.fields();
+	Iterator<Field> fields = edgeSchema.fields();
 	while (fields.hasNext())
 	    {
 		Field field = (Field)fields.next();
@@ -245,7 +247,7 @@ public class StateGraph extends Graph {
 	//System.out.println("foo: " + n);
 	//first, must remove all incident edges, and not rely on Jung
 	//to do this.
-	Iterator edges = n.getIncidentEdges().iterator();
+	Iterator<Edge> edges = n.getIncidentEdges().iterator();
 	while (edges.hasNext())
 	    removeEdge((Edge)edges.next());
 	
@@ -323,7 +325,7 @@ public class StateGraph extends Graph {
     /**
      * @return all the nodes in the graph
      */
-    public Set getNodes()
+    public Set<Node> getNodes()
     {
 	return getVertices();
     }
@@ -522,7 +524,7 @@ public class StateGraph extends Graph {
 
     public void radialLayout(Node center, PySequence seq) {
 	
-	HashSet hs = new HashSet();
+	HashSet<Edge> hs = new HashSet<Edge>();
 	
 	for (int i = 0; i < seq.__len__(); i++)
 	    {
@@ -530,7 +532,7 @@ public class StateGraph extends Graph {
 		    (GraphElement)((PyInstance)seq.__finditem__(i)).__tojava__(GraphElement.class);
 		
 		if (element instanceof Edge)
-		    hs.add(element);
+		    hs.add((Edge) element);
 		else
 		    throw new Error("Invalid graph element type:  " + element.getClass());
 	    }
@@ -848,8 +850,6 @@ public class StateGraph extends Graph {
 						while (!layout.incrementsAreDone() && !dialogLayoutStatus.isCanceled()) {
 							incCounter++;
 							layout.advancePositions();
-							long test = System.currentTimeMillis() - curTime;
-
 							if ((System.currentTimeMillis() - curTime) > 1000) {
 								// Update status Dialog and Graphframe
 								dialogLayoutStatus.setDescription("Ran " + incCounter
@@ -884,7 +884,7 @@ public class StateGraph extends Graph {
 				double maxY = Double.MIN_VALUE;
 				try {
 
-					Iterator nodes = getNodes().iterator();
+					Iterator<Node> nodes = getNodes().iterator();
 					while (nodes.hasNext()) {
 						Node node = (Node) nodes.next();
 						if (!((Boolean) node.__getattr__("fixed"))
@@ -943,14 +943,14 @@ public class StateGraph extends Graph {
      * @return a set of sets
      *
      */
-    public Set biComponentClusters()
+    public Set<Set<ArchetypeVertex>> biComponentClusters()
     {
 	//need to convert to an undirected graph.
 	UndirectedGraph tempGraph = DirectionTransformer.toUndirected(this);
 
 	Set tempClusters = clusters(tempGraph, new BicomponentClusterer());
 
-	Set clusters = new HashSet();
+	Set<Set<ArchetypeVertex>> clusters = new HashSet<Set<ArchetypeVertex>>();
 
 	Iterator it = tempClusters.iterator();
 	while (it.hasNext())
@@ -1075,7 +1075,7 @@ public class StateGraph extends Graph {
 	
 	String key = centrality.getRankScoreKey();
 	
-	Iterator nodes = getNodes().iterator();
+	Iterator<Node> nodes = getNodes().iterator();
 	while (nodes.hasNext())
 	    {
 		Node node = (Node)nodes.next();
@@ -1086,7 +1086,7 @@ public class StateGraph extends Graph {
 		//System.out.println("Alg has computed a value of: " + value);
 	    }
 	
-	Iterator edges = getEdges().iterator();
+	Iterator<Edge> edges = getEdges().iterator();
 	while (edges.hasNext())
 	    {
 		Edge edge = (Edge)edges.next();
@@ -1189,7 +1189,7 @@ public class StateGraph extends Graph {
 	    if (nodeSchema.getField("totaldegree") == null)
 		addNodeField("totaldegree", Types.INTEGER, new Integer(0));
 
-	    Iterator nodes = getNodes().iterator();
+	    Iterator<Node> nodes = getNodes().iterator();
 	    while(nodes.hasNext()) {
 		Node n = (Node)nodes.next();
 		n.updateDegrees();

@@ -1,30 +1,23 @@
 package edu.umd.cs.piccolo.event;
 
-import java.awt.Rectangle;
-import java.awt.event.InputEvent;
 import java.awt.geom.Point2D;
 
-import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolo.util.PDimension;
+import com.hp.hpl.guess.piccolo.CursorFactory;
+import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.piccolo.GuessPEdge;
+import com.hp.hpl.guess.piccolo.GuessPNode;
+
 import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.util.PPickPath;
 
-import java.awt.*;
-
-import com.hp.hpl.guess.piccolo.*;
-
 public class MyPanHandler extends PPanEventHandler {
  
-    private GFrame owner = null;
-
     public MyPanHandler(GFrame owner) {
-	this.owner = owner;
     }
 
-    private static Class nodeClass = null;
-    private static Class edgeClass = null;
-    private static Class serClass = null;
+    private static Class<?> nodeClass = null;
+    private static Class<?> edgeClass = null;
+    private static Class<?> serClass = null;
     static {
 	try {
 	    nodeClass = 

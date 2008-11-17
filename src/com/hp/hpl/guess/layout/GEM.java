@@ -4,6 +4,7 @@ package com.hp.hpl.guess.layout;
 import java.util.*;
 
 import com.hp.hpl.guess.*;
+
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
 import edu.uci.ics.jung.graph.Vertex;
@@ -27,12 +28,10 @@ public class GEM extends AbstractLayout {
     
     private static Graph graph;
     
-    private static Set nodes;
-    private static Set edges;
+    private static Set<Node> nodes;
+    private static Set<Edge> edges;
     
     private static int nodeCount;
-    private static int edgeCount;
-    
     //
     // GEM Constants
     //
@@ -139,8 +138,6 @@ public class GEM extends AbstractLayout {
     }
   
  
-    private static final String GEM2D = "GEM 2D Parameters";
-
     static class GemP {
 
 	public int x, y;       // position
@@ -166,7 +163,7 @@ public class GEM extends AbstractLayout {
     private GemP gemProp[];
     private Node invmap[];
     private ArrayList adjacent[];
-    private HashMap nodeNumbers;
+    private HashMap<Node, Integer> nodeNumbers;
     
     private Random rand = new Random();
 
@@ -197,7 +194,7 @@ public class GEM extends AbstractLayout {
 	return u;
     }
 
-    private LinkedList q;
+    private LinkedList<Integer> q;
 
     private int bfs(int root) {
 
@@ -235,7 +232,6 @@ public class GEM extends AbstractLayout {
 
     private int graph_center() {
 
-	Iterator nodeSet;
 	GemP p;
 	int  c, u, v, w;  // nodes
 	int  h;
@@ -261,7 +257,6 @@ public class GEM extends AbstractLayout {
 
     private void vertexdata_init (final float starttemp) {
 
-	Iterator nodeSet;
 	GemP p;
 
 	temperature = 0;
@@ -294,7 +289,7 @@ public class GEM extends AbstractLayout {
   
     private void i_impulse(int v) {
 
-	Iterator nodeSet;
+	Iterator<?> nodeSet;
  
 	int	iX, iY, dX, dY, pX, pY;
 	int	n;
@@ -342,7 +337,7 @@ public class GEM extends AbstractLayout {
 
     public void insert() {
 
-	Iterator nodeSet2;
+	Iterator<?> nodeSet2;
 	GemP p, q;
 	int startNode;
     
@@ -458,7 +453,7 @@ public class GEM extends AbstractLayout {
 
     void a_round() {
 
-	Iterator nodeSet;
+	Iterator<?> nodeSet;
 	int v;
 
 	int   iX, iY, dX, dY;
@@ -580,7 +575,7 @@ public class GEM extends AbstractLayout {
 
     private void o_impulse (int v) {
 
-	Iterator edgeSet;
+	Iterator<Edge> edgeSet;
 	int		u, w;
 	Edge			e;
 	int	iX, iY, dX, dY;
@@ -679,11 +674,7 @@ public class GEM extends AbstractLayout {
    */
   
     public void computePositions() {
-      
-	long startTime, endTime;
-      
-	startTime = System.currentTimeMillis();
-      
+
 	Integer nodeNr;
 	Node n;
 	GemP p;
@@ -694,26 +685,26 @@ public class GEM extends AbstractLayout {
 	edges = graph.getEdges();
       
 	nodeCount = nodes.size();
-	edgeCount = edges.size();
+	edges.size();
       
 	gemProp = new GemP[nodeCount];
 	invmap  = new Node[nodeCount];
 	adjacent = new ArrayList[nodeCount];
-	nodeNumbers = new HashMap();
+	nodeNumbers = new HashMap<Node, Integer>();
     
-	Iterator nodeSet = nodes.iterator();
+	Iterator<Node> nodeSet = nodes.iterator();
 	for (int i = 0; nodeSet.hasNext(); i++) {
 	    n = (Node)nodeSet.next();
 	    gemProp[i] = new GemP(n.getOutEdges().size());
 	    invmap[i]  = n;
 	    nodeNumbers.put(n,new Integer(i));
 	}
-	Iterator neighbors;
-	Set nset;
+	Iterator<?> neighbors;
+	Set<?> nset;
 	for (int i = 0; i < nodeCount; i++) {
 	    nset = invmap[i].getNeighbors();
 	    neighbors = nset.iterator();
-	    adjacent[i] = new ArrayList( nset.size() );
+	    adjacent[i] = new ArrayList<Object>( nset.size() );
 	    for (int j=0; neighbors.hasNext(); j++) {
 		n = (Node)neighbors.next();
 		nodeNr = (Integer)nodeNumbers.get(n);
@@ -743,11 +734,11 @@ public class GEM extends AbstractLayout {
 				 0,
 				 myDone);
 
-	endTime = System.currentTimeMillis();
+	System.currentTimeMillis();
 	done = true;
     }
 
-    private HashMap myDone = new HashMap();
+    private HashMap<Node, Coordinates> myDone = new HashMap<Node, Coordinates>();
 
     public double getX(Vertex n) {
 	Coordinates d2d = (Coordinates)myDone.get(n);

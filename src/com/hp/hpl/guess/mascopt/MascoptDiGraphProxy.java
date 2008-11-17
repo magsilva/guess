@@ -1,19 +1,23 @@
 package com.hp.hpl.guess.mascopt;
 
-import mascoptLib.graphs.DiGraph;
-import mascoptLib.graphs.VertexSet;
-import mascoptLib.graphs.ArcSet;
-import mascoptLib.graphs.Vertex;
-import mascoptLib.graphs.Arc;
-import mascoptLib.algos.digraph.KShortestPaths;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Vector;
+
+import mascoptLib.abstractGraph.MascoptObject;
 import mascoptLib.algos.abstractalgos.KShortestPath;
-import mascoptLib.graphs.DiPath;
+import mascoptLib.algos.digraph.KShortestPaths;
+import mascoptLib.graphs.Arc;
+import mascoptLib.graphs.ArcSet;
+import mascoptLib.graphs.DiGraph;
+import mascoptLib.graphs.Vertex;
+import mascoptLib.graphs.VertexSet;
 
-import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.Edge;
 import com.hp.hpl.guess.DirectedEdge;
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Node;
 
-import java.util.*;
+import edu.uci.ics.jung.graph.impl.AbstractElement;
 
 /**
  * this is a simple example of mapping to and from an extra
@@ -31,27 +35,27 @@ public class MascoptDiGraphProxy extends DiGraph {
      * guess object -> mascopt object
      * guess object -> Arc[2] (two arc objects)
      */
-    public HashMap g2m = new HashMap();
+    public HashMap<AbstractElement, Object> g2m = new HashMap<AbstractElement, Object>();
 
     /**
      * maps a mascopt object to a guess object
      * mascopt -> guess, possibly multiple
      * mascopt obj to single guess obj
      */
-    public HashMap m2g = new HashMap();
+    public HashMap<MascoptObject, AbstractElement> m2g = new HashMap<MascoptObject, AbstractElement>();
 
     /**
      * creates a proxy for the given graph object
      */
     public static MascoptDiGraphProxy createProxy(com.hp.hpl.guess.Graph g) {
 
-	HashMap g2m = new HashMap();
-	HashMap m2g = new HashMap();
+	HashMap<AbstractElement, Object> g2m = new HashMap<AbstractElement, Object>();
+	HashMap<MascoptObject, AbstractElement> m2g = new HashMap<MascoptObject, AbstractElement>();
 
 	// copy in all the vertex objects, creating if necessary
 	VertexSet vs = new VertexSet();
 
-	Iterator nodes = g.getNodes().iterator();
+	Iterator<Node> nodes = g.getNodes().iterator();
 	while (nodes.hasNext()) {
 	    Node node = (Node)nodes.next();
 	    Vertex v = (Vertex)g2m.get(node);
@@ -70,7 +74,7 @@ public class MascoptDiGraphProxy extends DiGraph {
 	as.setValue(KShortestPath.WEIGHT,"1");
 	KShortestPaths.NAME_OF_VALUE = "poids";
 
-	Iterator edges = g.getEdges().iterator();
+	Iterator<Edge> edges = g.getEdges().iterator();
 	while (edges.hasNext()) {
 	    // handle case where we have an undirected edge
 	    Edge e = (Edge)edges.next();
@@ -154,7 +158,7 @@ public class MascoptDiGraphProxy extends DiGraph {
      * @param t the target
      * @return a vector of vectors of edges
      */
-    public Vector kShortestPaths(int k, Node s, Node t) {
+    public Vector<Vector<AbstractElement>> kShortestPaths(int k, Node s, Node t) {
 	return(kShortestPaths(k,s,t,null));
     }
 
@@ -169,15 +173,15 @@ public class MascoptDiGraphProxy extends DiGraph {
      * of each path
      * @return a vector of vectors of edges
      */
-    public Vector kShortestPaths(int k, Node s, Node t, HashMap weights) {
-	Vector paths = new Vector();
+    public Vector<Vector<AbstractElement>> kShortestPaths(int k, Node s, Node t, HashMap<Vector<AbstractElement>, Double> weights) {
+	Vector<Vector<AbstractElement>> paths = new Vector<Vector<AbstractElement>>();
 	KShortestPaths ksp = new KShortestPaths(this,k);
 	ksp.run((Vertex)g2m.get(s),(Vertex)g2m.get(t));
 	for (int i = 0 ; i < ksp.numberOfComputedPaths() ; i++) {
 	    ArcSet as = ksp.getShortestPath(i).getArcSet();
-	    Vector path = new Vector();
+	    Vector<AbstractElement> path = new Vector<AbstractElement>();
 
-	    Iterator it = as.iterator();
+	    Iterator<?> it = as.iterator();
 	    while(it.hasNext()) {
 		Arc a = (Arc)it.next();
 		path.add(m2g.get(a));

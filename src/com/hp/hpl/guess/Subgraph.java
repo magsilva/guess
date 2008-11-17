@@ -1,6 +1,7 @@
 package com.hp.hpl.guess;
 
 import java.util.*;
+
 import org.python.core.*;
 
 /**
@@ -8,7 +9,7 @@ import org.python.core.*;
  */
 public class Subgraph {
 
-    private static HashMap rootNodes = new HashMap();
+    private static HashMap<String, Subgraph> rootNodes = new HashMap<String, Subgraph>();
 
     /**
      * @pyexport getSubgraph
@@ -25,9 +26,9 @@ public class Subgraph {
 
     private String name = "";
     
-    private HashMap cmap = new HashMap();
+    private HashMap<String, Subgraph> cmap = new HashMap<String, Subgraph>();
 
-    private HashSet nodes = new HashSet();
+    private HashSet<Node> nodes = new HashSet<Node>();
 
     //private HashSet edges = new HashSet();
 
@@ -39,22 +40,22 @@ public class Subgraph {
 	this("__root");
     }
 
-    public Set getNodesShallow(Set input) {
+    public Set<Object> getNodesShallow(Set<Object> input) {
 	if (input == null) {
-	    input = new HashSet(nodes);
+	    input = new HashSet<Object>(nodes);
 	}  else {
 	    input.addAll(nodes);
 	}
 	return(input);
     }
 
-    public Set getNodesDeep(Set input) {
+    public Set<Node> getNodesDeep(Set<Node> input) {
 	if (input == null) {
-	    input = new HashSet(nodes);
+	    input = new HashSet<Node>(nodes);
 	} else {
 	    input.addAll(nodes);
 	}
-	Iterator it = cmap.values().iterator();
+	Iterator<Subgraph> it = cmap.values().iterator();
 	while(it.hasNext()) {
 	    Subgraph sg = (Subgraph)it.next();
 	    input = sg.getNodesDeep(input);
@@ -62,22 +63,22 @@ public class Subgraph {
 	return(input);
     }
 
-    public Set getSubgraphsShallow(Set input) {
+    public Set<Object> getSubgraphsShallow(Set<Object> input) {
 	if (input == null) {
-	    input = new HashSet(cmap.values());
+	    input = new HashSet<Object>(cmap.values());
 	} else {
 	    input.addAll(cmap.values());
 	}
 	return(input);
     }
 
-    public Set getSubgraphsDeep(Set input) {
+    public Set<Object> getSubgraphsDeep(Set<Object> input) {
 	if (input == null) {
-	    input = new HashSet(cmap.values());
+	    input = new HashSet<Object>(cmap.values());
 	} else {
 	    input.addAll(cmap.values());
 	}
-	Iterator it = cmap.values().iterator();
+	Iterator<Subgraph> it = cmap.values().iterator();
 	while(it.hasNext()) {
 	    Subgraph sg = (Subgraph)it.next();
 	    input = sg.getSubgraphsDeep(input);
@@ -97,17 +98,17 @@ public class Subgraph {
 	if (fieldName.equals("nodes")) {
 	    // actually need to create a meta hashset by crawling
 	    // through children
-	    return(getNodesDeep(new HashSet()));
+	    return(getNodesDeep(new HashSet<Node>()));
 	    //} else if (fieldName.equals("edges")) {
 	    // actually need to create a meta hashset by crawling
 	    // through children
 	    //return(edges);
 	} else if (fieldName.equals("subgraphs")) {
-	    return(getSubgraphsDeep(new HashSet()));
+	    return(getSubgraphsDeep(new HashSet<Object>()));
 	} else if (fieldName.equals("snodes")) {
-	    return(getNodesShallow(new HashSet()));
+	    return(getNodesShallow(new HashSet<Object>()));
 	} else if (fieldName.equals("ssubgraphs")) {
-	    return(getSubgraphsShallow(new HashSet()));
+	    return(getSubgraphsShallow(new HashSet<Object>()));
 	} else if (!fieldName.startsWith("__")) {
 	    if (cmap.containsKey(fieldName)){
 		return(cmap.get(fieldName));
@@ -128,11 +129,11 @@ public class Subgraph {
 
     public void add(Object o) {
 	if (o instanceof Node) {
-	    nodes.add(o);
+	    nodes.add((Node)o);
 	    //} else if (o instanceof Edge) {
 	    //edges.add(o);
 	} else if (o instanceof Subgraph) {
-	    cmap.put(((Subgraph)o).getName(),o);
+	    cmap.put(((Subgraph)o).getName(),(Subgraph) o);
 	} else if (o instanceof PySequence) {
 	    PySequence seq = (PySequence)o;
 	    for (int i = 0; i < seq.__len__(); i++) {
@@ -164,7 +165,7 @@ public class Subgraph {
 
     public void addNodes(Object o) {
 	if (o instanceof Node) {
-	    nodes.add(o);
+	    nodes.add((Node)o);
 	} else if (o instanceof PySequence) {
 	    PySequence seq = (PySequence)o;
 	    for (int i = 0; i < seq.__len__(); i++) {
@@ -179,7 +180,7 @@ public class Subgraph {
 	
     public void addSubgraphs(Object o) {
 	if (o instanceof Subgraph) {
-	    cmap.put(((Subgraph)o).getName(),o);
+	    cmap.put(((Subgraph)o).getName(),(Subgraph) o);
 	} else if (o instanceof PySequence) {
 	    PySequence seq = (PySequence)o;
 	    for (int i = 0; i < seq.__len__(); i++) {
@@ -237,7 +238,7 @@ public class Subgraph {
 		    sg.add(value);
 		}
 	    } else {
-		Iterator it = getNodesDeep(null).iterator();
+		Iterator<Node> it = getNodesDeep(null).iterator();
 		while(it.hasNext()) {
 		    Node n = (Node)it.next();
 		    n.__setattr__(fieldName,value);
@@ -254,7 +255,7 @@ public class Subgraph {
 	StringBuffer sb = new StringBuffer("(nodes: ");
 	
 	boolean f = true;
-	Iterator it = nodes.iterator();
+	Iterator<Node> it = nodes.iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    if (f) {
@@ -280,10 +281,10 @@ public class Subgraph {
 	//}
 
 	sb.append(") (subgraphs: ");
-	it = cmap.keySet().iterator();
+	Iterator<String> it1 = cmap.keySet().iterator();
 	f = true;
-	while(it.hasNext()) {
-	    String s = (String)it.next();
+	while(it1.hasNext()) {
+	    String s = (String)it1.next();
 	    if (f) {
 		sb.append(s);
 		f = false;

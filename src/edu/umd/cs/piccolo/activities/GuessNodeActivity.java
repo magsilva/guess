@@ -1,10 +1,11 @@
 package edu.umd.cs.piccolo.activities;
 
 import java.awt.Color;
-import com.hp.hpl.guess.piccolo.*;
-import edu.umd.cs.piccolo.*;
-import com.hp.hpl.guess.ui.*;
-import edu.umd.cs.piccolo.nodes.*;
+
+import com.hp.hpl.guess.piccolo.GuessPNode;
+import com.hp.hpl.guess.piccolo.Morpher;
+
+import edu.umd.cs.piccolo.PNode;
 
 public class GuessNodeActivity extends PInterpolatingActivity {
 	
@@ -12,11 +13,6 @@ public class GuessNodeActivity extends PInterpolatingActivity {
     private Color[] destinationColor;
     
     private boolean sourceVisible;
-    private boolean[] destinationVisible;
-
-    private boolean sourceLabelVisible;
-    private boolean[] destinationLabelVisible;
-
     private double sourceX;
     private double[] destinationX;
     private double sourceY;
@@ -65,8 +61,7 @@ public class GuessNodeActivity extends PInterpolatingActivity {
 	this.sourceColor = (Color)target.getPaint();
 	
 	this.sourceVisible = ((PNode)target).getVisible();
-	this.sourceLabelVisible = 
-	    ((Boolean)target.get("labelvisible")).booleanValue();
+	((Boolean)target.get("labelvisible")).booleanValue();
 
     }
 
@@ -88,8 +83,6 @@ public class GuessNodeActivity extends PInterpolatingActivity {
 	this.destinationWidth = new double[]{dWidth};
 	this.destinationHeight = new double[]{dHeight};
 
-	this.destinationVisible = new boolean[]{dV};
-	
 	if (dV) {
 	    // we're transitioning to visible
 	    if (!sourceVisible) {
@@ -106,8 +99,6 @@ public class GuessNodeActivity extends PInterpolatingActivity {
 	    disappearEarly = true;
 	    this.destinationColor = new Color[]{Morpher.getInvisible()};
 	}
-
-	this.destinationLabelVisible = new boolean[]{dLV};
     }
     
     public void setDestinations(double[] dX, double[] dY,
@@ -120,10 +111,7 @@ public class GuessNodeActivity extends PInterpolatingActivity {
 	this.destinationWidth = dWidth;
 	this.destinationHeight = dHeight;
 
-	this.destinationVisible = dV;
 	this.destinationColor = dC;
-	
-	this.destinationLabelVisible = dLV;
     }
 
     protected void activityStarted() {

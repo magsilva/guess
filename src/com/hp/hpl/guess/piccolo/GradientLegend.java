@@ -1,33 +1,38 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.PLine;
-import com.hp.hpl.guess.*;
-import java.awt.geom.*;
-import java.awt.BasicStroke;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolox.event.MySelectionHandler;
-import edu.umd.cs.piccolox.handles.PHandle;
-import edu.umd.cs.piccolo.activities.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.util.Vector;
 
-import com.hp.hpl.guess.ui.*;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
-import javax.swing.*;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.freehep.HEPDialog;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.Dockable;
+import com.hp.hpl.guess.ui.GuessJFrame;
+import com.hp.hpl.guess.ui.MainUIWindow;
 
-import org.python.core.PySequence;
-import org.python.core.PyObject;
-import org.python.core.PyInstance;
-
-import com.sun.image.codec.jpeg.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.awt.*;
-import java.io.*;
-
-import com.hp.hpl.guess.freehep.*;
+import edu.umd.cs.piccolo.PCanvas;
+import edu.umd.cs.piccolo.PLayer;
+import edu.umd.cs.piccolo.PNode;
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.nodes.PText;
 
 /**
  * The frame for the Piccolo interface.  This provides the high level
@@ -36,7 +41,9 @@ import com.hp.hpl.guess.freehep.*;
  */
 public class GradientLegend extends JPanel implements Dockable {
 
-    DumbCanvas myCanvas = new DumbCanvas();
+	private static final long serialVersionUID = 2708549696092758751L;
+
+	DumbCanvas myCanvas = new DumbCanvas();
 
     private double majorTicks = 5;
 
@@ -46,9 +53,9 @@ public class GradientLegend extends JPanel implements Dockable {
 
     private JPopupMenu jp = new JPopupMenu("Options");
    
-    private Vector tickMarks = null;
+    private Vector<PPath> tickMarks = null;
 
-    private Vector textMarks = null;
+    private Vector<PText> textMarks = null;
 
     private PNode gradNode = null;
 
@@ -64,8 +71,8 @@ public class GradientLegend extends JPanel implements Dockable {
 
     private void generateTickMarks() {
 	if (tickMarks == null) {
-	    tickMarks = new Vector();
-	    textMarks = new Vector();
+	    tickMarks = new Vector<PPath>();
+	    textMarks = new Vector<PText>();
 	    for (double val = min ; val <= max ; val += majorTicks) {
 		PPath tickMark = new PPath();
 		tickMarks.add(tickMark);
@@ -249,8 +256,7 @@ public class GradientLegend extends JPanel implements Dockable {
 	
 	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		public void run() { 
-		    PTransformActivity pta = 
-			myCanvas.getCamera().animateViewToCenterBounds(getB(),
+		    myCanvas.getCamera().animateViewToCenterBounds(getB(),
 								       true,
 								       100);
 		} 
@@ -289,6 +295,7 @@ public class GradientLegend extends JPanel implements Dockable {
 
     class DumbCanvas extends PCanvas {
 	
+		private static final long serialVersionUID = 8488611777366457017L;
 	/**
 	 * the edge layer (drawn first)
 	 */

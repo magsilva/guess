@@ -6,7 +6,9 @@ import com.hp.hpl.guess.storage.*;
 
 public abstract class Query extends PyList
 {
-    public static final String EQ = "==";
+
+	private static final long serialVersionUID = 980062200998297644L;
+	public static final String EQ = "==";
     public static final String NE = "!=";
     public static final String LT = "<";
     public static final String GT = ">";
@@ -20,7 +22,7 @@ public abstract class Query extends PyList
     private int type;
     boolean forced = false;
 
-    public abstract Set<String> getStates(Set init);
+    public abstract Set<String> getStates(Set<String> init);
 
     public Query(Graph graph, int type)
     {

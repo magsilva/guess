@@ -1,25 +1,15 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
-
-import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.nodes.PImage;
 
 public class GuessImageLegendNode extends PImage {
     
 
-    private int style = VisFactory.IMAGE;
+	private static final long serialVersionUID = -1534850045228643401L;
+	private int style = VisFactory.IMAGE;
 
     public int getStyle() {
 	return(style);

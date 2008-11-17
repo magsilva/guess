@@ -49,26 +49,19 @@
 
 package com.hp.hpl.guess.tg;
 
-import com.touchgraph.graphlayout.*;
-import com.touchgraph.graphlayout.interaction.*;
-import com.touchgraph.graphlayout.graphelements.*;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.Vector;
-import java.util.Enumeration;
-import java.net.URL;
-import java.io.InputStreamReader;
 
+import com.hp.hpl.guess.freehep.HEPWriter;
 import com.hp.hpl.guess.ui.FrameListener;
-import com.hp.hpl.guess.freehep.*;
+import com.touchgraph.graphlayout.GLPanel;
+import com.touchgraph.graphlayout.TGException;
 
 public class TGDisplay extends GLPanel implements FrameListener {
     
-    /** Default constructor.
+	private static final long serialVersionUID = -7966434923297553172L;
+
+	/** Default constructor.
      */
     public TGDisplay() {
 	super();

@@ -17,7 +17,8 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessShapeNode3D extends GuessShapeNode {
 
-    public static int shadowOffset = 2;
+	private static final long serialVersionUID = -5923923914591244900L;
+	public static int shadowOffset = 2;
 
     public GuessShapeNode3D(Shape aShape, Node owner, 
 			    GFrame frame, int style) {

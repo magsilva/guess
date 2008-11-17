@@ -1,16 +1,19 @@
 package com.hp.hpl.guess.jung;
 
-import edu.uci.ics.jung.visualization.*;
-import com.hp.hpl.guess.ui.*;
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
-import javax.swing.JScrollPane;
+
+import com.hp.hpl.guess.ui.FrameListener;
+
 import edu.uci.ics.jung.visualization.GraphZoomScrollPane;
+import edu.uci.ics.jung.visualization.VisualizationViewer;
 
 public class JungVisFrame extends GraphZoomScrollPane
     implements FrameListener {
     
-    public JungVisFrame(VisualizationViewer v) {
+	private static final long serialVersionUID = 5200270267094103051L;
+
+	public JungVisFrame(VisualizationViewer v) {
 	super(v);
     }
     

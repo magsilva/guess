@@ -10,7 +10,9 @@ import com.hp.hpl.guess.ui.ExceptionWindow;
 
 public class ImageMonitor extends GuessJFrame {
 
-    private String toMonitor = "";
+	private static final long serialVersionUID = 3963693936577167431L;
+
+	private String toMonitor = "";
 
     private long lastModified = 0;
 
@@ -42,7 +44,7 @@ public class ImageMonitor extends GuessJFrame {
 	    File test = new File(toMonitor);
 	    if ((test.exists()) && (test.length() > 5000)) {
 		if (test.lastModified() > lastModified) {
-		    this.show();
+		    this.setVisible(true);
 		    bi = 
 			ImageIO.read(new java.io.FileInputStream(test));
 		    lastModified = test.lastModified();
@@ -56,6 +58,8 @@ public class ImageMonitor extends GuessJFrame {
 	    
     class ImagePanel extends JPanel {
 	
+
+		private static final long serialVersionUID = -7713905967697162120L;
 	ImageMonitor im = null;
 
 	public ImagePanel(ImageMonitor im) {

@@ -23,14 +23,19 @@
 package com.hp.hpl.guess.ui.slider;
 
 /* --------------------------- Package ---------------------------- */
-import java.awt.*; 
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
 
-import javax.swing.*;
-import javax.swing.plaf.*;
-import javax.swing.plaf.basic.*;
-import javax.swing.plaf.basic.BasicSliderUI.*;
-import javax.swing.plaf.metal.*;
+import javax.swing.AbstractAction;
+import javax.swing.BoundedRangeModel;
+import javax.swing.JComponent;
+import javax.swing.JSlider;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicSliderUI;
+import javax.swing.plaf.metal.MetalSliderUI;
 
 /*====================================================================
   Implementation of class MultiSliderUI
@@ -470,7 +475,6 @@ class MultiSliderUI extends MetalSliderUI {
 		if (bounded) {
 		    int[] neighbours = new int[2];
 		    int idx = -1;
-		    int diff = e.getY() - firstXY[1];
 		    //System.out.println("diff = " + diff);
 		    if (e.getY() - firstXY[1] > 0) {
 			idx = minmaxIndices[0];
@@ -563,6 +567,8 @@ class MultiSliderUI extends MetalSliderUI {
      * A static version of the above.
      */
     static class SharedActionScroller extends AbstractAction {
+
+		private static final long serialVersionUID = 4276533453329025890L;
 	int _dir;
 	boolean _block;
 

@@ -1,26 +1,28 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
+import java.awt.geom.RoundRectangle2D;
 
-import com.hp.hpl.guess.ui.*;
-import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
 import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.nodes.PText;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessTextLegendNode extends PText {
     
 
-    private int style = VisFactory.TEXT_ROUNDRECTANGLE;
+	private static final long serialVersionUID = 1602750007338639338L;
+	private int style = VisFactory.TEXT_ROUNDRECTANGLE;
     
     public int getStyle() {
 	return(style);
@@ -147,10 +149,7 @@ public class GuessTextLegendNode extends PText {
     }
 
     private boolean highlightMode = false;
-    private boolean labelMode = false;
-
     public void label(boolean state) {
-	labelMode = state;
     }
 
     private static BasicStroke linestroke = new BasicStroke((float).3);

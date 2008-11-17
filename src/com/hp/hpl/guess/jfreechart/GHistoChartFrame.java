@@ -1,38 +1,61 @@
 package com.hp.hpl.guess.jfreechart;
 
-import org.jfree.chart.*;
-import org.jfree.data.general.*;
-import org.jfree.data.category.*;
-import org.jfree.chart.plot.*;
-import org.jfree.data.xy.*;
-import org.jfree.chart.renderer.xy.*;
-import org.jfree.chart.renderer.category.CategoryItemRenderer;
-import org.jfree.chart.labels.CategoryToolTipGenerator;
-import org.jfree.chart.entity.*;
-import org.jfree.chart.annotations.*;
-import org.jfree.chart.axis.*;
-import org.jfree.chart.entity.CategoryItemEntity;
-
-import javax.swing.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Paint;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
-import java.awt.Dimension;
-import org.python.core.*;
-import com.hp.hpl.guess.*;
-import com.hp.hpl.guess.ui.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 
-import java.awt.*;
-import java.awt.geom.*;
-import org.jfree.ui.Drawable;
-import java.awt.event.MouseEvent;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartMouseEvent;
+import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.entity.CategoryItemEntity;
+import org.jfree.chart.entity.ChartEntity;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.python.core.PyFloat;
+import org.python.core.PyInstance;
+import org.python.core.PyInteger;
+import org.python.core.PySequence;
+
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.GraphElement;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.Dockable;
+import com.hp.hpl.guess.ui.EdgeEditorPopup;
+import com.hp.hpl.guess.ui.EditorPopup;
+import com.hp.hpl.guess.ui.GraphElementEditorPopup;
+import com.hp.hpl.guess.ui.GraphEvents;
+import com.hp.hpl.guess.ui.GraphMouseListener;
+import com.hp.hpl.guess.ui.GuessJFrame;
+import com.hp.hpl.guess.ui.MainUIWindow;
+import com.hp.hpl.guess.ui.NodeEditorPopup;
+import com.hp.hpl.guess.ui.VisFactory;
 
 public class GHistoChartFrame extends JPanel 
     implements Dockable, GraphMouseListener {
 
-    protected HashMap idToGroup = new HashMap();
+	private static final long serialVersionUID = 3383661752877842066L;
 
-    protected HashMap elemToSection = new HashMap();
+	protected HashMap<Integer, Collection<GraphElement>> idToGroup = new HashMap<Integer, Collection<GraphElement>>();
+
+    protected HashMap<GraphElement, Integer> elemToSection = new HashMap<GraphElement, Integer>();
 
     private boolean docking = true;
 
@@ -63,7 +86,7 @@ public class GHistoChartFrame extends JPanel
 	for (int i = 0 ; i < groups.size() ; i++) {
 	    Object group = groups.__finditem__(i);
 
-	    Collection grp = ((PySequence)group).findGraphElements();
+	    Collection<GraphElement> grp = ((PySequence)group).findGraphElements();
 
 	    if (docking)
 		idToGroup.put(new Integer(i),grp);
@@ -88,7 +111,7 @@ public class GHistoChartFrame extends JPanel
 	    }
 
 	    if (docking) {
-		Iterator it = grp.iterator();
+		Iterator<GraphElement> it = grp.iterator();
 		while(it.hasNext()) {
 		    GraphElement ge = (GraphElement)it.next();
 		    elemToSection.put(ge,new Integer(i));
@@ -149,7 +172,6 @@ public class GHistoChartFrame extends JPanel
     private ChartPanel cp = null;
 
     public void saveJPEG(String filename) throws IOException {
-	File f = new File(filename);
 	saveChartAsJPEG(new File(filename),(float).9,
 			(int)cp.getPreferredSize().getWidth(),
 			(int)cp.getPreferredSize().getHeight());
@@ -208,7 +230,7 @@ public class GHistoChartFrame extends JPanel
 
 	private GHistoChartFrame owner = null;
 
-	private Collection prev = null;
+	private Collection<GraphElement> prev = null;
 
 	private JPopupMenu jpm = null;
 
@@ -228,7 +250,7 @@ public class GHistoChartFrame extends JPanel
 
 	    if (ce instanceof CategoryItemEntity) {
 		int ser = ((CategoryItemEntity)ce).getSeries();
-		prev = (Collection)owner.idToGroup.get(new Integer(ser));
+		prev = (Collection<GraphElement>)owner.idToGroup.get(new Integer(ser));
 		if (prev != null) {
 		    VisFactory.getFactory().getDisplay().center(prev);
 		}
@@ -242,7 +264,7 @@ public class GHistoChartFrame extends JPanel
 	    ChartEntity ce = event.getEntity();
 
 	    if (prev != null) {
-		Iterator it = prev.iterator();
+		Iterator<GraphElement> it = prev.iterator();
 		while (it.hasNext()) {
 		    GraphElement ge = (GraphElement)it.next();
 		    GraphEvents.mouseLeave(ge);
@@ -258,11 +280,11 @@ public class GHistoChartFrame extends JPanel
 
 	    if (ce instanceof CategoryItemEntity) {
 		int ser = ((CategoryItemEntity)ce).getSeries();
-		prev = (Collection)owner.idToGroup.get(new Integer(ser));
+		prev = (Collection<GraphElement>)owner.idToGroup.get(new Integer(ser));
 		if (prev != null) {
 		    boolean nodes = false;
 		    boolean edges = false;
-		    Iterator it = prev.iterator();
+		    Iterator<GraphElement> it = prev.iterator();
 		    while (it.hasNext()) {
 			GraphElement ge = (GraphElement)it.next();
 			if (ge instanceof Node)

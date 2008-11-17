@@ -1,23 +1,27 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import edu.umd.cs.piccolo.activities.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 
-import com.hp.hpl.guess.ui.*;
-import com.hp.hpl.guess.*;
-import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.DirectedEdge;
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.UndirectedEdge;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessLegendEdge extends PPath {
 
-    double n1x = 0;
+	private static final long serialVersionUID = 187984775275003642L;
+	double n1x = 0;
     double n1y = 0;
     double n2x = 10;
     double n2y = 10;

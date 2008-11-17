@@ -1,15 +1,22 @@
 package com.hp.hpl.guess.prefuse;
 
-import com.hp.hpl.guess.ui.*;
-import com.hp.hpl.guess.*;
 import java.awt.Color;
-import prefuse.data.Table;
-import prefuse.data.Schema;
-import prefuse.visual.VisualItem;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+
 import prefuse.Visualization;
+import prefuse.visual.VisualItem;
+
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.ui.EdgeListener;
+import com.hp.hpl.guess.ui.FrameListener;
+import com.hp.hpl.guess.ui.NodeListener;
+import com.hp.hpl.guess.ui.VisFactory;
 
 public class PrefuseFactory extends VisFactory {
 

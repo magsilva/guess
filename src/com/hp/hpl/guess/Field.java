@@ -6,9 +6,8 @@ import com.hp.hpl.guess.storage.StorageListener;
 import com.hp.hpl.guess.storage.StorageFactory;
 import com.hp.hpl.guess.ui.Interesting;
 import com.hp.hpl.guess.ui.EditorPopup;
-import com.hp.hpl.guess.ui.ExceptionWindow;
 
-public final class Field implements Comparable, Interesting {
+public final class Field implements Comparable<Field>, Interesting {
 
     private Graph graph;
     private String name;
@@ -70,7 +69,7 @@ public final class Field implements Comparable, Interesting {
     }
 
     public void setNotNull(boolean nn) {
-	this.nn = nn;
+	Field.nn = nn;
     }
 
     public PyObject __getitem__(int key) {
@@ -254,7 +253,7 @@ public final class Field implements Comparable, Interesting {
 		|| type == Types.INTEGER );
     }
 
-    public int compareTo(Object o) {
+    public int compareTo(Field o) {
 	return(getName().compareTo(((Field)o).getName()));
     }
 
@@ -276,4 +275,5 @@ public final class Field implements Comparable, Interesting {
     public EditorPopup getPopup() {
 	return(null);
     }
+
 }

@@ -1,25 +1,26 @@
 package com.hp.hpl.guess;
 
-import java.awt.*;
-import javax.swing.*;
-import java.io.*;
-import java.util.*;
-import com.hp.hpl.guess.*;
-import org.python.core.*;
-import org.python.util.*;
-import edu.uci.ics.jung.graph.*;
-import edu.umd.cs.piccolo.PLayer;
-import edu.umd.cs.piccolo.PNode;
-import com.hp.hpl.guess.db.*;
-import com.hp.hpl.guess.storage.*;
-import com.hp.hpl.guess.ui.*;
-import java.applet.*;
+import java.applet.Applet;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.net.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
+import org.python.core.PySystemState;
+
+import com.hp.hpl.guess.storage.StorageFactory;
+import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.VisFactory;
 
 public class GuessApplet extends Applet
 {
-    public void init() {
+
+	private static final long serialVersionUID = -8323177849186174338L;
+
+	public void init() {
 	try {
 	    PySystemState.initializeApplet();
 	    Guess.setAppletMode(true,getAppletContext());

@@ -1,30 +1,66 @@
 package com.hp.hpl.guess.ui;
 
-import org.python.core.*;
-import org.python.util.PythonInterpreter;
-
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-
-import java.util.*;
-import javax.swing.*;
-
-import java.io.*;
-import javax.swing.text.*;
-import java.awt.event.*;
-import java.awt.Point;
-import java.awt.datatransfer.*;
-import java.awt.Toolkit;
-import javax.swing.text.html.HTMLEditorKit;
-import com.hp.hpl.guess.util.intervals.*;
-import com.hp.hpl.guess.GraphElement;
-import com.hp.hpl.guess.Field;
 import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.PrintStream;
+import java.io.Writer;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
+import javax.swing.ToolTipManager;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Keymap;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+
+import org.python.core.PyDictionary;
+import org.python.core.PyException;
+import org.python.core.PyFunction;
+import org.python.core.PyInstance;
+import org.python.core.PyList;
+import org.python.core.PyObject;
+import org.python.core.PySequence;
+import org.python.core.PyString;
+import org.python.core.PySyntaxError;
+import org.python.util.PythonInterpreter;
+
+import com.hp.hpl.guess.GraphElement;
 import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.util.intervals.IntervalNode;
+import com.hp.hpl.guess.util.intervals.TextPaneIntervalNode;
+import com.hp.hpl.guess.util.intervals.Tracker;
 
 /**
  * <p>The text pane that implement short-cut and general behaviour from a bash
@@ -56,8 +92,9 @@ import com.hp.hpl.guess.Guess;
  */
 public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
-    private int lineNumber = 1;
-    private boolean opening = true;
+	private static final long serialVersionUID = -1010293520985819507L;
+	
+	private boolean opening = true;
     
     protected static int fontSize = 11;
 
@@ -109,6 +146,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
     class InternalTextPane extends JTextPane implements GuessSelectable {
 
+		private static final long serialVersionUID = 6965510309470594061L;
+
 	public static final String REVISION = "1.0";
 
 	private static final String COMMAND_STYLE = "command";
@@ -125,10 +164,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	private PythonInterpreter jython;
 	private ConsoleDocument document;
 	private int currentItem;
-	private Vector history;
+	private Vector<String> history;
 
 	private Object currentH = null;
-	private HashSet currentHighlights = new HashSet();
+	private HashSet<GraphElement> currentHighlights = new HashSet<GraphElement>();
 	private IntervalNode vin = null;
 
 	private boolean demoMode = false;//true;
@@ -142,14 +181,14 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		Tracker.searchContained(getSelectionStart(),
 					getSelectionEnd()-1);
 	    
-	    HashSet pl = new HashSet();
+	    HashSet<Object> pl = new HashSet<Object>();
 	    for (int i = 0 ; i < matching.length ; i++) {
 		IntervalNode in = matching[i];
 		Object o = in.getProxy();
 		if (o instanceof PyString) {
 		    continue;
 		} else if (o instanceof PySequence) {
-		    Iterator it = 
+		    Iterator<?> it = 
 			((PySequence)o).findGraphElements().iterator();
 		    while(it.hasNext()) {
 			pl.add(it.next());
@@ -235,7 +274,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 	    StatusBar.setStatus("");
 
-	    Iterator it = currentHighlights.iterator();
+	    Iterator<GraphElement> it = currentHighlights.iterator();
 	   
 	    while(it.hasNext()) {
 		GraphElement el = (GraphElement)it.next();
@@ -314,8 +353,6 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		document.insertString(0, getEnvironment("PS1"),
 				      getStyle(PROMPT_STYLE));
 		
-		final InternalTextPane thisitp = this;
-
 		MouseAdapter test = new MouseAdapter() {
 
 			private void selectionHandler(MouseEvent e) {
@@ -331,7 +368,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    
 			    int min = Integer.MAX_VALUE;
 			    int max = Integer.MIN_VALUE;
-			    HashSet pl = new HashSet();
+			    HashSet<GraphElement> pl = new HashSet<GraphElement>();
 			    for (int i = 0 ; i < matching.length ; i++) {
 				IntervalNode in = matching[i];
 				min = (int)Math.min(in.getLow(),min);
@@ -340,14 +377,14 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 				if (o instanceof PyString) {
 				    continue;
 				} else if (o instanceof PySequence) {
-				    Iterator it = 
+				    Iterator<GraphElement> it = 
 					((PySequence)o).findGraphElements().iterator();
 				    while(it.hasNext()) {
 					pl.add(it.next());
 				    }
 				} else if (o instanceof PyInstance) {
 				    if (((PyInstance)o).isGraphElementProxy()) {
-					pl.add((((PyInstance)o).__tojava__(Object.class)));
+					pl.add((GraphElement)(((PyInstance)o).__tojava__(Object.class)));
 				    }
 				}
 			    }
@@ -394,7 +431,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 					EditorPopup mpup = getMenu(currentH);
 					if (mpup != null) {
 					    mpup.show(editor,e.getX(),e.getY(),
-						      (HashSet)currentHighlights.clone(), currentH);
+						      currentHighlights, currentH);
 					} else {
 						MouseEvent e2 = new MouseEvent((Component)Guess.getMainUIWindow().getHorizontalTabbedPane(), e.getID(), e.getWhen(), e.getModifiers(), e.getX(), e.getY(), e.getClickCount(), true);
 
@@ -480,7 +517,6 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    char[] temp = new char[text.length()];
 	    text.getChars(0,temp.length,temp,0);
 	    StringBuffer toAdd = null;
-	    boolean inQuotes = false;
 	    for (int i = 0 ; i < temp.length ; i++) {
 		if (temp[i] == '\\') {
 		    i++;
@@ -622,8 +658,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 *
 	 * @since 1.0
 	 */
-	private Vector prepareHistory() {
-	    Vector answer = new Vector();
+	private Vector<String> prepareHistory() {
+	    Vector<String> answer = new Vector<String>();
 	    answer.add(""); // top sentinelle
 	    answer.add(""); // bottom sentinelle
 	    currentItem = 0;
@@ -781,12 +817,12 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class ConsoleDocument extends DefaultStyledDocument {
-	    private String yank = "";
+		private static final long serialVersionUID = 7719137812421958651L;
+		private String yank = "";
 	    private int multilining = 0; // level of multilining
 	    private StringBuffer multiline;
 	    private boolean CLEARING = false;
-	    private Hashtable styles;
-
+	    
 	    /**
 	     *
 	     * @since 1.0
@@ -920,7 +956,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 				      File.separatorChar + 
 				      ".guess_history");
 		    PrintStream out = new PrintStream(new FileOutputStream(f));
-		    int len = history.size();
+
 		    int start = history.size() - 100;
 		    if (start < 0) {
 			start = 0;
@@ -1144,7 +1180,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 													       "./") + 2));
 			StringTokenizer tokens = new StringTokenizer(getEnvironment(
 										    "PATH"), getEnvironment("PATH_SEPARATOR"));
-			Vector candidates = new Vector();
+			Vector<String> candidates = new Vector<String>();
 			int longestCandidate = -1;
 
 			// find all
@@ -1189,7 +1225,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 				superInsertString(getCaretPosition(), "\n",
 						  getStyle(COMMAND_STYLE));
 
-				Iterator list = candidates.iterator();
+				Iterator<String> list = candidates.iterator();
 				StringBuffer line = new StringBuffer();
 				String each = null;
 				longestCandidate += 2;
@@ -1436,13 +1472,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		// only insertions on the last line are allowed
 		offset = getOffsetOnCommandLine(offset);
 
-		// is it a command to execute ?
-		int end;
-
 		String command = null;
 		int aftercommand = 0;
 
-		if ((end = text.indexOf('\n')) > -1) {
+		if ((text.indexOf('\n')) > -1) {
 		    moveEnd();
 		    superInsertString(getCommandLineEndOffset(), "\n",
 				      getStyle(COMMAND_STYLE));
@@ -1562,9 +1595,6 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 		    // let Jython execute the command if necessary
 		    if (command.trim().length() > 0) {
-			String value;
-			Style style;
-
 			try {
 			    StatusBar.setStatus("");
 			    if (command.equals("quit")) {
@@ -1791,7 +1821,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class SearchHistoryItemAction extends AbstractAction {
-	    public void actionPerformed(ActionEvent ae) {
+		private static final long serialVersionUID = 1L;
+		public void actionPerformed(ActionEvent ae) {
 		// FIXME: implement that
 	    }
 	}
@@ -1801,6 +1832,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class PreviousHistoryItemAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.selectPreviousHistoryItem();
 	    }
@@ -1811,6 +1843,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class NextHistoryItemAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.selectNextHistoryItem();
 	    }
@@ -1821,6 +1854,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class MoveStartAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		moveStart();
 	    }
@@ -1831,6 +1865,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class MoveEndAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		moveEnd();
 	    }
@@ -1841,6 +1876,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class MoveLeftAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		moveLeft();
 	    }
@@ -1851,6 +1887,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class MoveRightAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		moveRight();
 	    }
@@ -1861,6 +1898,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class ClearAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.clear();
 	    }
@@ -1871,6 +1909,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class SwapAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.swapCharacters();
 	    }
@@ -1881,6 +1920,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class YankWordAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.yankWord();
 	    }
@@ -1891,6 +1931,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class YankAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.yankCommandLine();
 	    }
@@ -1901,6 +1942,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class KillAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.killCommandLine();
 	    }
@@ -1911,6 +1953,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class PasteAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.pasteBuffer();
 	    }
@@ -1921,6 +1964,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class TabulationAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.completeCommandLine();
 	    }
@@ -1931,6 +1975,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class CancelAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.cancel();
 	    }
@@ -1941,6 +1986,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	 * @since 1.0
 	 */
 	private class DeleteAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
 	    public void actionPerformed(ActionEvent ae) {
 		document.delete();
 	    }
@@ -1990,7 +2036,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
     public void attaching(boolean state) {
 	docked = state;
 	if ((state == true) && (myParent != null))
-	    myParent.hide();
+	    myParent.setVisible(false);
     }
 
     private GuessJFrame myParent = null;

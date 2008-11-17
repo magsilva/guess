@@ -1,11 +1,11 @@
 package com.hp.hpl.guess.util;
 
-import java.util.*;
 import com.hp.hpl.guess.Field;
 
 public class SortableHashSet extends AnnoHashSet implements Comparable {
     
-    public Comparable key = null;
+	private static final long serialVersionUID = -4893622029359580478L;
+	public Comparable key = null;
     
     public SortableHashSet(Comparable key) {
 	super(key.toString());

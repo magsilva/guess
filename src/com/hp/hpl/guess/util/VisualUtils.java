@@ -16,14 +16,14 @@ public abstract class VisualUtils {
     public static void colorize(Graph g, Field column) {
 
 	// get a collection of collections grouped by column
-	Collection c = g.groupBy(column);
+	Collection<SortableHashSet> c = g.groupBy(column);
 
-	Iterator it = c.iterator();
+	Iterator<SortableHashSet> it = c.iterator();
 	while(it.hasNext()) {
 
 	    // get every sub-collection
-	    Collection c2 = (Collection)it.next();
-	    Iterator it2 = c2.iterator();
+		SortableHashSet c2 = (SortableHashSet)it.next();
+	    Iterator<?> it2 = c2.iterator();
 
 	    // pick a random color
 	    String col = Colors.randomColor();
@@ -40,14 +40,14 @@ public abstract class VisualUtils {
 				    double min, double max) {
 
 	// get a collection of collections grouped by column
-	Collection c = g.groupBy(column);
+	Collection<SortableHashSet> c = g.groupBy(column);
 
-	Iterator it = c.iterator();
+	Iterator<SortableHashSet> it = c.iterator();
 	while(it.hasNext()) {
 
 	    // get every sub-collection
-	    Collection c2 = (Collection)it.next();
-	    Iterator it2 = c2.iterator();
+		SortableHashSet c2 = (SortableHashSet)it.next();
+	    Iterator<?> it2 = c2.iterator();
 
 	    // pick a random color
 	    double size = min + r.nextDouble() * (max - min);
@@ -68,17 +68,17 @@ public abstract class VisualUtils {
 				    double min, double max) {
 
 	// get a collection of collections grouped by column
-	Collection c = g.groupAndSortBy(column);
+	Collection<SortableHashSet> c = g.groupAndSortBy(column);
 
 	double increment = (max - min) / c.size();
 
-	Iterator it = c.iterator();
+	Iterator<SortableHashSet> it = c.iterator();
 	int i = 0;
 	while(it.hasNext()) {
 
 	    // get every sub-collection
-	    Collection c2 = (Collection)it.next();
-	    Iterator it2 = c2.iterator();
+		SortableHashSet c2 = (SortableHashSet)it.next();
+	    Iterator<?> it2 = c2.iterator();
 
 	    // increment the size based on loop location
 	    double size = min + increment * i;
@@ -100,7 +100,7 @@ public abstract class VisualUtils {
 				Color start, Color end) {
 	
 	// get a collection of collections grouped by column
-	Collection c = g.groupAndSortBy(column);
+	Collection<SortableHashSet> c = g.groupAndSortBy(column);
 	
 	if (c.size() <= 0) {
 	    System.out.println("No groupings");
@@ -109,30 +109,33 @@ public abstract class VisualUtils {
 
 	int sz = c.size();
 	if (sz == 1) {
-	    Iterator it2 = null;
 	    if (column.getType() == Field.NODE) {
-		it2 = g.getNodes().iterator();
+	    	Iterator<Node> it2 = g.getNodes().iterator();
+		    while(it2.hasNext()) {
+				GraphElement ge = (GraphElement)it2.next();
+				ge.__setattr__("color",start);
+			    }
 	    } else {
-		it2 = g.getEdges().iterator();
-	    }
-	    while(it2.hasNext()) {
-		GraphElement ge = (GraphElement)it2.next();
-		ge.__setattr__("color",start);
+	    	Iterator<Edge> it2 = g.getEdges().iterator();
+		    while(it2.hasNext()) {
+				GraphElement ge = (GraphElement)it2.next();
+				ge.__setattr__("color",start);
+			    }
 	    }
 	    return;
 	}
 
-	ArrayList al = Colors.generateColors(start,end,sz);
+	ArrayList<Object> al = Colors.generateColors(start,end,sz);
 
-	Iterator it = c.iterator();
+	Iterator<SortableHashSet> it = c.iterator();
 
 	int i = 0;
 
 	while(it.hasNext()) {
 	    
 	    // get every sub-collection
-	    Collection c2 = (Collection)it.next();
-	    Iterator it2 = c2.iterator();
+		SortableHashSet c2 = (SortableHashSet)it.next();
+	    Iterator<?> it2 = c2.iterator();
 	    
 	    // pick a random color
 	    String col = (String)al.get(i);
@@ -151,7 +154,7 @@ public abstract class VisualUtils {
 				Color end) {
 	
 	// get a collection of collections grouped by column
-	Collection c = g.groupAndSortBy(column);
+	Collection<SortableHashSet> c = g.groupAndSortBy(column);
 	
 	if (c.size() <= 0) {
 	    System.out.println("No groupings");
@@ -160,7 +163,7 @@ public abstract class VisualUtils {
 
 	int sz = c.size();
 	if (sz == 1) {
-	    Iterator it2 = null;
+	    Iterator<?> it2 = null;
 	    if (column.getType() == Field.NODE) {
 		it2 = g.getNodes().iterator();
 	    } else {
@@ -173,17 +176,17 @@ public abstract class VisualUtils {
 	    return;
 	}
 
-	ArrayList al = Colors.generateColors(start,middle,end,sz);
+	ArrayList<Object> al = Colors.generateColors(start,middle,end,sz);
 
-	Iterator it = c.iterator();
+	Iterator<SortableHashSet> it = c.iterator();
 
 	int i = 0;
 
 	while(it.hasNext()) {
 	    
 	    // get every sub-collection
-	    Collection c2 = (Collection)it.next();
-	    Iterator it2 = c2.iterator();
+		SortableHashSet c2 = (SortableHashSet)it.next();
+	    Iterator<?> it2 = c2.iterator();
 	    
 	    // pick a random color
 	    String col = (String)al.get(i);

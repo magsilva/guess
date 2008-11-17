@@ -1,29 +1,29 @@
 package com.hp.hpl.guess.io;
 
-import java.io.*;
-import java.util.*;
-
-import com.hp.hpl.guess.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import org.xml.sax.InputSource;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import java.sql.Types;
+
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.EdgeSchema;
+import com.hp.hpl.guess.Field;
+import com.hp.hpl.guess.Graph;
+import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.NodeSchema;
 import com.hp.hpl.guess.ui.ExceptionWindow;
 
 public class GraphMLReader extends DefaultHandler {
-
-    private static final int GRAPH = 1;
-    private static final int NODE = 2;
-    private static final int EDGE = 3;
-    private static final int DEFAULT = 4;
-    private static final int DATA = 5;
-    private static final int KEY = 6;
-
-    private static final int OTHER = 10;
 
     Graph g = null;
     NodeSchema ns = null;
@@ -65,8 +65,7 @@ public class GraphMLReader extends DefaultHandler {
         }
     }
 
-    private Map curAttrs = null;
-    private Stack seen = new Stack();
+    private Map<String, String> curAttrs = null;
     private String curString = "";
     private String dataName = "";
 
@@ -118,9 +117,9 @@ public class GraphMLReader extends DefaultHandler {
 	}
     }
 
-    private HashMap nameMap = new HashMap();
+    private HashMap<String, String> nameMap = new HashMap<String, String>();
 
-    public void createKey(Map attributeMap) {
+    public void createKey(Map<String, String> attributeMap) {
 	String attrName = (String)attributeMap.get("attr.name");
 	String attrType = (String)attributeMap.get("attr.type");
 	String id = (String)attributeMap.get("id");
@@ -246,13 +245,13 @@ public class GraphMLReader extends DefaultHandler {
 	//System.out.println("charactersa: " + curString);
     }
 
-    public void createNode(Map attributeMap) {
+    public void createNode(Map<String, String> attributeMap) {
 	try {
 	    String idString = (String)attributeMap.remove("id");
 	    Node n = g.addNode(idString);
 	    //System.out.println(Thread.currentThread().getName() + " setting label: " + idString);
 	    n.__setattr__("label",idString); // give it a reasonable display
-	    Iterator it = attributeMap.keySet().iterator();
+	    Iterator<String> it = attributeMap.keySet().iterator();
 	    while(it.hasNext()) {
 		String key = (String)it.next();
 		String val = (String)attributeMap.get(key);
@@ -268,7 +267,7 @@ public class GraphMLReader extends DefaultHandler {
 	}
     }
 
-    protected void createGraph(Map attributeMap) {
+    protected void createGraph(Map<String, String> attributeMap) {
 	String edgeDefaultType =
 	    (String) attributeMap.remove("edgedefault");
 	if ((edgeDefaultType != null) && 
@@ -277,7 +276,7 @@ public class GraphMLReader extends DefaultHandler {
 	} 
     }
 
-    public void createEdge(Map attributeMap) {
+    public void createEdge(Map<String, String> attributeMap) {
 	try {
 	    String source = (String)attributeMap.remove("source");
 	    String target = (String)attributeMap.remove("target");
@@ -320,7 +319,7 @@ public class GraphMLReader extends DefaultHandler {
 	    //System.out.println("\t"+e + " " + e.__getattr__("visible"));
 	    //}
 
-	    Iterator it = attributeMap.keySet().iterator();
+	    Iterator<String> it = attributeMap.keySet().iterator();
 	    while(it.hasNext()) {
 		String key = (String)it.next();
 		String val = (String)attributeMap.get(key);
@@ -337,8 +336,8 @@ public class GraphMLReader extends DefaultHandler {
 	}
     }
 
-    private Map getAttributeMap(Attributes attrs) {
-        Map map = new HashMap();
+    private Map<String, String> getAttributeMap(Attributes attrs) {
+        Map<String, String> map = new HashMap<String, String>();
         if (attrs != null) {
             for (int i = 0; i < attrs.getLength(); i++) {
                 map.put(attrs.getQName(i).toLowerCase(), 

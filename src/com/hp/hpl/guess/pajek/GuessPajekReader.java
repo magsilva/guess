@@ -2,6 +2,7 @@ package com.hp.hpl.guess.pajek;
 
 import java.util.*;
 import com.hp.hpl.guess.*;
+
 import java.io.*;
 import com.hp.hpl.guess.ui.Colors;
 import java.awt.Color;
@@ -11,9 +12,9 @@ public class GuessPajekReader {
 
     private static Random rand = new Random();
 
-    private static HashSet shapes = new HashSet();
+    private static HashSet<String> shapes = new HashSet<String>();
 
-    private static Vector nds = new Vector();
+    private static Vector<Node> nds = new Vector<Node>();
  
     static {
 	shapes.add("box");
@@ -31,7 +32,6 @@ public class GuessPajekReader {
 	    boolean arcs = false;
 	    boolean partition = false;
 
-	    int nodes = -1;
 	    String part_name = "";
 	    int partIndex = -1;
 
@@ -53,7 +53,7 @@ public class GuessPajekReader {
 		    partition = false;
 		    int space = (int)Math.max((double)line.lastIndexOf(' '),
 					      (double)line.lastIndexOf('\t'));
-		    nodes = Integer.parseInt(line.substring(space+1));
+		    Integer.parseInt(line.substring(space+1));
 		    continue;
 		} else if (line.startsWith("*Arcs")) {
 		    vert = false;
@@ -138,7 +138,6 @@ public class GuessPajekReader {
 
 	if (rest.length > pointer) {
 	    try {
-		double whatisthis = Double.parseDouble(rest[pointer]);
 		pointer++;
 	    } catch (NumberFormatException nfe) {
 	    }
@@ -160,8 +159,6 @@ public class GuessPajekReader {
 	boolean rounded = false;
 	
 	String color = "cornflowerblue";
-	String labelcolor = null;
-
 	for (int i = pointer ; i < rest.length - 1; i = i+2) {
 	    String key = rest[i].toLowerCase();
 	    String value = rest[i+1];
@@ -186,7 +183,6 @@ public class GuessPajekReader {
 	    } else if (key.equals("bw")) {
 		// boundry width, ignore
 	    } else if (key.equals("lc")) {
-		labelcolor = value;
 	    } else if (key.equals("la")) {
 		// label angle, ignore
 	    } else if (key.equals("lr")) {
@@ -265,7 +261,6 @@ public class GuessPajekReader {
 	}
 
 	String color = "dandelion";
-	String labelcolor = null;
 	double width = 2;
 
 	for (int i = pointer ; i < rest.length - 1; i = i+2) {
@@ -277,7 +272,6 @@ public class GuessPajekReader {
 	    } else if (key.equals("width")) {
 		width = Double.parseDouble(value);
 	    } else if (key.equals("lc")) {
-		labelcolor = value;
 	    } else if (key.equals("l")) {
 		if (value.startsWith("\"")) {
 		    if (value.endsWith("\"")) {

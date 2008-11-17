@@ -6,7 +6,9 @@ import edu.umd.cs.piccolo.activities.PTransformActivity;
 
 public class GPCamera extends PCamera {
 
-    public void fullPaint(PPaintContext paintContext) {
+	private static final long serialVersionUID = 1832945278941109233L;
+
+	public void fullPaint(PPaintContext paintContext) {
 	//System.out.println("cfp");
 	super.fullPaint(paintContext);
     }

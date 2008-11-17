@@ -222,13 +222,13 @@ public interface StorageListener {
     public void removeComplete(Edge edge);
 
     // get a list of all removed nodes
-    public java.util.Collection getRemovedNodes();
+    public java.util.Collection<Node> getRemovedNodes();
 
     // get a specific removed node, or null if it's not there
     public Node getRemovedNode(String n);
 
     // get a list of removed edges
-    public java.util.Collection getRemovedEdges();
+    public java.util.Collection<Edge> getRemovedEdges();
 
     // get a specific removed edge, or null if it's not there
     public Edge getRemovedEdge(String e);
@@ -267,15 +267,15 @@ public interface StorageListener {
     /**
      * @pyexport
      */
-    public Set getStates();
+    public Set<?> getStates();
 
-    public Vector getEdgesNotInCurrent(Graph g, int statenum);
+    public Vector<Edge> getEdgesNotInCurrent(Graph g, int statenum);
 
-    public Vector getEdgesNotInCurrent(Graph g, String statenum);
+    public Vector<Edge> getEdgesNotInCurrent(Graph g, String statenum);
 
-    public Vector getNodesNotInCurrent(Graph g, int statenum);
+    public Vector<Node> getNodesNotInCurrent(Graph g, int statenum);
 
-    public Vector getNodesNotInCurrent(Graph g, String statenum);
+    public Vector<Node> getNodesNotInCurrent(Graph g, String statenum);
 
     public AbstractTableModel getNodeTable();
 

@@ -17,7 +17,9 @@ import java.sql.Types;
  */
 public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 
-    private static InfoWindow singleton = null;
+	private static final long serialVersionUID = -8315664637762043212L;
+
+	private static InfoWindow singleton = null;
 
     private GuessTableModel gtm = null;
 
@@ -149,158 +151,160 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 
     class GuessTableModel extends AbstractTableModel {
 
-	private int nRowCount = 0;
+    	private static final long serialVersionUID = 4935849351227106915L;
 
-	private Vector nFields = new Vector();
-	
-	private int eRowCount = 0;
+    	private int nRowCount = 0;
 
-	private Vector eFields = new Vector();
+    	private Vector<String> nFields = new Vector<String>();
 
-	private GraphElement lastSel = null;
+    	private int eRowCount = 0;
 
-	public int getColumnCount() { 
-	    return 2; 
-	}
-	
-	public void details(Node n) {
-	    Schema schema = Guess.getGraph().getNodeSchema();
-	    int trc = schema.fieldCount();
-	    if (trc != nRowCount) {
-		// schema has changed, kill the cache
-		nRowCount = trc;
-		nFields.clear();
-		Enumeration en = schema.getFields();
-		while(en.hasMoreElements()) {
-		    Field f = (Field)en.nextElement();
-		    nFields.add(f.getName());
-		}
-		Collections.sort(nFields);
-		lastSel = null; // cause full change to fire
-	    }
-	    GraphElement temp = lastSel;
-	    lastSel = n;
-	    if (temp instanceof Node) {
-		// node to node, only need to 
-		// update second column
-		fireTableChanged(new TableModelEvent(this,0,nRowCount,1,TableModelEvent.UPDATE));
-	    } else {
-		fireTableDataChanged();
-	    }
-	}
+    	private Vector<String> eFields = new Vector<String>();
 
-	public void details(Edge n) {
-	    Schema schema = Guess.getGraph().getEdgeSchema();
-	    int trc = schema.fieldCount();
-	    if (trc != eRowCount) {
-		// schema has changed, kill the cache
-		eRowCount = trc;
-		eFields.clear();
-		Enumeration en = schema.getFields();
-		while(en.hasMoreElements()) {
-		    Field f = (Field)en.nextElement();
-		    eFields.add(f.getName());
-		}
-		Collections.sort(eFields);
-		lastSel = null; // cause full change to fire
-	    }
-	    GraphElement temp = lastSel;
-	    lastSel = n;
-	    if (temp instanceof Edge) {
-		// edge to edge, only need to 
-		// update second column
-		fireTableChanged(new TableModelEvent(this,0,eRowCount,1,TableModelEvent.UPDATE));
-	    } else {
-		fireTableDataChanged();
-	    }
-	}
+    	private GraphElement lastSel = null;
 
-	public int getRowCount() {
-	    if (lastSel == null) {
-		return(0);
-	    } else if (lastSel instanceof Node) {
-		return(nRowCount);
-	    } else {
-		return(eRowCount);
-	    }
-	}
+    	public int getColumnCount() { 
+    		return 2; 
+    	}
 
-	public Object getValueAt(int row, int col) { 
-	    if (lastSel == null) {
-		return("");
-	    } else if (lastSel instanceof Node) {
-		if (row <= nRowCount) {
-		    String fld = (String)nFields.elementAt(row);
-		    if (col == 0) {
-			return(fld);
-		    } else if (col == 1) {
-			return(lastSel.__getattr__(fld));
-		    }
-		}
-	    } else {
-		if (row <= eRowCount) {
-		    String fld = (String)eFields.elementAt(row);
-		    if (col == 0) {
-			return(fld);
-		    } else if (col == 1) {
-			return(lastSel.__getattr__(fld));
-		    }
-		}
-	    }
-	    return("");
-	}
-	
-	public String getColumnName(int col) {
-	    if (col == 0) {
-		return("Field");
-	    } else {
-		return("Value");
-	    }
-	}
+    	public void details(Node n) {
+    		Schema schema = Guess.getGraph().getNodeSchema();
+    		int trc = schema.fieldCount();
+    		if (trc != nRowCount) {
+    			// schema has changed, kill the cache
+    			nRowCount = trc;
+    			nFields.clear();
+    			Enumeration<Field> en = schema.getFields();
+    			while(en.hasMoreElements()) {
+    				Field f = (Field)en.nextElement();
+    				nFields.add(f.getName());
+    			}
+    			Collections.sort(nFields);
+    			lastSel = null; // cause full change to fire
+    		}
+    		GraphElement temp = lastSel;
+    		lastSel = n;
+    		if (temp instanceof Node) {
+    			// node to node, only need to 
+    			// update second column
+    			fireTableChanged(new TableModelEvent(this,0,nRowCount,1,TableModelEvent.UPDATE));
+    		} else {
+    			fireTableDataChanged();
+    		}
+    	}
 
-	public boolean isCellEditable(int row, int col) { 
-	    if (col == 0) {
-		return false; 
-	    } else {
-		return true;
-	    }
-	}
+    	public void details(Edge n) {
+    		Schema schema = Guess.getGraph().getEdgeSchema();
+    		int trc = schema.fieldCount();
+    		if (trc != eRowCount) {
+    			// schema has changed, kill the cache
+    			eRowCount = trc;
+    			eFields.clear();
+    			Enumeration<Field> en = schema.getFields();
+    			while(en.hasMoreElements()) {
+    				Field f = (Field)en.nextElement();
+    				eFields.add(f.getName());
+    			}
+    			Collections.sort(eFields);
+    			lastSel = null; // cause full change to fire
+    		}
+    		GraphElement temp = lastSel;
+    		lastSel = n;
+    		if (temp instanceof Edge) {
+    			// edge to edge, only need to 
+    			// update second column
+    			fireTableChanged(new TableModelEvent(this,0,eRowCount,1,TableModelEvent.UPDATE));
+    		} else {
+    			fireTableDataChanged();
+    		}
+    	}
 
-	public void setValueAt(final Object value, final int row, final int col) {
-		GStateAction infoWindowAction = new GStateAction() {
-			public void actionContent() {
-				String f = null;
-			    Field fld = null;
-			    if (lastSel != null) {
-				if (lastSel instanceof Node) {
-				    f = (String)nFields.elementAt(row);
-				    fld = Guess.getGraph().getNodeSchema().getField(f);
-				} else {
-				    f = (String)eFields.elementAt(row);
-				    fld = Guess.getGraph().getEdgeSchema().getField(f);
-				}
-				try {
-				    if ((fld.getSQLType() == Types.INTEGER) ||
-					(fld.getSQLType() == Types.TINYINT) ||
-					(fld.getSQLType() == Types.SMALLINT) ||
-					(fld.getSQLType() == Types.BIGINT)) {
-					lastSel.__setattr__(f,new Integer((String)value));
-				    } else if (fld.getSQLType() == Types.BOOLEAN) {
-					lastSel.__setattr__(f,new Boolean((String)value));
-				    } else if (fld.isNumeric()) {
-					lastSel.__setattr__(f,new Double((String)value));
-				    } else {
-					lastSel.__setattr__(f,value);
-				    }
-				} catch (Exception e) {
-				    ExceptionWindow.getExceptionWindow(e);
-				}
-				fireTableCellUpdated(row, col);
-			    }
-			}
-		};
-		GActionManager.runAction(infoWindowAction, "Edit Properties");
-	}
+    	public int getRowCount() {
+    		if (lastSel == null) {
+    			return(0);
+    		} else if (lastSel instanceof Node) {
+    			return(nRowCount);
+    		} else {
+    			return(eRowCount);
+    		}
+    	}
+
+    	public Object getValueAt(int row, int col) { 
+    		if (lastSel == null) {
+    			return("");
+    		} else if (lastSel instanceof Node) {
+    			if (row <= nRowCount) {
+    				String fld = (String)nFields.elementAt(row);
+    				if (col == 0) {
+    					return(fld);
+    				} else if (col == 1) {
+    					return(lastSel.__getattr__(fld));
+    				}
+    			}
+    		} else {
+    			if (row <= eRowCount) {
+    				String fld = (String)eFields.elementAt(row);
+    				if (col == 0) {
+    					return(fld);
+    				} else if (col == 1) {
+    					return(lastSel.__getattr__(fld));
+    				}
+    			}
+    		}
+    		return("");
+    	}
+
+    	public String getColumnName(int col) {
+    		if (col == 0) {
+    			return("Field");
+    		} else {
+    			return("Value");
+    		}
+    	}
+
+    	public boolean isCellEditable(int row, int col) { 
+    		if (col == 0) {
+    			return false; 
+    		} else {
+    			return true;
+    		}
+    	}
+
+    	public void setValueAt(final Object value, final int row, final int col) {
+    		GStateAction infoWindowAction = new GStateAction() {
+    			public void actionContent() {
+    				String f = null;
+    				Field fld = null;
+    				if (lastSel != null) {
+    					if (lastSel instanceof Node) {
+    						f = (String)nFields.elementAt(row);
+    						fld = Guess.getGraph().getNodeSchema().getField(f);
+    					} else {
+    						f = (String)eFields.elementAt(row);
+    						fld = Guess.getGraph().getEdgeSchema().getField(f);
+    					}
+    					try {
+    						if ((fld.getSQLType() == Types.INTEGER) ||
+    								(fld.getSQLType() == Types.TINYINT) ||
+    								(fld.getSQLType() == Types.SMALLINT) ||
+    								(fld.getSQLType() == Types.BIGINT)) {
+    							lastSel.__setattr__(f,new Integer((String)value));
+    						} else if (fld.getSQLType() == Types.BOOLEAN) {
+    							lastSel.__setattr__(f,new Boolean((String)value));
+    						} else if (fld.isNumeric()) {
+    							lastSel.__setattr__(f,new Double((String)value));
+    						} else {
+    							lastSel.__setattr__(f,value);
+    						}
+    					} catch (Exception e) {
+    						ExceptionWindow.getExceptionWindow(e);
+    					}
+    					fireTableCellUpdated(row, col);
+    				}
+    			}
+    		};
+    		GActionManager.runAction(infoWindowAction, "Edit Properties");
+    	}
 
     }
 }

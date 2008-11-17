@@ -1,10 +1,8 @@
 package com.hp.hpl.guess.storage;
 
-import com.hp.hpl.guess.*;
-import com.hp.hpl.guess.db.*;
-import com.hp.hpl.guess.ui.*;
-import java.io.BufferedReader;
-import java.io.StringReader;
+import com.hp.hpl.guess.db.DBServer;
+import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.StatusBar;
 
 /**
  * @pyobj db

@@ -961,8 +961,8 @@ abstract public class PySequence extends PyObject
     }
 
 
-    public Collection findGraphElements() {
-	HashSet hs = new HashSet();
+    public Collection<GraphElement> findGraphElements() {
+	HashSet<GraphElement> hs = new HashSet<GraphElement>();
 	findGraphElements(this,hs);
 	return(hs);
     }

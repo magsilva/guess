@@ -1,12 +1,15 @@
 package com.hp.hpl.guess;
 
-import org.python.core.PySystemState;
-import org.python.core.PyObject;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+
 import org.python.core.Py;
-import java.io.*;
-import java.util.Properties;
-import com.hp.hpl.guess.util.GuessPyStringMap;
+import org.python.core.PyObject;
+import org.python.core.PySystemState;
+
 import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.util.GuessPyStringMap;
 
 public class FakeInterpreter implements InterpreterAbstraction {
 

@@ -1,6 +1,5 @@
 package com.hp.hpl.guess;
 
-import java.util.*;
 
 /**
  * an implementation of a graph edge

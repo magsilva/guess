@@ -1,25 +1,38 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.geom.Point2D;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 import com.hp.hpl.guess.Guess;
-import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.GraphEvents;
+import com.hp.hpl.guess.ui.NodeListener;
+import com.hp.hpl.guess.ui.StatusBar;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.event.PInputEvent;
+import edu.umd.cs.piccolo.nodes.PImage;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessImageNode extends PImage implements GuessPNode {
     
-    private Node owner = null;
+	private static final long serialVersionUID = -9135760707966682381L;
+
+	private Node owner = null;
     
     private GFrame frame = null;
 
@@ -31,7 +44,7 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	return(owner);
     }
 
-    private static Hashtable imageCache = new Hashtable();
+    private static Hashtable<String, Image> imageCache = new Hashtable<String, Image>();
     
     public void set(String field, Object o) {
 	/*try {*/
@@ -324,10 +337,8 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	    labelText.removeFromParent();
 	    StatusBar.setStatus("");
 	}
-	highlightMode = state;
     }
 
-    private boolean highlightMode = false;
     private boolean labelMode = false;
 
     public void setLabelVisible(boolean state) {
@@ -344,7 +355,7 @@ public class GuessImageNode extends PImage implements GuessPNode {
     public static String[] breakupLines(String text) { 
 	String[] toRet = null;
 	StringTokenizer st = new StringTokenizer(text,"\n");
-	Vector v = new Vector();
+	Vector<String> v = new Vector<String>();
 	while (st.hasMoreTokens()) {
 	    v.addElement(st.nextToken());
 	}
@@ -375,11 +386,11 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	    return;
 	}
 	
-	FontMetrics fontMetrics = 
-	    Toolkit.getDefaultToolkit().getFontMetrics(font); 
+
+	FontRenderContext context = g.getFontRenderContext();
+	LineMetrics fontMetrics = font.getLineMetrics(label, context);
 	
-	int fontHeight = fontMetrics.getHeight(); 
-	int fontAscent = fontMetrics.getAscent(); 
+	float fontHeight = fontMetrics.getHeight(); 
 	
 	int num_lines = multiLineLabel.length; 
 	float height; 
@@ -454,11 +465,11 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	frame.centerOn(this);
     }
 
-    public HashSet hulls = null;
+    public HashSet<ConvexHullNode> hulls = null;
 
     public void addHullListener(ConvexHullNode chn) {
 	if (hulls == null) {
-	    hulls = new HashSet();
+	    hulls = new HashSet<ConvexHullNode>();
 	}
 	hulls.add(chn);
     }
@@ -471,7 +482,7 @@ public class GuessImageNode extends PImage implements GuessPNode {
 
     private void notifyHullListeners() {
 	if (hulls != null) {
-	    Iterator it = hulls.iterator();
+	    Iterator<ConvexHullNode> it = hulls.iterator();
 	    while(it.hasNext()) {
 		ConvexHullNode chn = (ConvexHullNode)it.next();
 		chn.setVisible(true);
@@ -482,7 +493,7 @@ public class GuessImageNode extends PImage implements GuessPNode {
 
     private void hideHullListeners() {
 	if (hulls != null) {
-	    Iterator it = hulls.iterator();
+	    Iterator<ConvexHullNode> it = hulls.iterator();
 	    while(it.hasNext()) {
 		ConvexHullNode chn = (ConvexHullNode)it.next();
 		chn.setVisible(false);

@@ -1,18 +1,44 @@
 package com.hp.hpl.guess.ui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import java.util.*;
-import java.io.*;
-import org.python.core.*;
-import java.awt.datatransfer.*;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.Vector;
+
+import javax.swing.AbstractAction;
+import javax.swing.DebugGraphics;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+
+import org.python.core.PyException;
+
 import com.hp.hpl.guess.Version;
 
 public class ExceptionWindow extends JFrame {
+
+	private static final long serialVersionUID = -6837768932875931507L;
+	
 	JTextArea eMain = new JTextArea();
 	JLabel eLabel = new JLabel();
 	JButton copyButton = new JButton();
@@ -20,7 +46,7 @@ public class ExceptionWindow extends JFrame {
 	JButton backB = new JButton();
 	JScrollPane jscrollpane1 = null;
 
-	private Vector exceptions = new Vector();
+	private Vector<Throwable> exceptions = new Vector<Throwable>();
 
 	private int location = 0;
 
@@ -191,6 +217,8 @@ public class ExceptionWindow extends JFrame {
 		eLabel.setName("eLabel");
 		eLabel.setText("No exception reported");
 		copyButton.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				addToClipboard();
 			}
@@ -218,6 +246,8 @@ public class ExceptionWindow extends JFrame {
 		gridBagConstraints_3.gridx = 2;
 		panel.add(forwardB, gridBagConstraints_3);
 		forwardB.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				setLocation(location + 1);
 			}
@@ -237,6 +267,8 @@ public class ExceptionWindow extends JFrame {
 		gridBagConstraints_4.gridx = 1;
 		panel.add(backB, gridBagConstraints_4);
 		backB.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				setLocation(location - 1);
 			}

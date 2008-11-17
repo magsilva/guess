@@ -4,7 +4,8 @@ import java.util.Vector;
 
 public class AnnoVector extends Vector {
 
-    public String annotation = "";
+	private static final long serialVersionUID = -6150979137610718573L;
+	public String annotation = "";
 
     public AnnoVector(String annotation) {
 	super();

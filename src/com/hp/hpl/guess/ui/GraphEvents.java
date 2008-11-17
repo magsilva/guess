@@ -17,7 +17,7 @@ public class GraphEvents {
 	return(singleton);
     }
 
-    private HashSet gmls = new HashSet();
+    private HashSet<GraphMouseListener> gmls = new HashSet<GraphMouseListener>();
 
     public void addUIListener(UIListener gml) {
 	gmls.add(gml);
@@ -69,7 +69,7 @@ public class GraphEvents {
 
     public synchronized void shiftClickNodeI(Node n) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		GraphMouseListener gml = (GraphMouseListener)it.next();
 		if (gml instanceof UIListener) {
@@ -82,7 +82,7 @@ public class GraphEvents {
 
     public synchronized void shiftClickEdgeI(Edge e) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		GraphMouseListener gml = (GraphMouseListener)it.next();
 		if (gml instanceof UIListener) {
@@ -95,7 +95,7 @@ public class GraphEvents {
 
     public synchronized void clickNodeI(Node n) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		GraphMouseListener gml = (GraphMouseListener)it.next();
 		if (gml instanceof UIListener) {
@@ -108,7 +108,7 @@ public class GraphEvents {
 
     public synchronized void clickEdgeI(Edge e) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		GraphMouseListener gml = (GraphMouseListener)it.next();
 		if (gml instanceof UIListener) {
@@ -121,7 +121,7 @@ public class GraphEvents {
 
     public synchronized void mouseEnterNodeI(Node n) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		((GraphMouseListener)it.next()).mouseEnterNode(n);
 	    }
@@ -131,7 +131,7 @@ public class GraphEvents {
 
     public synchronized void mouseEnterEdgeI(Edge e) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		((GraphMouseListener)it.next()).mouseEnterEdge(e);
 	    }
@@ -141,7 +141,7 @@ public class GraphEvents {
 
     public synchronized void mouseLeaveNodeI(Node n) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		((GraphMouseListener)it.next()).mouseLeaveNode(n);
 	    }
@@ -151,7 +151,7 @@ public class GraphEvents {
 
     public synchronized void mouseLeaveEdgeI(Edge e) {
 	try {
-	    Iterator it = gmls.iterator();
+	    Iterator<GraphMouseListener> it = gmls.iterator();
 	    while(it.hasNext()) {
 		((GraphMouseListener)it.next()).mouseLeaveEdge(e);
 	    }

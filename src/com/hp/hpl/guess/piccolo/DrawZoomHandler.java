@@ -1,27 +1,32 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.PCanvas;
-import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.PLayer;
-import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.PFrame;
-import edu.umd.cs.piccolox.nodes.P3DRect;
-import com.hp.hpl.guess.*;
-import com.hp.hpl.guess.piccolo.util.*;
-import com.hp.hpl.guess.ui.*;
-import java.awt.geom.*;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
-import java.awt.BasicStroke;
+import java.awt.geom.Point2D;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+
+import com.hp.hpl.guess.piccolo.util.SerEllipse;
+import com.hp.hpl.guess.piccolo.util.SerLine;
+import com.hp.hpl.guess.piccolo.util.SerRectangle;
+import com.hp.hpl.guess.piccolo.util.SerRoundRectangle;
+import com.hp.hpl.guess.ui.DrawWindow;
+import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.FontDialog;
+import com.hp.hpl.guess.ui.FrameListener;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.PCamera;
+import edu.umd.cs.piccolo.PLayer;
+import edu.umd.cs.piccolo.PNode;
+import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
+import edu.umd.cs.piccolo.event.PInputEvent;
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.nodes.PText;
 import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolox.event.PSelectionEventHandler;
-import edu.umd.cs.piccolox.handles.PHandle;
-import edu.umd.cs.piccolo.activities.*;
-import java.util.*;
-import javax.swing.*;
-import java.io.*;
 
 public class DrawZoomHandler extends PBasicInputEventHandler {
     // The rectangle that is currently getting created.
@@ -37,8 +42,6 @@ public class DrawZoomHandler extends PBasicInputEventHandler {
 	
     private PLayer layer = null;
 
-    private PCamera camera = null;
-
     final static int DASH_WIDTH = 5;
     final static int NUM_STROKES = 10;
 
@@ -49,7 +52,6 @@ public class DrawZoomHandler extends PBasicInputEventHandler {
 
     public DrawZoomHandler(PLayer layer,PCamera cam) {
 	this.layer = layer;
-	this.camera = cam;
 	float[] dash = { DASH_WIDTH, DASH_WIDTH };
 	strokes = new BasicStroke[NUM_STROKES];
 	for (int i = 0; i < NUM_STROKES; i++) {
@@ -225,9 +227,9 @@ public class DrawZoomHandler extends PBasicInputEventHandler {
 
     public void saveState(ObjectOutputStream oos) {
 	try {
-	    Collection col = layer.getAllNodes();
+	    Collection<?> col = layer.getAllNodes();
 	    oos.writeInt(col.size());
-	    Iterator it = col.iterator();
+	    Iterator<?> it = col.iterator();
 	    while(it.hasNext()) {
 		Object o = it.next();
 		if (o instanceof SerLine) {

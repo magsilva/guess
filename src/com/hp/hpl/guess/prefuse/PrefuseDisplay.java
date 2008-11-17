@@ -1,39 +1,13 @@
 package com.hp.hpl.guess.prefuse;
 
-import com.hp.hpl.guess.ui.FrameListener;
-import com.hp.hpl.guess.ui.Colors;
-import com.hp.hpl.guess.freehep.*;
-
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.util.Collection;
+import java.util.Iterator;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import org.python.core.PyInstance;
+import org.python.core.PySequence;
 
 import prefuse.Display;
 import prefuse.Visualization;
@@ -51,52 +25,23 @@ import prefuse.controls.WheelZoomControl;
 import prefuse.controls.ZoomControl;
 import prefuse.controls.ZoomToFitControl;
 import prefuse.data.Graph;
-import prefuse.data.Table;
-import prefuse.data.Tuple;
-import prefuse.data.event.TupleSetListener;
-import prefuse.data.io.GraphMLReader;
-import prefuse.data.tuple.TupleSet;
 import prefuse.render.DefaultRendererFactory;
 import prefuse.render.LabelRenderer;
 import prefuse.util.ColorLib;
-import prefuse.util.GraphLib;
 import prefuse.util.GraphicsLib;
 import prefuse.util.display.DisplayLib;
-import prefuse.util.display.ItemBoundsListener;
 import prefuse.util.force.ForceSimulator;
-import prefuse.util.io.IOLib;
-import prefuse.util.ui.JForcePanel;
-import prefuse.util.ui.JValueSlider;
-import prefuse.util.ui.UILib;
 import prefuse.visual.VisualGraph;
 import prefuse.visual.VisualItem;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.Paint;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-
-import javax.swing.JPanel;
-import java.util.Iterator;
-import java.util.Collection;
-
-import org.python.core.PySequence;
-import org.python.core.PyObject;
-import org.python.core.PyInstance;
+import com.hp.hpl.guess.freehep.HEPWriter;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.FrameListener;
 
 public class PrefuseDisplay extends Display implements FrameListener {
 
-    private static final String graph = "graph";
+	private static final long serialVersionUID = 3100715216126425981L;
+	private static final String graph = "graph";
     private static final String nodes = "graph.nodes";
     private static final String edges = "graph.edges";
       
@@ -226,10 +171,6 @@ public class PrefuseDisplay extends Display implements FrameListener {
 	    return;
 	}
 
-	double minx = Double.MAX_VALUE;
-	double miny = Double.MAX_VALUE;
-	double maxx = Double.MIN_VALUE;
-	double maxy = Double.MIN_VALUE;
 
 	if (o instanceof Integer) {
 	    center();
@@ -299,7 +240,7 @@ public class PrefuseDisplay extends Display implements FrameListener {
 		DisplayLib.fitViewToBounds(this, bounds, 2000);
 	    }
 	} else if (o instanceof Collection) {
-	    Iterator it = ((Collection)o).iterator();
+	    Iterator<?> it = ((Collection<?>)o).iterator();
 	    Rectangle2D bounds = null;
 	    while(it.hasNext()) {
 		Object elem = it.next();

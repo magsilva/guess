@@ -1,27 +1,41 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 import com.hp.hpl.guess.Guess;
-import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.animation.AnimationFactory;
-import com.hp.hpl.guess.animation.GAnimation;
-import com.hp.hpl.guess.piccolo.GFrame;
 import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.GraphEvents;
+import com.hp.hpl.guess.ui.NodeListener;
+import com.hp.hpl.guess.ui.StatusBar;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.event.PInputEvent;
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.util.PBounds;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessShapeNode extends PPath implements GuessPNode {
-    
-    protected Node owner = null;
+
+	private static final long serialVersionUID = 2783178394550629332L;
+
+	protected Node owner = null;
     
     protected GFrame frame = null;
 
@@ -401,7 +415,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
     public static String[] breakupLines(String text) { 
 	String[] toRet = null;
 	StringTokenizer st = new StringTokenizer(text,"\n");
-	Vector v = new Vector();
+	Vector<String> v = new Vector<String>();
 	while (st.hasMoreTokens()) {
 	    v.addElement(st.nextToken());
 	}
@@ -427,11 +441,10 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	    return;
 	}
 	
-	FontMetrics fontMetrics = 
-	    Toolkit.getDefaultToolkit().getFontMetrics(font); 
+	FontRenderContext context = g.getFontRenderContext();
+	LineMetrics fontMetrics = font.getLineMetrics(label, context);
 	
-	int fontHeight = fontMetrics.getHeight(); 
-	int fontAscent = fontMetrics.getAscent(); 
+	float fontHeight = fontMetrics.getHeight(); 
 	
 	int num_lines = multiLineLabel.length; 
 	float height; 
@@ -581,11 +594,11 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 	frame.centerOn(this);
     }
 	    
-    public HashSet hulls = null;
+    public HashSet<ConvexHullNode> hulls = null;
 
     public void addHullListener(ConvexHullNode chn) {
 	if (hulls == null) {
-	    hulls = new HashSet();
+	    hulls = new HashSet<ConvexHullNode>();
 	}
 	hulls.add(chn);
     }
@@ -598,7 +611,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 
     private void notifyHullListeners() {
 	if (hulls != null) {
-	    Iterator it = hulls.iterator();
+	    Iterator<ConvexHullNode> it = hulls.iterator();
 	    while(it.hasNext()) {
 		ConvexHullNode chn = (ConvexHullNode)it.next();
 		chn.setVisible(true);
@@ -609,7 +622,7 @@ public class GuessShapeNode extends PPath implements GuessPNode {
 
     private void hideHullListeners() {
 	if (hulls != null) {
-	    Iterator it = hulls.iterator();
+	    Iterator<ConvexHullNode> it = hulls.iterator();
 	    while(it.hasNext()) {
 		ConvexHullNode chn = (ConvexHullNode)it.next();
 		chn.setVisible(false);

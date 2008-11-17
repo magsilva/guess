@@ -3,9 +3,11 @@ package com.hp.hpl.guess.r;
 import com.hp.hpl.guess.*;
 import java.util.*;
 
-public class GraphMap extends HashMap {
+public class GraphMap extends HashMap<Node, Integer> {
 
-    private double[] conn = null;
+	private static final long serialVersionUID = -3825463270363145102L;
+
+	private double[] conn = null;
 
     private Node[] graphMap = null;
 
@@ -24,7 +26,7 @@ public class GraphMap extends HashMap {
     public GraphMap(Graph g) {
 
 	// keep a map of index -> node
-	Set nodes = g.getNodes();
+	Set<Node> nodes = g.getNodes();
 	graphMap = new Node[nodes.size()];
     	nodes.toArray(graphMap);
 	
@@ -37,7 +39,7 @@ public class GraphMap extends HashMap {
 	// next step, make connectivity graph
 	conn = new double[nodes.size() * nodes.size()];
 	
-	Iterator it = g.getEdges().iterator();
+	Iterator<Edge> it = g.getEdges().iterator();
 	Node n1,n2;
 
 	while(it.hasNext()) {

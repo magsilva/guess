@@ -11,8 +11,6 @@ public class GuessEdgeActivity extends PInterpolatingActivity {
     private Color[] destinationColor;
     
     private boolean sourceVisible;
-    private boolean[] destinationVisible;
-
     private double sourceWidth;
     private double[] destinationWidth;
     
@@ -70,8 +68,6 @@ public class GuessEdgeActivity extends PInterpolatingActivity {
 
 	this.destinationWidth = new double[]{dWidth};
 
-	this.destinationVisible = new boolean[]{dV};
-	
 	if (dV) {
 	    // we're transitioning to visible
 	    if (!sourceVisible) {
@@ -96,7 +92,6 @@ public class GuessEdgeActivity extends PInterpolatingActivity {
 				double[] dWidth) {
 
 	this.destinationWidth = dWidth;
-	this.destinationVisible = dV;
 	this.destinationColor = dC;
     }
 

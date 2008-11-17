@@ -25,7 +25,6 @@ public abstract class Util {
     public static BasicStroke readBasicStroke(ObjectInputStream ois) 
 	throws IOException, ClassNotFoundException {
 	int dashLength = ois.readInt();
-	float[] dash = null;
 	BasicStroke toRet = null;
 	if (dashLength != 0) {
 	    toRet = new BasicStroke(ois.readFloat(), BasicStroke.CAP_BUTT,

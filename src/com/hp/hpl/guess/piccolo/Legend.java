@@ -1,33 +1,40 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.P3DRect;
-import com.hp.hpl.guess.*;
-import java.awt.geom.*;
-import java.awt.BasicStroke;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolox.event.MySelectionHandler;
-import edu.umd.cs.piccolox.handles.PHandle;
-import edu.umd.cs.piccolo.activities.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Vector;
 
-import com.hp.hpl.guess.ui.*;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
-import javax.swing.*;
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.Node;
+import com.hp.hpl.guess.freehep.HEPDialog;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.Dockable;
+import com.hp.hpl.guess.ui.GuessJFrame;
+import com.hp.hpl.guess.ui.MainUIWindow;
 
-import org.python.core.PySequence;
-import org.python.core.PyObject;
-import org.python.core.PyInstance;
-
-import com.sun.image.codec.jpeg.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.awt.*;
-import java.io.*;
-
-import com.hp.hpl.guess.freehep.*;
+import edu.umd.cs.piccolo.PCanvas;
+import edu.umd.cs.piccolo.PLayer;
+import edu.umd.cs.piccolo.PNode;
+import edu.umd.cs.piccolo.nodes.PText;
 
 /**
  * The frame for the Piccolo interface.  This provides the high level
@@ -36,11 +43,13 @@ import com.hp.hpl.guess.freehep.*;
  */
 public class Legend extends JPanel implements Dockable {
 
-    DumbCanvas myCanvas = new DumbCanvas();
+	private static final long serialVersionUID = -887211238167707555L;
 
-    private Vector nodes = new Vector();
-    private HashMap annotations = new HashMap();
-    private HashMap a2n = new HashMap();
+	DumbCanvas myCanvas = new DumbCanvas();
+
+    private Vector<PNode> nodes = new Vector<PNode>();
+    private HashMap<PNode, PText> annotations = new HashMap<PNode, PText>();
+    private HashMap<String, PNode> a2n = new HashMap<String, PNode>();
 
     private double maxWidth = 14;
     private double maxHeight = 14;
@@ -113,10 +122,8 @@ public class Legend extends JPanel implements Dockable {
     }
 
     public void relayoutNodes() {
-	int nnodes = nodes.size();
 	double cellHeight = maxHeight + 8;
 	double cellWidth = maxWidth + 8;
-	int cellLoc = 0;
 	Font newFont = null;
 	if (font != null) {
 
@@ -192,7 +199,6 @@ public class Legend extends JPanel implements Dockable {
 	
 	javax.swing.SwingUtilities.invokeLater(new Runnable() { 
 		public void run() { 
-		    PTransformActivity pta = 
 			myCanvas.getCamera().animateViewToCenterBounds(getB(),
 								       true,
 								       100);
@@ -219,8 +225,8 @@ public class Legend extends JPanel implements Dockable {
     }
 
     public void removeAll() {
-	ArrayList al = new ArrayList(a2n.keySet());
-	Iterator it = al.iterator();
+	ArrayList<String> al = new ArrayList<String>(a2n.keySet());
+	Iterator<String> it = al.iterator();
 	while(it.hasNext()) {
 	    remove((String)it.next());
 	}
@@ -351,6 +357,7 @@ public class Legend extends JPanel implements Dockable {
 
     class DumbCanvas extends PCanvas {
 	
+		private static final long serialVersionUID = 4879593689896566264L;
 	/**
 	 * the edge layer (drawn first)
 	 */

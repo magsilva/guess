@@ -1,17 +1,13 @@
 package com.hp.hpl.guess.prefuse;
 
-import com.hp.hpl.guess.ui.EdgeListener;
-import prefuse.data.Node;
-import prefuse.data.Edge;
-import prefuse.data.Graph;
-import com.hp.hpl.guess.ui.NodeListener;
-import prefuse.data.Node;
-import prefuse.visual.NodeItem;
+import java.awt.Color;
+
 import prefuse.data.Graph;
 import prefuse.util.ColorLib;
-import com.hp.hpl.guess.ui.Colors;
-import java.awt.Color;
 import prefuse.visual.VisualItem;
+
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.EdgeListener;
 
 public class PrefuseEdge implements EdgeListener {
 

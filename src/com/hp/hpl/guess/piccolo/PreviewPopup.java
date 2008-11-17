@@ -54,9 +54,6 @@ public class PreviewPopup
 
     double _ratio;
     
-    // DELTA is the space between the scroll pane and the preview popup menu.
-    private static int DELTA = 5;
-    
     // SCALEFACTOR is the scale factor between the previewed component 
     // and the viewport.
     private static double SCALEFACTOR = 4;

@@ -45,9 +45,9 @@ public class Neighbour extends AbstractLayout implements SubGraphLayout {
 	 */
 	private void getNeighbours(Node startNode, int deptLevel) {	
 		Set<Node> nextNodes = new HashSet<Node>();
-		Iterator<GraphElement> directNeighbours = startNode.getNeighbors().iterator();
+		Iterator<?> directNeighbours = startNode.getNeighbors().iterator();
 		while (directNeighbours.hasNext()) {
-			GraphElement next = directNeighbours.next();
+			GraphElement next = (GraphElement)directNeighbours.next();
 			if (!elementLevel.containsKey(next)) {
 				elementLevel.put(next, deptLevel);
 				if (next instanceof Node) {
@@ -56,9 +56,9 @@ public class Neighbour extends AbstractLayout implements SubGraphLayout {
 			}
 		}
 		
-		Iterator<GraphElement> directEdges = startNode.getIncidentEdges().iterator();
+		Iterator<?> directEdges = startNode.getIncidentEdges().iterator();
 		while (directEdges.hasNext()) {
-			GraphElement next = directEdges.next();
+			GraphElement next = (GraphElement)directEdges.next();
 			if (!elementLevel.containsKey(next)) {
 				Node node1 = ((Edge)next).getNode1();
 				Node node2 = ((Edge)next).getNode2();
@@ -82,7 +82,7 @@ public class Neighbour extends AbstractLayout implements SubGraphLayout {
 	}
 
 	private void colorizeGraphElements(Graph tree) {
-		Iterator<GraphElement> nodeIterator = tree.getNodes().iterator();
+		Iterator<Node> nodeIterator = tree.getNodes().iterator();
 		while(nodeIterator.hasNext()) {
 			GraphElement next = nodeIterator.next();
 			if (!elementLevel.containsKey(next)) {
@@ -97,7 +97,7 @@ public class Neighbour extends AbstractLayout implements SubGraphLayout {
 			}
 		}
 		
-		Iterator<GraphElement> edgeIterator = Guess.getGraph().getEdges().iterator();
+		Iterator<Edge> edgeIterator = Guess.getGraph().getEdges().iterator();
 		while(edgeIterator.hasNext()) {
 			GraphElement next = edgeIterator.next();
 			if (elementLevel.containsKey(next)) {

@@ -1,10 +1,13 @@
 package edu.umd.cs.piccolox.event;
 
-import com.hp.hpl.guess.piccolo.*;
-import edu.umd.cs.piccolo.*;
+import java.util.Iterator;
+
+import com.hp.hpl.guess.piccolo.GuessPNode;
+
+import edu.umd.cs.piccolo.PCamera;
+import edu.umd.cs.piccolo.PLayer;
+import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.PInputEvent;
-import java.util.*;
-import edu.umd.cs.piccolo.util.PDimension;
 import edu.umd.cs.piccolox.handles.GuessPHandle;
 
 public class MySelectionHandler extends GuessSelectionEventHandler {
@@ -60,7 +63,7 @@ public class MySelectionHandler extends GuessSelectionEventHandler {
 	    xclick = e.getPosition().getX();
 	    yclick = e.getPosition().getY();
 	    
-	    Iterator selectionEn = getSelectionReference().iterator();
+	    Iterator<PNode> selectionEn = getSelectionReference().iterator();
 	    while (selectionEn.hasNext()) {
 		PNode node = (PNode) selectionEn.next();
 		if (node instanceof GuessPNode) {
@@ -85,7 +88,7 @@ public class MySelectionHandler extends GuessSelectionEventHandler {
 	xclick = e.getPosition().getX();
 	yclick = e.getPosition().getY();
 
-	Iterator selectionEn = getSelectionReference().iterator();
+	Iterator<PNode> selectionEn = getSelectionReference().iterator();
 	
 	if (moved == false) {
 	     while (selectionEn.hasNext()) {

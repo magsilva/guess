@@ -9,7 +9,10 @@ import java.io.Serializable;
 
 public class PyInstance extends PyObject
 {
-    //This field is only used by Python subclasses of Java classes
+
+	private static final long serialVersionUID = 4421596673970835704L;
+
+	//This field is only used by Python subclasses of Java classes
     Object javaProxy;
 
     protected boolean nodeType = false;

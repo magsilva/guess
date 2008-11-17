@@ -1,25 +1,19 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.PCanvas;
-import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.PLayer;
-import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.PFrame;
-import edu.umd.cs.piccolox.nodes.P3DRect;
-import com.hp.hpl.guess.*;
-import com.hp.hpl.guess.ui.*;
-import java.awt.geom.*;
-import java.awt.Color;
 import java.awt.BasicStroke;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolox.event.PSelectionEventHandler;
-import edu.umd.cs.piccolox.handles.PHandle;
-import edu.umd.cs.piccolo.activities.*;
-import java.util.*;
+import java.awt.Color;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
-import javax.swing.SwingUtilities;
+import com.hp.hpl.guess.ui.FrameListener;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.PCamera;
+import edu.umd.cs.piccolo.PLayer;
+import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
+import edu.umd.cs.piccolo.event.PInputEvent;
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.util.PBounds;
 
 public class RectZoomHandler extends PBasicInputEventHandler {
     // The rectangle that is currently getting created.

@@ -1,10 +1,12 @@
 package com.hp.hpl.guess.jung;
 
-import com.hp.hpl.guess.ui.*;
 import java.awt.Color;
-import java.awt.geom.Point2D;
-import edu.uci.ics.jung.graph.impl.*;
-import java.util.*;
+import java.util.Hashtable;
+
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.EdgeListener;
+
+import edu.uci.ics.jung.graph.impl.AbstractSparseEdge;
 
 public abstract class JungVisEdge extends AbstractSparseEdge 
     implements EdgeListener {
@@ -13,7 +15,7 @@ public abstract class JungVisEdge extends AbstractSparseEdge
 	super(n1,n2);
     }
 
-    private Hashtable data = new Hashtable();
+    private Hashtable<String, Object> data = new Hashtable<String, Object>();
 
     public void readjust() {
     }

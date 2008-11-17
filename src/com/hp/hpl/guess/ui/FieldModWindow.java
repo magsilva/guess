@@ -251,10 +251,10 @@ public class FieldModWindow extends JDialog {
 	 */
 	public void setNodesList() {
 		nodesFieldsComboBox.removeAllItems();
-		ArrayList al = new ArrayList();
+		ArrayList<Field> al = new ArrayList<Field>();
 		al.addAll(Guess.getGraph().getNodeSchema().allFields());
 		Collections.sort(al);
-		Iterator it = al.iterator();
+		Iterator<Field> it = al.iterator();
 		while (it.hasNext()) {
 			Field f = (Field) it.next();
 			nodesFieldsComboBox.addItem(f);
@@ -267,10 +267,10 @@ public class FieldModWindow extends JDialog {
 	 */
 	public void setEdgesList() {
 		edgesFieldsComboBox.removeAllItems();
-		ArrayList al = new ArrayList();
+		ArrayList<Field> al = new ArrayList<Field>();
 		al.addAll(Guess.getGraph().getEdgeSchema().allFields());
 		Collections.sort(al);
-		Iterator it = al.iterator();
+		Iterator<Field> it = al.iterator();
 		while (it.hasNext()) {
 			Field f = (Field) it.next();
 			edgesFieldsComboBox.addItem(f);
@@ -337,6 +337,8 @@ public class FieldModWindow extends JDialog {
 		panelNodes.add(nodesFieldsComboBox);
 		
 		selectAllNodesButton.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				applyNodesList.setSelectionInterval(0, applyNodesList.getModel().getSize());
 				applyNodesList.repaint();
@@ -404,6 +406,8 @@ public class FieldModWindow extends JDialog {
 		panelEdges.add(edgesFieldsComboBox);
 
 		selectAllEdgesButton.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				applyEdgesList.setSelectionInterval(0, applyEdgesList.getModel().getSize());
 				applyEdgesList.repaint();
@@ -437,6 +441,8 @@ public class FieldModWindow extends JDialog {
 		
 
 		applyButton.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				if (tabbedpane.getSelectedComponent().equals(panelEdges)) {
 					applyToEdgesList();
@@ -447,6 +453,8 @@ public class FieldModWindow extends JDialog {
 		});
 
 		closeButton.addActionListener(new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent ev) {
 				singleton = null;
 				dispose();

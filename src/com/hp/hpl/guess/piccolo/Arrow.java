@@ -4,7 +4,6 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.util.HashMap;
 
-import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
 import com.hp.hpl.guess.ui.VisFactory;
 
 /**

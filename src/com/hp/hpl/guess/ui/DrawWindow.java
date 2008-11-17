@@ -64,11 +64,6 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
 	return(myArrow);
     }
 
-    private JLabel jl = new JLabel("Draw Window",
-				   JLabel.CENTER);
-
-    private boolean visible = false;
-
     public static DrawWindow getDrawWindow() {
 	if (singleton == null) {
 	    singleton = new DrawWindow("Draw Window");
@@ -92,7 +87,6 @@ public class DrawWindow extends JPanel implements Dockable, ActionListener {
     }
 
     public void opening(boolean state) {
-	visible = state;
     }
 
     public void attaching(boolean state) {

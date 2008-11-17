@@ -1,23 +1,23 @@
 package edu.umd.cs.piccolo.event;
 
-import java.awt.Rectangle;
-import java.awt.event.InputEvent;
+import java.awt.Component;
 import java.awt.geom.Point2D;
-
-import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolo.util.PDimension;
-import edu.umd.cs.piccolo.util.PPickPath;
-import edu.umd.cs.piccolo.PNode;
-
-import java.awt.*;
-
-import com.hp.hpl.guess.piccolo.*;
-import com.hp.hpl.guess.ui.*;
-
-import java.util.HashSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+
+import com.hp.hpl.guess.GraphElement;
+import com.hp.hpl.guess.piccolo.CursorFactory;
+import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.piccolo.GuessPEdge;
+import com.hp.hpl.guess.piccolo.GuessPNode;
+import com.hp.hpl.guess.ui.EdgeEditorPopup;
+import com.hp.hpl.guess.ui.GraphElementEditorPopup;
+import com.hp.hpl.guess.ui.NodeEditorPopup;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.PNode;
+import edu.umd.cs.piccolo.util.PPickPath;
 
 public class MyZoomHandler extends PZoomEventHandler {
  
@@ -101,11 +101,23 @@ public class MyZoomHandler extends PZoomEventHandler {
 	    PPickPath pp = e.getPath();
 	    PNode t = pp.getPickedNode();
 	    GFrame frame = (GFrame)VisFactory.getFactory().getDisplay();
-	    Collection c = frame.getSelected();
+	    
+	    Collection<PNode> cNodes = frame.getSelected();
+	    
+	    Collection<GraphElement> c = null;
+	    if (cNodes.size()>0) {
+	    	c = new HashSet<GraphElement>();
+	    	Iterator<PNode> it1 = cNodes.iterator();
+	    	while (it1.hasNext()) {
+	    		PNode nextNode = it1.next();
+	    		c.add(((GuessPNode)nextNode).getOwner());
+	    	}
+	    }
+	     
 	    if ((c == null) || (c.size() <= 0)) {
 		if (t instanceof GuessPNode) {
 		    ((GuessPNode)t).mouseClicked(e);
-		    c = new HashSet();
+		    c = new HashSet<GraphElement>();
 		    c.add(((GuessPNode)t).getOwner());
 		    Point2D p2d = 
 			e.getPositionRelativeTo(frame.getCamera());
@@ -115,7 +127,7 @@ public class MyZoomHandler extends PZoomEventHandler {
 						    c,((GuessPNode)t).getOwner());
 		} else if (t instanceof GuessPEdge) {
 		    ((GuessPEdge)t).mouseClicked(e);
-		    c = new HashSet();
+		    c = new HashSet<GraphElement>();
 		    c.add(((GuessPEdge)t).getOwner());
 		    Point2D p2d = 
 			e.getPositionRelativeTo(frame.getCamera());
@@ -131,8 +143,8 @@ public class MyZoomHandler extends PZoomEventHandler {
 		if (c.size() <= 0) {
 		    return;
 		} else {
-		    HashSet newhs = new HashSet();
-		    Iterator it = c.iterator();
+		    HashSet<GraphElement> newhs = new HashSet<GraphElement>();
+		    Iterator<GraphElement> it = c.iterator();
 		    while(it.hasNext()) {
 			Object o = it.next();
 			if (o instanceof GuessPEdge) {

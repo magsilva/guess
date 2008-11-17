@@ -1,20 +1,19 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.PFrame;
-import edu.umd.cs.piccolox.nodes.P3DRect;
-import com.hp.hpl.guess.*;
-import java.util.*;
-import java.awt.geom.*;
-import java.awt.BasicStroke;
-import edu.umd.cs.piccolo.util.PBounds;
 import java.awt.event.KeyEvent;
+import java.awt.geom.AffineTransform;
+import java.util.Collection;
+import java.util.Iterator;
 
-import javax.swing.SwingUtilities;
-import com.hp.hpl.guess.ui.DrawWindow;
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.Node;
 import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.PCamera;
+import edu.umd.cs.piccolo.PNode;
+import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
+import edu.umd.cs.piccolo.event.PInputEvent;
 
 public class KeyBoardManager extends PBasicInputEventHandler {
 
@@ -42,8 +41,8 @@ public class KeyBoardManager extends PBasicInputEventHandler {
 	    // frame.removeEscapeFullScreenModeListener();
 	} else if (event.getKeyCode() == KeyEvent.VK_DELETE) {
 	    //System.out.println("delete");
-	    Collection c = frame.getSelected();
-	    Iterator it = c.iterator();
+	    Collection<?> c = frame.getSelected();
+	    Iterator<?> it = c.iterator();
 	    while(it.hasNext()) {
 		PNode pn  = (PNode)it.next();
 		if (pn instanceof GuessPNode) {

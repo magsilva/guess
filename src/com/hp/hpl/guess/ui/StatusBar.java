@@ -5,9 +5,6 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 
-import com.hp.hpl.guess.Guess;
-
-
 public class StatusBar extends JPanel {
 
 	private static final long serialVersionUID = 1L;

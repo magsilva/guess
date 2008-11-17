@@ -1,8 +1,8 @@
 package com.hp.hpl.guess;
 
-import java.util.*;
-import java.sql.*;
-import com.hp.hpl.guess.storage.*;
+import java.sql.Types;
+
+import com.hp.hpl.guess.storage.StorageFactory;
 
 public class EdgeSchema extends Schema {
 

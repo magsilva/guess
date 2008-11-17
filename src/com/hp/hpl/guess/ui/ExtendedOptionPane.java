@@ -1,11 +1,21 @@
 package com.hp.hpl.guess.ui;
 
-import java.awt.*;
-import java.beans.*;
-import java.awt.event.*;
-import javax.swing.event.*;
-import javax.swing.*;
-import java.beans.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.HeadlessException;
+import java.awt.Window;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+import javax.swing.Icon;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
 public class ExtendedOptionPane {
 
@@ -25,7 +35,7 @@ public class ExtendedOptionPane {
         JDialog dialog = createDialog(null,null,title);
 
         pane.selectInitialValue();
-        dialog.show();
+        dialog.setVisible(true);
         dialog.dispose();
 
         Object        selectedValue = pane.getValue();

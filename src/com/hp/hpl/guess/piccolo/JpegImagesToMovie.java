@@ -328,7 +328,7 @@ public class JpegImagesToMovie
      */
     class ImageSourceStream implements PushBufferStream {
 
-	Vector images;
+	Vector<?> images;
 	int width, height;
 	VideoFormat format;
 

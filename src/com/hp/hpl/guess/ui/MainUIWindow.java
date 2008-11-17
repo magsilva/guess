@@ -444,9 +444,8 @@ public class MainUIWindow extends JFrame {
 			int m3 = (int)Math.max(m1,m2);
 			
 	    	showDividers(splitPaneV, m3);
-			tabbedPaneV.addTab(null, 
-					   new VerticalTextIcon(d.getTitle(),
-								false),
+			tabbedPaneV.addTab(d.getTitle(),
+								null,
 					   (Component)d);
 			tabbedPaneV.setBackgroundAt(0,Color.darkGray);
 			//tabbedPaneV.addTab(d.getTitle(),(Component)d);

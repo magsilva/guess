@@ -1,28 +1,22 @@
 package edu.umd.cs.piccolox.handles;
 
 import java.awt.BasicStroke;
-
-import java.awt.Cursor;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Iterator;
 
-import javax.swing.SwingConstants;
 import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.piccolo.util.PFixedWidthStroke;
 
 import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
-import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PDimension;
-import edu.umd.cs.piccolo.util.PPickPath;
 import edu.umd.cs.piccolox.util.PBoundsLocator;
 
 public class GuessPHandle extends PBoundsHandle {
     
-    public static void addBoundsHandlesTo(PNode aNode) {
+	private static final long serialVersionUID = -1953027248957788148L;
+
+	public static void addBoundsHandlesTo(PNode aNode) {
 	aNode.addChild(new GuessPHandle(PBoundsLocator.createEastLocator(aNode))); 
 	aNode.addChild(new GuessPHandle(PBoundsLocator.createWestLocator(aNode))); 
 	aNode.addChild(new GuessPHandle(PBoundsLocator.createNorthLocator(aNode))); 

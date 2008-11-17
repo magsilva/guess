@@ -5,7 +5,8 @@ import java.util.*;
 
 public class ComparisonQuery extends Query
 {
-    private String op;
+	private static final long serialVersionUID = -6142688201278785144L;
+	private String op;
     private Field field;
     private Object value;
     private Graph g;
@@ -23,10 +24,10 @@ public class ComparisonQuery extends Query
 	//System.out.println(toSQLString());
     }
 
-    public Set getStates(Set init) {
+    public Set<String> getStates(Set<String> init) {
 
 	if (init == null) {
-	    init = new HashSet();
+	    init = new HashSet<String>();
 	}
 
 	if (field.getType() == Field.NODE) {
@@ -90,14 +91,14 @@ public class ComparisonQuery extends Query
 	    // fields needs an update so let's
 	    // force one node or edge to update
 	    if (field.getType() == Field.NODE) {
-		Iterator it = g.getNodes().iterator();
+		Iterator<Node> it = g.getNodes().iterator();
 		while(it.hasNext()) {
 		    Node n = (Node)it.next();
 		    n.__getattr__(field.getName());
 		    break;
 		}
 	    } else {
-		Iterator it = g.getEdges().iterator();
+		Iterator<Edge> it = g.getEdges().iterator();
 		while(it.hasNext()) {
 		    Edge n = (Edge)it.next();
 		    n.__getattr__(field.getName());

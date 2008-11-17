@@ -1,33 +1,40 @@
 package com.hp.hpl.guess;
 
+import java.awt.Color;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import org.python.core.PyJavaInstance;
+import org.python.core.PyList;
+import org.python.core.PyObject;
+import org.python.core.PySequence;
+
 import com.hp.hpl.guess.action.GActionManager;
 import com.hp.hpl.guess.action.GStateAction;
 import com.hp.hpl.guess.animation.AnimationFactory;
 import com.hp.hpl.guess.animation.GAnimation;
-import com.hp.hpl.guess.db.DBServer;
-import com.hp.hpl.guess.piccolo.*;
-import com.hp.hpl.guess.prefuse.*;
 import com.hp.hpl.guess.storage.StorageFactory;
-import com.hp.hpl.guess.tg.*;
-import com.hp.hpl.guess.ui.*;
-import edu.uci.ics.jung.algorithms.shortestpath.*;
-import edu.uci.ics.jung.graph.impl.*;
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import java.awt.*;
-import java.awt.geom.*;
-import java.io.*;
-import java.sql.*;
-import java.util.*;
-import org.python.core.*;
+import com.hp.hpl.guess.ui.ExceptionWindow;
+import com.hp.hpl.guess.ui.GraphElementListener;
+import com.hp.hpl.guess.ui.NodeListener;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
+import edu.uci.ics.jung.algorithms.shortestpath.ShortestPath;
+import edu.uci.ics.jung.algorithms.shortestpath.ShortestPathUtils;
+import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
+import edu.uci.ics.jung.graph.impl.SparseVertex;
 
 /** 
  */
 public class Node extends SparseVertex implements Comparable, GraphElement
 {
-    private static int nextID = 1;
-
     private String name;
 
     private Object _scratch = null;
@@ -133,7 +140,7 @@ public class Node extends SparseVertex implements Comparable, GraphElement
     public PySequence __anye__(Node node)
     {
 	PyList toRet = new PyList();
-	HashSet seen = new HashSet();
+	HashSet<Object> seen = new HashSet<Object>();
 	Iterator it = findEdgeSet(node).iterator();
 	while (it.hasNext())
 	    {
@@ -340,7 +347,7 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 	    } 
 	else if (fieldName.equals("location"))
 	    {
-		ArrayList location = new ArrayList();
+		ArrayList<Object> location = new ArrayList<Object>();
 		
 		location.add(rep.get("x"));
 		location.add(rep.get("y"));
@@ -526,6 +533,10 @@ public class Node extends SparseVertex implements Comparable, GraphElement
 	}
     }
 
+    public Set<Edge> getIncidentEdges() {
+    	return (Set<Edge>)super.getIncidentEdges();
+    }
+    
 
     /**
      * returns the xlocation of the node

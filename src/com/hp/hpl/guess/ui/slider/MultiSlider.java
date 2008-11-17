@@ -24,12 +24,15 @@
 /* --------------------------- Package ---------------------------- */
 package com.hp.hpl.guess.ui.slider;
 
-import java.awt.*;
-import java.io.*;
-import javax.accessibility.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.plaf.*;
+import java.awt.Color;
+
+import javax.accessibility.AccessibleContext;
+import javax.accessibility.AccessibleState;
+import javax.swing.BoundedRangeModel;
+import javax.swing.DefaultBoundedRangeModel;
+import javax.swing.JComponent;
+import javax.swing.JSlider;
+import javax.swing.plaf.SliderUI;
 
 /*====================================================================
   Implementation of class MultiSlider
@@ -46,13 +49,10 @@ import javax.swing.plaf.*;
  */
 
 public class MultiSlider extends JSlider {
-    /***
-     * @see #getUIClassID
-     * @see #readObject
-     */
-    private static final String uiClassID = "MultiSliderUI";
 
-    /***
+	private static final long serialVersionUID = -4350751232653709374L;
+
+	/***
      * An array of data models that handle the numeric maximum values,
      * minimum values, and current-position values for the multi slider.
      */
@@ -67,11 +67,6 @@ public class MultiSlider extends JSlider {
      * This is a color to paint the current thumb
      */
     private Color currentThumbColor = Color.red;
-
-    /***
-     * this flag is used to create default anchors.
-     */
-    transient private boolean useEndPoints = false;
 
     transient private int valueBeforeStateChange;
 
@@ -213,29 +208,6 @@ public class MultiSlider extends JSlider {
 	    this.sliderModels[i].addChangeListener(changeListener);
 	}
 	updateUI();
-    }
-
-    /***
-     * Sets the number of thumbs.
-     */
-    private void setNumberOfThumbs(int num) {
-	setNumberOfThumbs(num, false);
-    }
-
-    /***
-     * Sets the number of thumbs.
-     */
-    private void setNumberOfThumbs(int num, boolean useEndPoints) {
-	if (getNumberOfThumbs() != num) {
-	    setNumberOfThumbs(getMinimum(), getMaximum(), num, useEndPoints);
-	}
-    }
-
-    /***
-     * Sets the number of thumbs by specifying the initial values.
-     */
-    private void setNumberOfThumbs(int[] values) {
-	setNumberOfThumbs(getMinimum(), getMaximum(), values);
     }
 
     /***

@@ -5,7 +5,9 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GPLayer extends PLayer {
 
-    public void setChildPaintInvalid(boolean cp) {
+	private static final long serialVersionUID = -7450355408255939849L;
+
+	public void setChildPaintInvalid(boolean cp) {
 	if (cp)
 	    PFactory.updateTime();
 	super.setChildPaintInvalid(cp);

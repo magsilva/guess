@@ -1,25 +1,25 @@
 package com.hp.hpl.guess.freehep;
 
-import java.io.*;
-import org.freehep.graphicsio.gif.GIFGraphics2D;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.io.File;
+import java.util.Properties;
+
+import org.freehep.graphics2d.VectorGraphics;
 import org.freehep.graphicsio.ImageGraphics2D;
+import org.freehep.graphicsio.cgm.CGMGraphics2D;
+import org.freehep.graphicsio.emf.EMFGraphics2D;
+import org.freehep.graphicsio.gif.GIFGraphics2D;
+import org.freehep.graphicsio.java.JAVAGraphics2D;
 import org.freehep.graphicsio.pdf.PDFGraphics2D;
 import org.freehep.graphicsio.ps.PSGraphics2D;
 import org.freehep.graphicsio.svg.SVGGraphics2D;
 import org.freehep.graphicsio.swf.SWFGraphics2D;
-import org.freehep.graphicsio.java.JAVAGraphics2D;
-import org.freehep.graphicsio.cgm.CGMGraphics2D;
-import org.freehep.graphicsio.emf.EMFGraphics2D;
-import org.freehep.util.export.ExportDialog;
-import org.freehep.graphicsio.gif.GIFExportFileType;
-import org.freehep.graphics2d.VectorGraphics;
-
-import java.awt.*;
-import java.util.Properties;
-import javax.swing.JFrame;
 
 import com.hp.hpl.guess.ui.StatusBar;
-import com.hp.hpl.guess.ui.LabNotebook;
 
 /**
  * dummy class to handle saving svg files

@@ -47,4 +47,6 @@ public abstract class EditorPopup extends JPopupMenu {
 		EditorPopup.selected = selected;
 		this.currentH = currentH;
     }
+
+
 }

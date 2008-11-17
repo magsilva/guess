@@ -6,9 +6,6 @@ import java.util.*;
 import java.io.*;
 
 import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-import org.python.core.*;
 import org.python.util.*;
 
 /** 
@@ -18,18 +15,20 @@ import org.python.util.*;
 
 public class CommandStack extends JPanel {
     
-    PythonInterpreter interp = null;	
+	private static final long serialVersionUID = 6030563443046636631L;
+	
+	PythonInterpreter interp = null;	
     DefaultListModel model = null;
     JList list = null;
-    Hashtable userFriendly = new Hashtable();
+    Hashtable<String, String> userFriendly = new Hashtable<String, String>();
     String filename = null;
 
     class myML extends MouseAdapter {
 	PythonInterpreter interp = null;	
 	JList list = null;
-	Hashtable userFriendly = null;
+	Hashtable<String, String> userFriendly = null;
 
-	public myML(PythonInterpreter interp, JList list, Hashtable uf) {
+	public myML(PythonInterpreter interp, JList list, Hashtable<String, String> uf) {
 	    this.interp = interp;
 	    this.list = list;
 	    this.userFriendly = uf;
@@ -91,7 +90,7 @@ public class CommandStack extends JPanel {
 	    try {
 		BufferedWriter bw = 
 		    new BufferedWriter(new FileWriter(filename));
-		Enumeration en = model.elements();
+		Enumeration<?> en = model.elements();
 		while(en.hasMoreElements()) {
 		    String elem = (String)en.nextElement();
 		    bw.write(elem + "|");

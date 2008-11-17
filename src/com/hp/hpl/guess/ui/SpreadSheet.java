@@ -11,12 +11,12 @@ import com.hp.hpl.guess.storage.StorageFactory;
  */
 public class SpreadSheet extends JPanel implements Dockable {
 
-    private static SpreadSheet n_singleton = null;
+	private static final long serialVersionUID = 3874929625289910179L;
+	
+	private static SpreadSheet n_singleton = null;
     private static SpreadSheet e_singleton = null;
 
     private AbstractTableModel gtm = null;
-
-    private boolean visible = false;
 
     public static SpreadSheet getNodeSpreadSheet() {
 	if (n_singleton == null) {
@@ -49,7 +49,6 @@ public class SpreadSheet extends JPanel implements Dockable {
     }
 
     public void opening(boolean state) {
-	visible = state;
     }
 
     public void attaching(boolean state) {

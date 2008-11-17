@@ -1,25 +1,28 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 
-import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.ShapeDB;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessShapeLegendNode extends PPath {
     
 
-    private int style = VisFactory.RECTANGLE;
+	private static final long serialVersionUID = -1626533983052292994L;
+
+	private int style = VisFactory.RECTANGLE;
 
     public int getStyle() {
 	return(style);
@@ -136,9 +139,6 @@ public class GuessShapeLegendNode extends PPath {
 		  height);
     }
 
-    private LabelText labelText = null;
-
-    private boolean highlightMode = false;
     private boolean labelMode = false;
 
     

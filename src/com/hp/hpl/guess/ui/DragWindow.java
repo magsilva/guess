@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.ui;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.util.*;
 
@@ -14,9 +15,11 @@ import com.hp.hpl.guess.*;
  */
 public class DragWindow extends JPanel implements Dockable {
 
-    private HashMap panes = new HashMap();
+	private static final long serialVersionUID = -3885134474943553456L;
 
-    private HashMap cp2lp = new HashMap();
+	private HashMap<String, CollapsiblePane> panes = new HashMap<String, CollapsiblePane>();
+
+    private HashMap<CollapsiblePane, JPanel> cp2lp = new HashMap<CollapsiblePane, JPanel>();
 
     public static DragWindow singleton = null;
 
@@ -46,7 +49,7 @@ public class DragWindow extends JPanel implements Dockable {
     	
         CollapsiblePanes pane = new CollapsiblePanes();
 	pane.setPreferredSize(new Dimension(240,490));
-	CollapsiblePane info = new CollapsiblePane("Draggable Menu System");
+	new CollapsiblePane("Draggable Menu System"); // Is this needed?
 	//pane.add(info);
 	//pane.setMinimumSize(new Dimension(350,600));
         pane.add(createFileFolderTaskPane("Generic"));

@@ -843,7 +843,7 @@ public class GFrame extends PCanvas implements FrameListener {
 
     private static PText pt = new PText();
 
-    public Collection<?> getSelected() {
+    public Collection<PNode> getSelected() {
 	return(pseh.getSelection());
     }
 

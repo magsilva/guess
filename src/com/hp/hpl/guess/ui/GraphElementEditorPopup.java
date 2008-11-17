@@ -1,42 +1,28 @@
 package com.hp.hpl.guess.ui;
 
-import org.python.core.*;
-import org.python.util.PythonInterpreter;
-
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.ActionListener;
+import java.util.HashSet;
+import java.util.Iterator;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.Writer;
+import javax.swing.JColorChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.Element;
-import javax.swing.text.JTextComponent;
-import javax.swing.text.Keymap;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-import java.awt.event.*;
-import java.awt.Point;
-import java.awt.datatransfer.*;
-import java.awt.Toolkit;
-import javax.swing.text.html.HTMLEditorKit;
-import com.hp.hpl.guess.util.intervals.*;
-import com.hp.hpl.guess.*;
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.GraphElement;
+import com.hp.hpl.guess.Guess;
+import com.hp.hpl.guess.InterpreterAbstraction;
+import com.hp.hpl.guess.Node;
 
 public class GraphElementEditorPopup extends EditorPopup {
 
+	private static final long serialVersionUID = -4928702752674521095L;
 
-    String[ ] menuItems = new String[ ] { "Center On",
+	String[ ] menuItems = new String[ ] { "Center On",
 					  "Color...",
 					  "Remove",
 					  "Add",
@@ -103,9 +89,9 @@ public class GraphElementEditorPopup extends EditorPopup {
     }
 
     public void modifyWindow() {
-	HashSet nodes = new HashSet();
-	HashSet edges = new HashSet();
-	Iterator it = selected.iterator();
+	HashSet<GraphElement> nodes = new HashSet<GraphElement>();
+	HashSet<GraphElement> edges = new HashSet<GraphElement>();
+	Iterator<GraphElement> it = selected.iterator();
 	while(it.hasNext()) {
 	    GraphElement ge = (GraphElement)it.next();
 	    if (ge instanceof Node)
@@ -118,7 +104,7 @@ public class GraphElementEditorPopup extends EditorPopup {
 
     public void addSelected() {
 	if (selected != null) {
-	    Iterator it = selected.iterator();
+	    Iterator<GraphElement> it = selected.iterator();
 	    while(it.hasNext()) {
 		GraphElement ge = (GraphElement)it.next();
 		if (ge instanceof Node)
@@ -131,7 +117,7 @@ public class GraphElementEditorPopup extends EditorPopup {
 
     public void removeSelected() {
 	if (selected != null) {
-	    Iterator it = selected.iterator();
+	    Iterator<GraphElement> it = selected.iterator();
 	    while(it.hasNext()) {
 		GraphElement ge = (GraphElement)it.next();
 		if (ge instanceof Node)
@@ -181,7 +167,7 @@ public class GraphElementEditorPopup extends EditorPopup {
 	    Object col = c.getRed()+","+
 		c.getGreen()+","+
 		c.getBlue();
-	    Iterator it = selected.iterator();
+	    Iterator<GraphElement> it = selected.iterator();
 	    while(it.hasNext()) {
 		GraphElement ge = (GraphElement)it.next();
 		ge.__setattr__("color",col);

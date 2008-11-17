@@ -52,7 +52,7 @@ public class Morpher {
 
 	final StorageListener sl = StorageFactory.getSL();
 
-	Vector v = sl.getNodesNotInCurrent(g,state);
+	Vector<Node> v = sl.getNodesNotInCurrent(g,state);
 	for (int i = 0 ; i < v.size() ; i++) {
 	    Node n = (Node)v.elementAt(i);
 	    // System.out.println(n);
@@ -60,7 +60,7 @@ public class Morpher {
 	    g.addNode(n);
 	}
 	
-	Set nset = g.getNodes();
+	Set<Node> nset = g.getNodes();
 	GuessNodeActivity[] nActs = new GuessNodeActivity[nset.size()];
 
 	NodeSchema ns = g.getNodeSchema();
@@ -73,7 +73,7 @@ public class Morpher {
 				     ns.getField("width"),
 				     ns.getField("style")};
 	
-	Iterator it = nset.iterator();
+	Iterator<Node> it = nset.iterator();
 
 	PActivityScheduler pas = null;
 	PRoot pr = null;
@@ -108,15 +108,15 @@ public class Morpher {
 	    i++;
 	}
 
-	v = sl.getEdgesNotInCurrent(g,state);
-	for (int j = 0 ; j < v.size() ; j++) {
-	    Edge e = (Edge)v.elementAt(j);
+	Vector<Edge> ve = sl.getEdgesNotInCurrent(g,state);
+	for (int j = 0 ; j < ve.size() ; j++) {
+	    Edge e = (Edge)ve.elementAt(j);
 	    // System.out.println(n);
 	    e.__setattr__("visible",new Boolean(false));
 	    g.addEdge(e);
 	}
 
-	Set eset = g.getEdges();
+	Set<Edge> eset = g.getEdges();
 	GuessEdgeActivity[] eActs = new GuessEdgeActivity[eset.size()];
 
 	EdgeSchema es = g.getEdgeSchema();
@@ -124,11 +124,11 @@ public class Morpher {
 				es.getField("visible"),
 				es.getField("width")};
 	
-	it = eset.iterator();
+	Iterator<Edge> it1 = eset.iterator();
 
 	i = 0;
-	while(it.hasNext()) {
-	    Edge e = (Edge)it.next();
+	while(it1.hasNext()) {
+	    Edge e = (Edge)it1.next();
 	    Object[] vals = sl.getColumns(e,fields,state);
 	    GuessEdgeActivity gea = 
 		new GuessEdgeActivity(duration,

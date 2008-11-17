@@ -25,8 +25,6 @@ public class JungVisFactory extends VisFactory {
 	    vv.restart();
     }
 
-    private JungVisNode lastCreated = null;
-
     public JungVisFrame init() {
 	Layout l = new PassThroughLayout(g);
 	PluggableRenderer pr = new PluggableRenderer();

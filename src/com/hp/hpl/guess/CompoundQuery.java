@@ -4,13 +4,14 @@ import java.util.*;
 
 public class CompoundQuery extends Query
 {
-    private String op;
+	private static final long serialVersionUID = 6986822677301740069L;
+	private String op;
     private Query query1;
     private Query query2;
     
-    public Set getStates(Set init) {
+    public Set<String> getStates(Set<String> init) {
 	if (init == null) {
-	    init = new HashSet();
+	    init = new HashSet<String>();
 	}
 	query1.getStates(init);
 	query2.getStates(init);

@@ -1,6 +1,5 @@
 package com.hp.hpl.guess.jung;
 
-import java.util.*;
 import edu.uci.ics.jung.graph.Vertex;
 
 public class JungVisDirectedEdge extends JungVisEdge 

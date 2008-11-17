@@ -3,7 +3,9 @@ package com.hp.hpl.guess.layout;
 
 import java.util.*;
 import com.hp.hpl.guess.*;
+
 import java.awt.geom.*;
+
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
 import edu.uci.ics.jung.graph.Vertex;
@@ -25,19 +27,19 @@ public class Radial extends AbstractLayout {
 
     Node center = null; 
     Graph tree = null; 
-    HashSet ve = null;
+    HashSet<Edge> ve = null;
 
-    HashMap locations = new HashMap();
+    HashMap<Node, Coordinates> locations = new HashMap<Node, Coordinates>();
 
     /** 
      * Constructor  
      */
-    public Radial(Graph tree, Node center, HashSet ve) {
+    public Radial(Graph tree, Node center, HashSet<Edge> ve) {
 	super(tree);
 	this.tree = tree;
 	this.center = center;
 	this.ve = ve;
-	Iterator it = tree.getNodes().iterator();
+	Iterator<Node> it = tree.getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    locations.put(n, new Coordinates(n.getX(),
@@ -49,17 +51,15 @@ public class Radial extends AbstractLayout {
 	this(tree,center,null);
     }
 
-    private Graph graph = null;
-
-    Hashtable coords = new Hashtable();
-    Hashtable radialWidth = new Hashtable();
-    HashSet seen = new HashSet();
-    HashSet validEdges = new HashSet();
+    Hashtable<Node, Point2D> coords = new Hashtable<Node, Point2D>();
+    Hashtable<Node, Integer> radialWidth = new Hashtable<Node, Integer>();
+    HashSet<Node> seen = new HashSet<Node>();
+    HashSet<Edge> validEdges = new HashSet<Edge>();
 
     // this one takes into account a predefined set of edges
-    public Vector getNextLayerEdgesPredef(Node center) {
-	Vector frontier = new Vector();
-	Iterator it = center.getOutEdges().iterator();
+    public Vector<Node> getNextLayerEdgesPredef(Node center) {
+	Vector<Node> frontier = new Vector<Node>();
+	Iterator<?> it = center.getOutEdges().iterator(); // Should be <Edge>
 	seen.add(center);
 	while(it.hasNext()) {
 	    Edge e = (Edge)it.next();
@@ -75,9 +75,9 @@ public class Radial extends AbstractLayout {
 	return(frontier);
     }
 
-    public Vector getNextLayer(Node center) {
-	Vector frontier = new Vector();
-	Iterator it = center.getOutEdges().iterator();
+    public Vector<Node> getNextLayer(Node center) {
+	Vector<Node> frontier = new Vector<Node>();
+	Iterator<?> it = center.getOutEdges().iterator(); // Should be <Edge>
 	seen.add(center);
 	while(it.hasNext()) {
 	    Edge e = (Edge)it.next();
@@ -106,7 +106,7 @@ public class Radial extends AbstractLayout {
 	}
 
     
-	Vector front = null;
+	Vector<?> front = null;
 	if (!predef) {
 	    front = getNextLayer(center);
 	} else {
@@ -126,7 +126,7 @@ public class Radial extends AbstractLayout {
 
 	seen.clear();
 
-	Iterator it = tree.getNodes().iterator();
+	Iterator<Node> it = tree.getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    layerDistance = 
@@ -134,7 +134,6 @@ public class Radial extends AbstractLayout {
 			 n.getHeight()*5);
 	}
 
-	graph = tree;
 	double baseX = 0.0; 
 	//System.out.println("\tsetting width prop...");
 	defineWidthProperty(center,null);

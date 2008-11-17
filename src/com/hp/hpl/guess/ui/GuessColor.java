@@ -4,7 +4,9 @@ import java.awt.Color;
 
 public class GuessColor extends Color {
 
-    public GuessColor(int r, int g, int b, int a) {
+	private static final long serialVersionUID = 4135537380962937551L;
+
+	public GuessColor(int r, int g, int b, int a) {
 	super(r,g,b,a);
     }
     

@@ -1,15 +1,17 @@
 package com.hp.hpl.guess.jung;
 
-import com.hp.hpl.guess.ui.*;
 import java.awt.Color;
-import java.awt.geom.Point2D;
-import edu.uci.ics.jung.graph.impl.*;
-import java.util.*;
+import java.util.HashMap;
+
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.NodeListener;
+
+import edu.uci.ics.jung.graph.impl.SparseVertex;
 
 public class JungVisNode extends SparseVertex implements NodeListener {
     
 
-    private HashMap data = new HashMap();
+    private HashMap<String, Object> data = new HashMap<String, Object>();
 
     public Object get(String field) {
 	if (field.equals("label")) {

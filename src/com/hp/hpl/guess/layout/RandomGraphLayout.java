@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.layout;
 
 import com.hp.hpl.guess.*;
+
 import java.util.*;
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
@@ -17,10 +18,10 @@ public class RandomGraphLayout extends AbstractLayout {
     // be visible.
     private int pad = 4;
     
-    private Set nodeList;
+    private Set<Node> nodeList;
     private int width, height;
     private boolean update = true;
-    private HashMap locations = new HashMap();
+    private HashMap<Node, Coordinates> locations = new HashMap<Node, Coordinates>();
 
     public RandomGraphLayout(Graph g, int width, int height) {
 	super(g);
@@ -44,7 +45,7 @@ public class RandomGraphLayout extends AbstractLayout {
 
 	Random r = new Random();
 	if (update) {
-	    Iterator it = nodeList.iterator();
+	    Iterator<Node> it = nodeList.iterator();
 	    while(it.hasNext()) {
 		Node node = (Node)it.next();
 		locations.put(node,

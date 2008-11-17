@@ -8,7 +8,9 @@ import com.hp.hpl.guess.*;
 
 public class SpreadSheetTable extends AbstractTableModel {
 
-    public SpreadSheetTable(DBServer db, boolean nOrE) {
+	private static final long serialVersionUID = -5835112696684605791L;
+
+	public SpreadSheetTable(DBServer db, boolean nOrE) {
 	StringBuffer sb = null;
 	Schema schema = null;
 	if (nOrE == true) {
@@ -21,7 +23,7 @@ public class SpreadSheetTable extends AbstractTableModel {
 	    colNames.addElement("node1");
 	    colNames.addElement("node2");
 	}
-	Iterator fields = schema.fields();
+	Iterator<Field> fields = schema.fields();
 	while(fields.hasNext()) {
 	    Field f = (Field)fields.next();
 	    String fName = f.getName();
@@ -45,8 +47,7 @@ public class SpreadSheetTable extends AbstractTableModel {
     }
 
     String[][] data = null;
-    Vector elements = new Vector();
-    Vector colNames = new Vector();
+    Vector<String> colNames = new Vector<String>();
 
     public int getColumnCount() { 
 	if (data == null) {
@@ -57,7 +58,10 @@ public class SpreadSheetTable extends AbstractTableModel {
     }
     
     public int getRowCount() {
-	return(elements.size());
+    	if (getColumnCount()>0) {
+    		return data[0].length;
+    	}
+    	return 0;
     }
 
     public Object getValueAt(int row, int col) {

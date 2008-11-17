@@ -7,7 +7,9 @@ import java.awt.BorderLayout;
 
 public class DumbFrameListener extends JPanel implements FrameListener {
 
-    public DumbFrameListener() {
+	private static final long serialVersionUID = -2084788852166023915L;
+
+	public DumbFrameListener() {
 	setLayout(new BorderLayout());
 	add(new JButton("Visualization disabled"),BorderLayout.CENTER);
     }

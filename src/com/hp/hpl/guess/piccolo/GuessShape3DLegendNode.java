@@ -1,25 +1,27 @@
 package com.hp.hpl.guess.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.util.*;
-import edu.umd.cs.piccolo.activities.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 
-import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.ui.Colors;
+import com.hp.hpl.guess.ui.ShapeDB;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.umd.cs.piccolo.nodes.PPath;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class GuessShape3DLegendNode extends PPath {
     
-
-    private int style = VisFactory.RECTANGLE;
+	private static final long serialVersionUID = 7440118403658252895L;
+	private int style = VisFactory.RECTANGLE;
 
     public int getStyle() {
 	return(style);
@@ -120,11 +122,7 @@ public class GuessShape3DLegendNode extends PPath {
 	setPathTo(shp);
     }
 
-    private String label = "";
-
     public void setLabel(String str) {
-	//System.out.println("label: " + label);
-	this.label = str;
     }
 
     public void setLocation(double x1, double y1, 
@@ -162,12 +160,6 @@ public class GuessShape3DLegendNode extends PPath {
 		  height);
     }
 
-    private LabelText labelText = null;
-
-    private boolean highlightMode = false;
-    private boolean labelMode = false;
-
-    
     private static BasicStroke linestroke = new BasicStroke((float).3);
     
     public void paint(PPaintContext apc) {

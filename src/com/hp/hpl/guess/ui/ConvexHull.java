@@ -8,12 +8,12 @@ public interface ConvexHull {
     /**
      * adds the nodes to the hull
      */
-    public void addNodes(Collection s);
+    public void addNodes(Collection<Node> s);
 
     /**
      * remove nodes from the hull
      */
-    public void removeNodes(Collection s);
+    public void removeNodes(Collection<Node> s);
 
     /**
      * adds a node from the hull
@@ -28,7 +28,7 @@ public interface ConvexHull {
     /**
      * get the nodes in this hull
      */
-    public Collection getNodes();
+    public Collection<Node> getNodes();
 
     /**
      * sets the color

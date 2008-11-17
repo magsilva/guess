@@ -2,22 +2,19 @@ package com.hp.hpl.guess.layout;
 
 import java.util.*;
 import com.hp.hpl.guess.*;
+
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
 import edu.uci.ics.jung.graph.Vertex;
 
 public class CircularConstrained extends AbstractLayout {
     
-    // number of pixels to shrink radius by. Java draws object from top
-    // left hand corner and this allows objects drawn on the far right to
-    // be visible.
-    private int pad = 4;
     protected int maxradius = 500;
     protected Node center = null;
     protected int minradius = 30;
     protected boolean sorted = true;
     protected String column = null;
-    protected ArrayList nodeList = null;
+    protected ArrayList<Node> nodeList = null;
     protected double originx = 500;
     protected double originy = 500;
     protected double maxangle = 2 * Math.PI;
@@ -26,7 +23,7 @@ public class CircularConstrained extends AbstractLayout {
     private Graph g = null;
     private Field field = null;
 
-    private HashMap locations = new HashMap();
+    private HashMap<Node, Coordinates> locations = new HashMap<Node, Coordinates>();
 
     public CircularConstrained(Graph g, Node center, 
 			       Field f, double xo,
@@ -68,7 +65,7 @@ public class CircularConstrained extends AbstractLayout {
 	}
     }
 
-    class SortableNode implements Comparable {
+    class SortableNode implements Comparable<SortableNode> {
 	
 	public Comparable key = null;
 	
@@ -79,8 +76,8 @@ public class CircularConstrained extends AbstractLayout {
 	    this.node = n;
 	}
 	
-	public int compareTo(Object o) {
-	    return(this.key.compareTo(((SortableNode)o).key));
+	public int compareTo(SortableNode o) {
+	    return(this.key.compareTo(o.key));
 	}
     }
 
@@ -106,12 +103,12 @@ public class CircularConstrained extends AbstractLayout {
 
 	int count = 0;
 	
-	ArrayList al = new ArrayList();
-	Hashtable quickLookup = new Hashtable();
+	ArrayList<SortableNode> al = new ArrayList<SortableNode>();
+	Hashtable<Node, Double> quickLookup = new Hashtable<Node, Double>();
 	
 	//System.out.println("h.3");
 	if (field.getType() == Field.NODE) {
-	    Set s = center.getNeighbors();
+	    Set<?> s = center.getNeighbors();
 	    count = s.size();
 
 	    if (s.contains(center)) 

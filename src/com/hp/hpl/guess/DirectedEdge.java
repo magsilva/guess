@@ -1,6 +1,5 @@
 package com.hp.hpl.guess;
 
-import java.util.*;
 import edu.uci.ics.jung.graph.Vertex;
 
 /**

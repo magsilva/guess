@@ -1,21 +1,23 @@
 package com.hp.hpl.guess;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import org.python.core.PyJavaInstance;
+import org.python.core.PyObject;
+
 import com.hp.hpl.guess.animation.AnimationFactory;
 import com.hp.hpl.guess.animation.GAnimation;
-import com.hp.hpl.guess.piccolo.*;
-import com.hp.hpl.guess.prefuse.*;
-import com.hp.hpl.guess.tg.*;
-import com.hp.hpl.guess.ui.*;
-import java.awt.geom.*;
-import java.awt.*;
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import java.util.*;
-
-import org.python.core.*;
-import edu.uci.ics.jung.graph.impl.*;
 import com.hp.hpl.guess.storage.StorageFactory;
+import com.hp.hpl.guess.ui.EdgeListener;
+import com.hp.hpl.guess.ui.GraphElementListener;
+import com.hp.hpl.guess.ui.VisFactory;
+
+import edu.uci.ics.jung.graph.impl.AbstractSparseEdge;
 
 /**
  * an implementation of a graph edge
@@ -63,6 +65,10 @@ public abstract class Edge extends AbstractSparseEdge implements GraphElement
 	rep = VisFactory.getFactory().generateEdge(this);
     }
 
+    public Set<Node> getIncidentVertices() {
+    	return (Set<Node>)super.getIncidentVertices();
+    }
+    
     public Edge(Node node1, Node node2)
     {
 	this(maxID+1,node1,node2);

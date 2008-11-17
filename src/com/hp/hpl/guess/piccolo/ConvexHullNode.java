@@ -1,29 +1,24 @@
 package com.hp.hpl.guess.piccolo;
 
 import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.*;
-import java.awt.event.*;
 import java.awt.*;
 import java.awt.geom.*;
-import edu.umd.cs.piccolo.activities.*;
 import java.util.*;
 
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.Node;
-import com.hp.hpl.guess.piccolo.GFrame;
 
 public class ConvexHullNode extends PPath implements ConvexHull {
 
-    public static final int REGULAR = 0;
+	private static final long serialVersionUID = 7571902137147985556L;
+	
+	public static final int REGULAR = 0;
     public static final int ROUNDED_RECTANGLE = 1;
     public static final int RECTANGLE = 2;
     public static final int ELLIPSE = 3;
 
-    ArrayList nodes = null;
+    ArrayList<Node> nodes = null;
 
     Color myColor = null;
 
@@ -57,13 +52,13 @@ public class ConvexHullNode extends PPath implements ConvexHull {
 	}
     }
 
-    public ConvexHullNode(Collection nds, Color c) {
-	Iterator it = nds.iterator();
+    public ConvexHullNode(Collection<Node> nds, Color c) {
+	Iterator<Node> it = nds.iterator();
 	while(it.hasNext()) {
 	    GuessPNode gpn = (GuessPNode)((Node)it.next()).getRep();
 	    gpn.addHullListener(this);
 	}
-	nodes = new ArrayList(nds.size());
+	nodes = new ArrayList<Node>(nds.size());
 	nodes.addAll(nds);
 	myColor = c;
 	refreshHull();
@@ -72,8 +67,8 @@ public class ConvexHullNode extends PPath implements ConvexHull {
     /**
      * adds the nodes to the hull
      */
-    public void addNodes(Collection s) {
-	Iterator it = s.iterator();
+    public void addNodes(Collection<Node> s) {
+	Iterator<Node> it = s.iterator();
 	while(it.hasNext()) {
 	    GuessPNode gpn = (GuessPNode)((Node)it.next()).getRep();
 	    gpn.addHullListener(this);
@@ -85,8 +80,8 @@ public class ConvexHullNode extends PPath implements ConvexHull {
     /**
      * remove nodes from the hull
      */
-    public void removeNodes(Collection s) {
-	Iterator it = s.iterator();
+    public void removeNodes(Collection<Node> s) {
+	Iterator<Node> it = s.iterator();
 	while(it.hasNext()) {
 	    GuessPNode gpn = (GuessPNode)((Node)it.next()).getRep();
 	    gpn.removeHullListener(this);
@@ -117,7 +112,7 @@ public class ConvexHullNode extends PPath implements ConvexHull {
 
     public void destroyHull() {
 	removeFromParent();
-	Iterator it = nodes.iterator();
+	Iterator<Node> it = nodes.iterator();
 	while(it.hasNext()) {
 	    GuessPNode gpn = (GuessPNode)((Node)it.next()).getRep();
 	    gpn.removeHullListener(this);
@@ -128,7 +123,7 @@ public class ConvexHullNode extends PPath implements ConvexHull {
     /**
      * get the nodes in this hull
      */
-    public Collection getNodes() {
+    public Collection<Node> getNodes() {
 	return(nodes);
     }
 
@@ -220,9 +215,9 @@ public class ConvexHullNode extends PPath implements ConvexHull {
 	double angle = 0;
     }
 
-    static class HullComp implements Comparator {
+    static class HullComp implements Comparator<HullNode> {
 	
-	public int compare(Object o1, Object o2) {
+	public int compare(HullNode o1, HullNode o2) {
 	    if (((HullNode)o1).angle < ((HullNode)o2).angle) {
 		return(1);
 	    } else if (((HullNode)o1).angle > ((HullNode)o2).angle) {
@@ -246,13 +241,13 @@ public class ConvexHullNode extends PPath implements ConvexHull {
 	return(n.getX() + n.getWidth()/2); 
     }
 
-    public static Node[] convexHull(java.util.List nodes) {
+    public static Node[] convexHull(java.util.List<Node> nodes) {
 	if (nodes.size() <= 2) {
 	    return(null);
 	}
 
 	Node min = (Node)nodes.get(0);
-	Vector v = new Vector();
+	Vector<HullNode> v = new Vector<HullNode>();
 
 	// find the min y-coordinate
 	for (int i = 1 ; i < nodes.size() ; i++) {
@@ -288,12 +283,7 @@ public class ConvexHullNode extends PPath implements ConvexHull {
 	// sort
 	Collections.sort(v,hc);
 
-	for (int i = 0 ; i < v.size() ; i++) {
-	   HullNode hn = (HullNode)v.elementAt(i);
-	   // System.out.println(hn.n.x + " " + hn.n.y + " " + hn.angle);
-	}
-
-	Stack s = new Stack();
+	Stack<HullNode> s = new Stack<HullNode>();
 	HullNode minhn = new HullNode();
 	minhn.n = min;
 	minhn.angle = 0;

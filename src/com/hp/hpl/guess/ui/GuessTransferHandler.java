@@ -1,15 +1,17 @@
 package com.hp.hpl.guess.ui;
 
-import java.util.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.datatransfer.*;
-import java.awt.dnd.*;
-import javax.swing.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+
+import javax.swing.JComponent;
+import javax.swing.TransferHandler;
 
 public class GuessTransferHandler extends TransferHandler {
-    DataFlavor guessFlavor;
+
+	private static final long serialVersionUID = -8818450928518903609L;
+	
+	DataFlavor guessFlavor;
     String guessType = DataFlavor.javaJVMLocalObjectMimeType +
 	";class=java.util.Collection";
     Object source = null;

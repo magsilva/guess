@@ -1,22 +1,32 @@
 package com.hp.hpl.guess.ui;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
-import javax.swing.text.*;
-import javax.swing.text.html.*;
+import java.awt.Rectangle;
+
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.Element;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.html.HTML;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
+
+import org.python.core.PyInstance;
+import org.python.core.PyJavaInstance;
 import org.python.util.PythonInterpreter;
 
-import org.python.core.*;
-import com.hp.hpl.guess.*;
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Node;
 
 public class LabNotebook extends JFrame {
 
-    JTextPane pane = null;
+
+	private static final long serialVersionUID = -832422695400260099L;
+	JTextPane pane = null;
     HTMLDocument doc = null;
     private PythonInterpreter jython = null;
     private static LabNotebook singleton = null;
@@ -72,7 +82,6 @@ public class LabNotebook extends JFrame {
     boolean color = false;
     public void addText(String command, Object result) {
 	try {
-	    Element root = doc.getRootElements()[0];
 	    Element body = doc.getElement(""+counter);
 	    counter++;
 	    String cl = "#FFFFFF";
@@ -112,14 +121,13 @@ public class LabNotebook extends JFrame {
 
     public void addImage(String url, int width, int height) {
 	try {
-	    Element root = doc.getRootElements()[0];
 	    Element body = doc.getElement(""+counter);
 	    double scale = Math.min((double)getHeight()/(double)height,
 				    (double)getWidth()/(double)width)*.8;
 	    height = (int)(height * scale);
 	    width = (int)(width * scale);
 	    counter++;
-	    url = (new java.io.File(url)).toURL().toString();
+	    url = (new java.io.File(url)).toURI().toURL().toString();
 	    StringBuffer toInsert = 
 		new StringBuffer("<TR ID="+counter+"><TD VALIGN=TOP>&nbsp;"+
 				 "</TD><TD VALIGN=TOP>"+
@@ -135,10 +143,7 @@ public class LabNotebook extends JFrame {
 
     class SimpleLinkListener implements HyperlinkListener {
 	
-	private JEditorPane pane;       // The pane we're using to display HTML
-	
 	public SimpleLinkListener(JEditorPane jep) {
-	    pane = jep;
 	}
 	
 	public void hyperlinkUpdate(HyperlinkEvent he) {

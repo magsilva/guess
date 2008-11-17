@@ -1,6 +1,7 @@
 package com.hp.hpl.guess.layout;
 
 import com.hp.hpl.guess.*;
+
 import java.util.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
@@ -14,7 +15,7 @@ import edu.uci.ics.jung.graph.Vertex;
  */
 public class BinPack extends AbstractLayout {
 
-    HashMap locations = new HashMap();
+    HashMap<Node, Coordinates> locations = new HashMap<Node, Coordinates>();
 
     boolean done = false;
 
@@ -26,7 +27,7 @@ public class BinPack extends AbstractLayout {
 
 	super(g);
 	this.g = g;
-	Iterator it = g.getNodes().iterator();
+	Iterator<Node> it = g.getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    locations.put(n, new Coordinates(n.getX(),
@@ -44,20 +45,20 @@ public class BinPack extends AbstractLayout {
 	double sumHeight = 0;
 	double sumWidth = 0;
 
-	ArrayList toFit = new ArrayList();
+	ArrayList<SizeCompRect> toFit = new ArrayList<SizeCompRect>();
 
 	// fill in with SizeCompRects
-	Set clusters = g.weakComponentClusters();
+	Set<?> clusters = g.weakComponentClusters();
 
 	if (clusters.size() <= 1) {
 	    // just switch to done and return
 	    return;
 	}
 
-	Iterator it = clusters.iterator();
+	Iterator<?> it = clusters.iterator();
 	double maxD = Double.MIN_VALUE;
 	while (it.hasNext()) {
-	    Set n2 = (Set)it.next();
+	    Set<Node> n2 = (Set<Node>)it.next();
 	    SizeCompRect ntf = getBoundingBox(n2);
 	    toFit.add(ntf);
 	    double test = 
@@ -76,12 +77,9 @@ public class BinPack extends AbstractLayout {
 	if (rescale) {
 	    sumHeight = 0;
 	    sumWidth = 0;
-	    HashMap seenResizes = new HashMap();
+	    HashMap<Integer, Double> seenResizes = new HashMap<Integer, Double>();
 	    for (int i = toFit.size() - 1 ; i >= 0 ; i--) {
 		SizeCompRect tf = (SizeCompRect)toFit.get(i);
-		double test2 = 
-		    ((tf.getWidth() - 30)*(tf.getHeight() - 30)) 
-		    / tf.nodes.size();
 		double curSize = (tf.getWidth() * tf.getHeight());
 		double test = (maxD * tf.nodes.size()) / curSize;
 		if ((tf.nodes.size() > 1) &&
@@ -109,7 +107,7 @@ public class BinPack extends AbstractLayout {
 	}
 
 
-	ArrayList available = new ArrayList();
+	ArrayList<SizeCompRect> available = new ArrayList<SizeCompRect>();
 	available.add(new SizeCompRect(0,0,sumWidth,sumHeight,null));
 
 	double xcent = 0;
@@ -122,7 +120,7 @@ public class BinPack extends AbstractLayout {
 	    //int locBF = findBestFit(available,tf);
 	    //System.out.println(i + " " + available.size());
 	    SizeCompRect bf = (SizeCompRect)available.get(locBF);
-	    Collection newRects = moveAndSplit(bf,tf);
+	    Collection<SizeCompRect> newRects = moveAndSplit(bf,tf);
 	    if (i == toFit.size() - 1) {
 		xcent = tf.getWidth() / 2;
 		ycent = tf.getHeight() / 2;
@@ -158,7 +156,7 @@ public class BinPack extends AbstractLayout {
 		    w*percent,
 		    h*percent);
 
-	Iterator it = scr.nodes.iterator();
+	Iterator<Node> it = scr.nodes.iterator();
 	while(it.hasNext()) {
 	      Node n = (Node)it.next();
 	      Coordinates c = (Coordinates)locations.get(n);
@@ -167,14 +165,14 @@ public class BinPack extends AbstractLayout {
 	}
     }
 
-    public SizeCompRect getBoundingBox(Set nodes) {
+    public SizeCompRect getBoundingBox(Set<Node> nodes) {
 	
 	double minX = Double.MAX_VALUE;
 	double minY = Double.MAX_VALUE;
 	double maxX = Double.MIN_VALUE;
 	double maxY = Double.MIN_VALUE;
 	
-	Iterator it = nodes.iterator();
+	Iterator<Node> it = nodes.iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    if (n.getX() < minX) {
@@ -203,25 +201,7 @@ public class BinPack extends AbstractLayout {
 				 nodes));
     }
 
-    // don't use this one
-    private int findBestFit(ArrayList avail, SizeCompRect tf) {
-
-	double tfS = tf.size;
-
-	for (int i = 0 ; i < avail.size() ; i++) {
-	    //for (int i = avail.size() - 1 ; i >= 0 ; i--) {
-	    SizeCompRect test = (SizeCompRect)avail.get(i);
-	    if (test.size >= tf.size) {
-		if ((tf.getWidth() <= test.getWidth()) &&
-		    (tf.getHeight() <= test.getHeight())) {
-		    return(i);
-		}
-	    }
-	}
-	return(-1);
-    }
-
-    private int findBestFit2(ArrayList avail, 
+    private int findBestFit2(ArrayList<SizeCompRect> avail, 
 			    SizeCompRect tf,
 			    double xcent,
 			    double ycent) {
@@ -256,14 +236,14 @@ public class BinPack extends AbstractLayout {
 	return(minIndex);
     }
 
-    private Collection moveAndSplit(SizeCompRect bf, SizeCompRect tf) {
+    private Collection<SizeCompRect> moveAndSplit(SizeCompRect bf, SizeCompRect tf) {
 
 	tf.setRect(bf.getX(),
 		   bf.getY(),
 		   tf.getWidth(),
 		   tf.getHeight());
 
-	ArrayList al = new ArrayList(2);
+	ArrayList<SizeCompRect> al = new ArrayList<SizeCompRect>(2);
 
 	double xn1 = bf.getX() + tf.getWidth();
 	double yn1 = bf.getY();
@@ -281,11 +261,13 @@ public class BinPack extends AbstractLayout {
 	return(al);
     }
 
-    class SizeCompRect extends Rectangle2D.Double implements Comparable {
+    class SizeCompRect extends Rectangle2D.Double implements Comparable<SizeCompRect> {
 	
+	private static final long serialVersionUID = -7161132063058745915L;
+
 	public double size = 0;
 
-	public Set nodes = null;
+	public Set<Node> nodes = null;
 
 	public double originalX = 0;
 
@@ -295,7 +277,7 @@ public class BinPack extends AbstractLayout {
 			    double y,
 			    double width,
 			    double height,
-			    Set nodes) {
+			    Set<Node> nodes) {
 	    super(x,y,width,height);
 	    this.size = width * height;
 	    this.nodes = nodes;
@@ -303,7 +285,7 @@ public class BinPack extends AbstractLayout {
 	    this.originalY = y;
 	}
 
-	public int compareTo(Object o) {
+	public int compareTo(SizeCompRect o) {
 	    if (((SizeCompRect)o).size < size) {
 		return(1);
 	    } else {

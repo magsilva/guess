@@ -1,8 +1,5 @@
 package com.hp.hpl.guess.ui;
 
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Shape;
 import com.hp.hpl.guess.Node;
 
 public class DumbNodeListener implements NodeListener {

@@ -7,6 +7,7 @@ import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.storage.*;
 import com.hp.hpl.guess.ui.*;
 import com.hp.hpl.guess.util.*;
+
 import edu.uci.ics.jung.algorithms.cluster.*;
 import edu.uci.ics.jung.algorithms.importance.*;
 import edu.uci.ics.jung.algorithms.transformation.*;
@@ -24,6 +25,7 @@ import edu.uci.ics.jung.visualization.contrib.*;
 import java.awt.*;
 import java.sql.*;
 import java.util.*;
+
 import org.apache.commons.collections.Predicate;
 import org.python.core.*;
 
@@ -531,7 +533,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
      */
 	public Set remove(PySequence seq) {
 
-		Iterator<SortableGraphElement> it = seq.findGraphElements().iterator();
+		Iterator<GraphElement> it = seq.findGraphElements().iterator();
 		HashSet hs = new AnnoHashSet("remove(...)");
 
 		while (it.hasNext()) {
@@ -640,10 +642,19 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     /**
      * @return all the nodes in the graph
      */
-    public Set getNodes()
+    public Set<Node> getNodes()
     {
 		return getVertices();
 	}
+    
+    /**
+     * @return all the edges in the graph
+     */
+    public Set<Edge> getEdges()
+    {
+		return super.getEdges();
+	}
+    
 
     /**
      * @return figures out if you have a Color object,
@@ -1150,7 +1161,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 				node.getRep().set("opacity", 1.0f);
 				node.show();
 			}
-			Iterator<Node> edgeIterator = getEdges().iterator();
+			Iterator<Edge> edgeIterator = getEdges().iterator();
 			while (edgeIterator.hasNext()) {
 				GraphElement edge = edgeIterator.next();
 				edge.getRep().set("opacity", 1.0f);
@@ -1662,8 +1673,8 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	/**
 	 * @pyexport
 	 */
-	public Collection sortBy(PySequence seq, Field field) {
-		ArrayList list = new ArrayList();
+	public Collection<GraphElement> sortBy(PySequence seq, Field field) {
+		ArrayList<SortableGraphElement> list = new ArrayList<SortableGraphElement>();
 		Iterator it = seq.findGraphElements().iterator();
 
 		while (it.hasNext()) {
@@ -1685,7 +1696,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	/**
 	 * @pyexport
 	 */
-	public Collection sortBy(Field field) {
+	public Collection<GraphElement> sortBy(Field field) {
 
 		Iterator it = null;
 
@@ -1737,7 +1748,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	 */
 	public Collection<SortableHashSet> groupBy(PySequence seq, Field field) {
 		Hashtable<Object, SortableHashSet> map = new Hashtable<Object, SortableHashSet>();
-		Iterator<SortableGraphElement> it = seq.findGraphElements().iterator();
+		Iterator<GraphElement> it = seq.findGraphElements().iterator();
 
 		while (it.hasNext()) {
 			GraphElement ge = (GraphElement) it.next();
@@ -1766,7 +1777,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	/**
 	 * @pyexport
 	 */
-	public Collection groupAndSortBy(Field field) {
+	public Collection<SortableHashSet> groupAndSortBy(Field field) {
 		if (field.getType() == Field.NODE) {
 			return (groupAndSortNodesBy(field.getName()));
 		} else if (field.getType() == Field.EDGE) {
@@ -1786,7 +1797,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		return (al);
 	}
 
-	public Collection groupAndSortNodesBy(String field) {
+	public Collection<SortableHashSet> groupAndSortNodesBy(String field) {
 		ArrayList al = new ArrayList();
 		al.addAll(groupNodesBy(field));
 		Collections.sort(al);
@@ -1795,7 +1806,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 
 	private final static String __nullKey = new String("___GUESS_NULL");
 
-	public Collection groupNodesBy(String field) {
+	public Collection<SortableHashSet> groupNodesBy(String field) {
 		Hashtable map = new Hashtable();
 		Iterator it = getNodes().iterator();
 		while (it.hasNext()) {
@@ -1812,14 +1823,14 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		return (map.values());
 	}
 
-	public Collection groupAndSortEdgesBy(String field) {
+	public Collection<SortableHashSet> groupAndSortEdgesBy(String field) {
 		ArrayList al = new ArrayList();
 		al.addAll(groupEdgesBy(field));
 		Collections.sort(al);
 		return (al);
 	}
 
-	public Collection groupEdgesBy(String field) {
+	public Collection<SortableHashSet> groupEdgesBy(String field) {
 		Hashtable map = new Hashtable();
 		Iterator it = getEdges().iterator();
 		while (it.hasNext()) {

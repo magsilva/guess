@@ -1,14 +1,16 @@
 package com.hp.hpl.guess.layout;
 
-import java.awt.event.*;
-import java.awt.geom.*;
-import javax.swing.*;
-import java.util.*;
+import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Iterator;
+
+import com.hp.hpl.guess.Edge;
+import com.hp.hpl.guess.Graph;
+import com.hp.hpl.guess.Node;
+
+import edu.uci.ics.jung.graph.Vertex;
 import edu.uci.ics.jung.visualization.AbstractLayout;
 import edu.uci.ics.jung.visualization.Coordinates;
-import edu.uci.ics.jung.graph.Vertex;
-
-import com.hp.hpl.guess.*;
 
 /**
  * seperate layout thread
@@ -55,20 +57,18 @@ public class Spring extends AbstractLayout {
     private int width = 10000;
     private int height = 10000;
     private int loops = 10000;
-    private int pad = 20;
-    
     private Graph g = null;
 
     private int iters = 0;
 
-    private HashMap locations = new HashMap();
+    private HashMap<Node, Coordinates> locations = new HashMap<Node, Coordinates>();
 
-    private HashMap dxdys = new HashMap();
+    private HashMap<Node, Coordinates> dxdys = new HashMap<Node, Coordinates>();
 
     public Spring(Graph g) {
 	super(g);
 	this.g = g;
-	Iterator it = g.getNodes().iterator();
+	Iterator<Node> it = g.getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    locations.put(n,new Coordinates(n.getX(),n.getY()));
@@ -86,10 +86,7 @@ public class Spring extends AbstractLayout {
 	    return;
 	}
 	
-	//Viz.log("starting 'relax'");
-	long start = System.currentTimeMillis();
-
-	Iterator edges = g.getEdges().iterator();
+	Iterator<Edge> edges = g.getEdges().iterator();
 
 	Node node, node2;
 	Edge e;
@@ -131,7 +128,7 @@ public class Spring extends AbstractLayout {
 	    dxdy1.setY(dxdy1.getY() - dy);
 	}
 
-	Iterator nodes = g.getNodes().iterator();
+	Iterator<Node> nodes = g.getNodes().iterator();
 
 	while (nodes.hasNext()) {
 	    node = (Node)nodes.next();
@@ -141,7 +138,7 @@ public class Spring extends AbstractLayout {
 
 	    Coordinates l1 = (Coordinates)locations.get(node);
 	    
-	    Iterator nodes2 = g.getNodes().iterator();
+	    Iterator<Node> nodes2 = g.getNodes().iterator();
 		
 	    while (nodes2.hasNext()) {
 

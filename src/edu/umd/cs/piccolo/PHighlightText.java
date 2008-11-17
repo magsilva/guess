@@ -1,21 +1,17 @@
 package edu.umd.cs.piccolo;
 
-import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import edu.umd.cs.piccolo.nodes.*;
-import edu.umd.cs.piccolox.nodes.*;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.PBounds;
-import java.awt.event.*;
-import java.awt.*;
-import java.awt.geom.*;
+import java.awt.Font;
 
-import com.hp.hpl.guess.ui.NodeListener;
-import com.hp.hpl.guess.piccolo.*;
+import com.hp.hpl.guess.piccolo.GuessPNode;
+
+import edu.umd.cs.piccolo.nodes.PText;
+import edu.umd.cs.piccolo.util.PBounds;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class PHighlightText extends PText {
     
-    GuessPNode parent2 = null;
+	private static final long serialVersionUID = 7235614576831894240L;
+	GuessPNode parent2 = null;
 
     public void setParent2(GuessPNode parent2) {
 	this.parent2 = parent2;

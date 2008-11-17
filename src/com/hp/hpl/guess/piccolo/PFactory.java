@@ -339,9 +339,9 @@ public class PFactory extends VisFactory implements UIListener, StorageEventList
 	}
     } 
 
-    java.util.HashSet hulls = new java.util.HashSet();
+    java.util.HashSet<ConvexHull> hulls = new java.util.HashSet<ConvexHull>();
 
-    public ConvexHull createConvexHull(Collection s, Color c) {
+    public ConvexHull createConvexHull(Collection<Node> s, Color c) {
 	ConvexHull t = (ConvexHull)(new ConvexHullNode(s,c));
 	curFrame.getHulls().addChild((PNode)t);
 	hulls.add(t);
@@ -353,7 +353,7 @@ public class PFactory extends VisFactory implements UIListener, StorageEventList
 	((ConvexHullNode)c).destroyHull();
     }
 
-    public Collection getConvexHulls() {
+    public Collection<ConvexHull> getConvexHulls() {
 	return(hulls);
     }
     
@@ -368,7 +368,7 @@ public class PFactory extends VisFactory implements UIListener, StorageEventList
     	}
     	
     	if (titleThread!=null) {
-    		titleThread.stop();
+    		//titleThread.stop();
     	}
     	
     	titleThread = new Thread(new Runnable() {

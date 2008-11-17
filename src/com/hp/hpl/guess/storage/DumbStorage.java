@@ -22,7 +22,7 @@ public class DumbStorage implements StorageListener {
     }
     
     public void findMatchingNodes(Query q) {
-	Iterator it = q.getGraph().getVertices().iterator();
+	Iterator<Node> it = q.getGraph().getNodes().iterator();
 	while (it.hasNext())
 	    {
 		GraphElement element = (GraphElement)it.next();
@@ -33,7 +33,7 @@ public class DumbStorage implements StorageListener {
     }
 
     public void findMatchingEdges(Query q) {
-	Iterator it = q.getGraph().getEdges().iterator();
+	Iterator<Edge> it = q.getGraph().getEdges().iterator();
 	while (it.hasNext())
 	    {
 		GraphElement element = (GraphElement)it.next();
@@ -196,7 +196,7 @@ public class DumbStorage implements StorageListener {
     }
 
     // get a list of all removed nodes
-    public java.util.Collection getRemovedNodes() {
+    public java.util.Collection<Node> getRemovedNodes() {
 	return(null);
     }
 
@@ -206,7 +206,7 @@ public class DumbStorage implements StorageListener {
     }
 
     // get a list of removed edges
-    public java.util.Collection getRemovedEdges() {
+    public java.util.Collection<Edge> getRemovedEdges() {
 	return(null);
     }
 
@@ -240,19 +240,19 @@ public class DumbStorage implements StorageListener {
 	throw(new Error("Unsupported function"));
     }
 
-    public Vector getEdgesNotInCurrent(Graph g, int statenum)  {
+    public Vector<Edge> getEdgesNotInCurrent(Graph g, int statenum)  {
 	throw(new Error("Unsupported function"));
     }
 
-    public Vector getEdgesNotInCurrent(Graph g, String statenum) {
+    public Vector<Edge> getEdgesNotInCurrent(Graph g, String statenum) {
 	throw(new Error("Unsupported function"));
     }
 
-    public Vector getNodesNotInCurrent(Graph g, int statenum) {
+    public Vector<Node> getNodesNotInCurrent(Graph g, int statenum) {
 	throw(new Error("Unsupported function"));
     }
 
-    public Vector getNodesNotInCurrent(Graph g, String statenum) {
+    public Vector<Node> getNodesNotInCurrent(Graph g, String statenum) {
 	throw(new Error("Unsupported function"));
     }
 
@@ -275,7 +275,7 @@ public class DumbStorage implements StorageListener {
 
     public void createEmpty() {}
 
-    public Set getStates() { 
+    public Set<?> getStates() { 
 	return(null);
     }
 

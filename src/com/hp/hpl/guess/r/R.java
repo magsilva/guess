@@ -14,8 +14,6 @@ public class R {
 
     private static Rconnection c = null;
 
-    private boolean trackImage = false;
-
     private String server = "127.0.0.1";
 
     private String imageMLoc = "/_output.jpg";
@@ -207,8 +205,6 @@ public class R {
 		} else if (value instanceof String) {
 		    evalString(fieldName + "<-\"" + value + "\"");
 		} else if (value instanceof PySequence) {
-		    // we don't support multi dim arrays right now
-		    boolean str = false;
 		    double[] vals = new double[((PySequence)value).__len__()];
 		    for (int i = 0 ; i < ((PySequence)value).__len__() ; i++) {
 			Object o = ((PySequence)value).__finditem__(i);

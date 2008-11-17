@@ -1,6 +1,5 @@
 package com.hp.hpl.guess.jung;
 
-import java.util.*;
 
 /**
  * an implementation of a graph edge

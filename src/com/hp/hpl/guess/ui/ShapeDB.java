@@ -17,7 +17,7 @@ public class ShapeDB {
 	return(singleton);
     }
 
-    public HashMap idToShape = new HashMap();
+    public HashMap<Integer, Shape> idToShape = new HashMap<Integer, Shape>();
 
     public ShapeDB() {
 	GeneralPath gp = new GeneralPath();
@@ -33,7 +33,7 @@ public class ShapeDB {
 
 	idToShape.put(new Integer(styleid),shape);
 
-	Iterator it = Guess.getGraph().getNodes().iterator();
+	Iterator<Node> it = Guess.getGraph().getNodes().iterator();
 	while(it.hasNext()) {
 	    Node n = (Node)it.next();
 	    Integer style = (Integer)n.__getattr__("style");

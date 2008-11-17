@@ -4,8 +4,11 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 import edu.umd.cs.piccolo.nodes.*;
 import edu.umd.cs.piccolo.event.*;
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
 import java.awt.geom.*;
 import java.util.*;
+import java.util.List;
 
 import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.ui.*;
@@ -184,8 +187,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	    mouseOver = false;
 	    //System.out.println("ev2");
 	    setStrokePaint(curcolor);
-	    java.util.List l = 
-		new java.util.ArrayList(owner.getIncidentVertices());
+	    List<Node> l = 
+		new java.util.ArrayList<Node>(owner.getIncidentVertices());
 	    Node n1 = (Node)l.get(0);
 	    ((GuessPNode)n1.getRep()).highlight(false);
 	    if (l.size() > 1) {
@@ -237,8 +240,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
     }
     
     public void centerDisplay() {
-	java.util.List l = 
-	    new java.util.ArrayList(owner.getIncidentVertices());
+    	List<Node> l = 
+	    new java.util.ArrayList<Node>(owner.getIncidentVertices());
 	Node node1 = (Node)l.get(0);
 	Node node2 = node1;
 	if (l.size() > 1) {
@@ -325,8 +328,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
     }
 
     public void readjust() {
-    	java.util.List l = 
-    	    new java.util.ArrayList(owner.getIncidentVertices());
+    	List<Node> l = 
+    	    new java.util.ArrayList<Node>(owner.getIncidentVertices());
     	GuessPNode node1 = (GuessPNode)((Node)l.get(0)).getRep();
     	GuessPNode node2 = node1;
     	if (l.size() > 1) {
@@ -498,8 +501,8 @@ public class GuessPEdge extends PPath implements EdgeListener {
      * @param upd we can twist it up or down
      */
     public void readjustJiggle(boolean upd) {
-	java.util.List l = 
-	    new java.util.ArrayList(owner.getIncidentVertices());
+    	List<Node> l = 
+	    new java.util.ArrayList<Node>(owner.getIncidentVertices());
 	GuessPNode node1 = (GuessPNode)((Node)l.get(0)).getRep();
 	GuessPNode node2 = node1;
 	if (l.size() > 1) {
@@ -658,10 +661,11 @@ public class GuessPEdge extends PPath implements EdgeListener {
 	    return;
 	}
 	
-	FontMetrics fontMetrics = 
-		Toolkit.getDefaultToolkit().getFontMetrics(font); 
+
+	FontRenderContext context = g.getFontRenderContext();
+	LineMetrics fontMetrics = font.getLineMetrics(label, context);
 	
-	int fontHeight = fontMetrics.getHeight(); 
+	float fontHeight = fontMetrics.getHeight(); 
 
 	int num_lines = multiLineLabel.length; 
 	float height; 
