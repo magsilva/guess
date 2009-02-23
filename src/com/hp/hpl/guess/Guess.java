@@ -893,8 +893,12 @@ public class Guess
 	}
 	
 	// Set animation factory
-	AnimationFactory.setFactory(uiMode);
-	  
+	try {
+	    AnimationFactory.setFactory(uiMode);
+	} catch (Error e) {
+	    exceptionHandle(e);
+	}
+
 	final FrameListener myFrame = VisFactory.getFactory().getDisplay();
 	setFrame(myFrame);
 	
