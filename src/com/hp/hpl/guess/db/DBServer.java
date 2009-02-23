@@ -1253,6 +1253,7 @@ public class DBServer implements StorageListener {
 	    g.resetLastMod();
 	    throw new Error(e);
 	} catch (Throwable e2) {
+	    //e2.printStackTrace();
 	    ExceptionWindow.getExceptionWindow(e2);
 	    setCommitState(true);
 	    g.resetLastMod();

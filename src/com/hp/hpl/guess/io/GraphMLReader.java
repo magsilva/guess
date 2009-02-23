@@ -85,6 +85,7 @@ public class GraphMLReader extends DefaultHandler {
 	} else if (qName.equals("data")) {
 	    dataName = getKeyName(attrs);
 	} else {
+	    System.out.println(qName + " " + attrs);
 	    curAttrs = getAttributeMap(attrs);
 	}
     }
@@ -127,7 +128,7 @@ public class GraphMLReader extends DefaultHandler {
 	String def = (String)attributeMap.get("default");
 	if ((attrName == null) || (attrType == null) ||
 	    (id == null) || (forT == null)) {
-	    System.out.println("illegal key definition " + id);
+	    System.out.println("illegal key definition " + id + ", attr.name= " + attrName + ", attr.type= " + attrType);
 	    return;
 	}
 	attrName = attrName.toLowerCase();

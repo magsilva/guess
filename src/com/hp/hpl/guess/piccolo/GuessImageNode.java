@@ -3,9 +3,11 @@ package com.hp.hpl.guess.piccolo;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Shape;
+import java.awt.image.BufferedImage;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
@@ -14,6 +16,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.net.URL;
 
 import com.hp.hpl.guess.Guess;
 import com.hp.hpl.guess.Node;
@@ -117,10 +120,35 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	setLocation(_xCache,_yCache,_widthCache,_heightCache);
     }
 
+    private static void createErrorImage() {
+	try {
+	    if (imageCache.containsKey("___ERROR")) {
+		return;
+	    }
+	    BufferedImage bi = 
+		new BufferedImage(30,30,BufferedImage.TYPE_INT_RGB);
+	    Graphics g = bi.getGraphics();
+	    g.setColor(Color.red);
+	    g.drawLine(0,0,30,30);
+	    g.drawLine(0,30,30,0);
+	    imageCache.put("___ERROR",bi);
+	} catch (Exception ex) {
+	}
+    }
+
+
     public void setImage(String filename) {
-	if (filename == null) 
+	if (filename == null) {
+	    createErrorImage();
+	    setImage("___ERROR");
 	    return;
+	}
 	
+	if (filename.equals("")) {
+	    createErrorImage();
+	    setImage("___ERROR");
+	    return;
+	}
 
 	//System.out.println("setting image...");
 	this.image = filename;
@@ -129,11 +157,25 @@ public class GuessImageNode extends PImage implements GuessPNode {
 	    super.setImage((java.awt.Image)imageCache.get(filename));
 	} else {
 	    try {
-		super.setImage(filename);
-		imageCache.put(filename,getImage());
+		if (filename.startsWith("http")) {
+		    URL url = new URL(filename);
+		    
+		    // Get the image
+		    java.awt.Image fim = 
+			java.awt.Toolkit.getDefaultToolkit().getDefaultToolkit().createImage(url);
+		    super.setImage(fim);
+		    imageCache.put(filename,getImage());
+		} else {
+		    super.setImage(filename);
+		    imageCache.put(filename,getImage());
+		}
 	    } catch (Exception ex) {
 		ExceptionWindow.getExceptionWindow(ex);
 		StatusBar.setErrorStatus("Error loading image: " + filename);
+		if (!filename.equals("___ERROR")) {
+		    createErrorImage();
+		    setImage("___ERROR");
+		}
 	    }
 	}
 	//System.out.println(_xCache + " " + _yCache);
@@ -231,6 +273,7 @@ public class GuessImageNode extends PImage implements GuessPNode {
 
     public void setColor(Color c)
     {
+	curcolor = c;
     }
 
     public void setShape(int type) {
