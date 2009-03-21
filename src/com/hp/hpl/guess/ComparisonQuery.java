@@ -2,11 +2,12 @@ package com.hp.hpl.guess;
 
 import java.sql.Types;
 import java.util.*;
+import com.hp.hpl.guess.db.DBServer.Base32;
 
 public class ComparisonQuery extends Query
 {
-	private static final long serialVersionUID = -6142688201278785144L;
-	private String op;
+    private static final long serialVersionUID = -6142688201278785144L;
+    private String op;
     private Field field;
     private Object value;
     private Graph g;
@@ -34,13 +35,13 @@ public class ComparisonQuery extends Query
 	    if (field.getState() == null) {
 		init.add("nodes");
 	    } else {
-		init.add("nodes_"+field.getState());
+		init.add("nodes_"+Base32.encode(field.getState()));
 	    }
 	} else {
 	    if (field.getState() == null) {
 		init.add("edges");
 	    } else {
-		init.add("edges_"+field.getState());
+		init.add("edges_"+Base32.encode(field.getState()));
 	    }
 	}
 
@@ -50,13 +51,13 @@ public class ComparisonQuery extends Query
 		if (temp.getState() == null) {
 		    init.add("nodes");
 		} else {
-		    init.add("nodes_"+temp.getState());
+		    init.add("nodes_"+Base32.encode(temp.getState()));
 		}
 	    } else {
 		if (temp.getState() == null) {
 		    init.add("edges");
 		} else {
-		    init.add("edges_"+temp.getState());
+		    init.add("edges_"+Base32.encode(temp.getState()));
 		}
 	    }
 	}

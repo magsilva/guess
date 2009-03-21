@@ -46,7 +46,7 @@ public class DBServer implements StorageListener {
 		    if (foo.equalsIgnoreCase("_deleted"))
 			continue;
 		    if (!foo.equalsIgnoreCase("DEF"))
-			hs.add(foo);
+			hs.add(new String(Base32.decode(foo)));
 		}
 	    }
 	} catch (Exception e) {
@@ -63,6 +63,8 @@ public class DBServer implements StorageListener {
 
 	if (st == null)
 	    return(true);
+
+	st = Base32.encode(st);
 
 	//System.out.println("calling...");
 	if (tableList.size() == 0) {
@@ -139,7 +141,8 @@ public class DBServer implements StorageListener {
 	try {
 	    Statement st = null;
 	    ResultSet rs = null;
-	    
+	    s = Base32.encode(s);
+
 	    st = conn.createStatement();   
 	    if (s == null) {
 		rs = st.executeQuery("SELECT " + f.getName() + 
@@ -170,8 +173,9 @@ public class DBServer implements StorageListener {
 	    Statement st = null;
 	    ResultSet rs = null;
 
+	    System.out.println(state + " " + Base32.encode(state));
 	    if (state != null) {
-		state = "_"+state;
+		state = "_"+Base32.encode(state);
 	    } else {
 		state = "";
 	    }
@@ -201,7 +205,8 @@ public class DBServer implements StorageListener {
 	try {
 	    Statement st = null;
 	    ResultSet rs = null;
-	    
+	    s = Base32.encode(s);
+
 	    st = conn.createStatement();  
 	    if (s == null) {
 		rs = st.executeQuery("SELECT " + f.getName() + 
@@ -2119,7 +2124,9 @@ public class DBServer implements StorageListener {
          *
          */
         public static String encode(final String toEncode) {
-			return encode(toEncode.getBytes());
+	    if ((toEncode == null) || (toEncode.equalsIgnoreCase("_deleted"))) 
+		return(toEncode);
+	    return encode(toEncode.getBytes());
         }
         
         /**
@@ -2230,9 +2237,9 @@ public class DBServer implements StorageListener {
     
     public void saveState(String statenum) {
 	
-		// escape state string
+	// escape state string
     	String orgstatenum = statenum;
-		statenum = Base32.encode(statenum);
+	statenum = Base32.encode(statenum);
 		
 		
 	tableList.clear();
@@ -2307,8 +2314,8 @@ public class DBServer implements StorageListener {
 	    Statement st = null;
 	    ResultSet rs = null;
 	    
-		// escape state string
-		statenum = Base32.encode(statenum);
+	    // escape state string
+	    statenum = Base32.encode(statenum);
 
 	    st = conn.createStatement();    
 	    rs = st.executeQuery("SELECT name from nodes_"+
@@ -2383,7 +2390,7 @@ public class DBServer implements StorageListener {
 
 
 	// escape state string
-    String orgstatenum = statenum;
+	String orgstatenum = statenum;
 	statenum = Base32.encode(statenum);
 
 	// lets deal with edges
@@ -2576,7 +2583,7 @@ public class DBServer implements StorageListener {
 	    if (state == null) {
 		state = "";
 	    } else {
-		state = "_"+state;
+		state = "_"+Base32.encode(state);
 	    }
 
 	    st = conn.createStatement();  
@@ -2608,7 +2615,7 @@ public class DBServer implements StorageListener {
 	    if (state == null) {
 		state = "";
 	    } else {
-		state = "_"+state;
+		state = "_"+Base32.encode(state);
 	    }
 
 	    st = conn.createStatement();  
@@ -2833,7 +2840,7 @@ public class DBServer implements StorageListener {
 	Iterator<String> it = s.iterator();
 	while(it.hasNext()) {
 	    try {
-		query("DELETE FROM edges_"+it.next()+
+		query("DELETE FROM edges_"+Base32.encode(it.next())+
 		      " WHERE __EDGEID = " + edge.getID());
 	    } catch (Exception ex) {
 		ExceptionWindow.getExceptionWindow(ex);
@@ -2856,7 +2863,7 @@ public class DBServer implements StorageListener {
 	Iterator<String> it = s.iterator();
 	while(it.hasNext()) {
 	    try {
-		query("DELETE FROM nodes_"+it.next()+
+		query("DELETE FROM nodes_"+Base32.encode(it.next())+
 		      " WHERE name = '" + node.getName() + "'");
 	    } catch (Exception ex) {
 		ExceptionWindow.getExceptionWindow(ex);
