@@ -119,7 +119,8 @@ public class InfoWindow extends JPanel implements Dockable, GraphMouseListener {
 	gtm = new GuessTableModel();
 	JTable table = new JTable(gtm);
 	table.setBackground(Guess.getMainUIWindow().getBgColor());
-	table.setFillsViewportHeight(true);
+	// removed for backwards compatibility
+	//table.setFillsViewportHeight(true);
 	
 	JScrollPane scrollpane = new JScrollPane(table);
 	

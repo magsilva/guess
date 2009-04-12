@@ -23,7 +23,7 @@ import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicMenuUI;
-
+import java.lang.reflect.*;
 
 public class GMenuBar extends JMenuBar {
 
@@ -73,6 +73,25 @@ public class GMenuBar extends JMenuBar {
 			return (true);
 		}
 	}
+
+    private void loadURL(String url) {
+	// Open wiki in default browser
+	// needs java 1.6
+	// reflection crap so that it'll work in 1.5
+	try {
+	    Class c = Class.forName("java.awt.Desktop");
+	    Method m = c.getMethod("getDesktop",null);
+	    Object o = m.invoke(null,null);
+	    m = c.getMethod("browse",
+			    new Class[]{Class.forName("java.net.URI")});
+	    URI togo = new URI(url);
+	    m.invoke(o,togo);
+	    //	    dsk.browse(new URI(url));
+	} catch (Exception ex) {
+	    StatusBar.setErrorStatus("This is only supported in jdk 1.6 right now, you may go to " + url + " manually");
+	    ex.printStackTrace();
+	}
+    }
 
 	/**
 	 * Loads the MRU of the scripts and rebuild the script menu
@@ -578,27 +597,11 @@ public class GMenuBar extends JMenuBar {
 					// Show error log
 					ExceptionWindow.getExceptionWindow(null).setVisible(true);
 				} else if (event.getActionCommand().equals("GUESS Wiki")) {
-					// Open wiki in default browser
-					// needs java 1.6
-					Desktop dsk = Desktop.getDesktop();
-					try {
-						dsk.browse(new URI("http://guess.wikispot.org/"));
-					} catch (IOException e) {
-						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						e.printStackTrace();
-					}
+				    loadURL("http://guess.wikispot.org/");
 				} else if (event.getActionCommand().equals("GUESS Homepage")) {
-					// Open wiki in default browser
-					// needs java 1.6
-					Desktop dsk = Desktop.getDesktop();
-					try {
-						dsk.browse(new URI("http://graphexploration.cond.org/"));
-					} catch (IOException e) {
-						e.printStackTrace();
-					} catch (URISyntaxException e) {
-						e.printStackTrace();
-					}
+				    // Open wiki in default browser
+				    // needs java 1.6
+				    loadURL("http://graphexploration.cond.org/");
 				}
 			}
 		};

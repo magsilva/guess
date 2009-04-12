@@ -115,8 +115,8 @@ public class Arrow {
 		// create arrowed line general path
 		double width = (m_arrowWidth / 2.0f);
 		arrowhead.moveTo(0, 0);
-		arrowhead.lineTo((-m_arrowLength), width);
-		arrowhead.lineTo((-m_arrowLength), -width);
+		arrowhead.lineTo((float)(-m_arrowLength), (float)width);
+		arrowhead.lineTo((float)(-m_arrowLength), (float)-width);
 		arrowhead.lineTo(0, 0);
 		arrowCache.put(d, arrowhead);
 		return arrowhead;
@@ -129,8 +129,8 @@ public class Arrow {
 		// create arrowed line general path
 		double width = (m_arrowWidth / 2.0f);
 		arrowhead.moveTo(distance, 0);
-		arrowhead.lineTo((distance - m_arrowLength), width);
-		arrowhead.lineTo((distance - m_arrowLength), -width);
+		arrowhead.lineTo((float)(distance - m_arrowLength), (float)width);
+		arrowhead.lineTo((float)(distance - m_arrowLength), (float)-width);
 		arrowhead.lineTo(distance, 0);
 		return arrowhead;
 	}

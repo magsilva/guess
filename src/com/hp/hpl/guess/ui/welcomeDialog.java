@@ -35,6 +35,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.jidesoft.swing.FolderChooser;
+import java.lang.reflect.*;
 
 public class welcomeDialog extends JDialog {
 
@@ -92,7 +93,8 @@ public class welcomeDialog extends JDialog {
 	private int usersChoice = -1;
 	
 	public welcomeDialog() {
-		super(null,ModalityType.TOOLKIT_MODAL);
+	    //		super(null,ModalityType.TOOLKIT_MODAL);
+	    super((java.awt.Frame)null);
 		setModal(true);
 		welcomedlg = this;
 		initGUI();
@@ -500,7 +502,21 @@ public class welcomeDialog extends JDialog {
 	public String getDirectoryImportGraph() {
 		return databaseDirectoryTxt.getText();
 	}
-	
+
+    private void setIImage(String image) {
+	try {
+	    // hack to make it work with jdk 1.5
+	    ImageIcon imageIcon = 
+		new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource(image)));
+	    Method m = 
+		getClass().getMethod("setImageIcon",
+				     new Class[]{Class.forName("java.awt.Image")});
+	    m.invoke(this,imageIcon.getImage());
+	    //this.setIconImage(imageIcon.getImage());
+	} catch (Exception ex) {
+	}
+    }
+
 	/**
 	 * Init the gui elements
 	 */
@@ -513,8 +529,8 @@ public class welcomeDialog extends JDialog {
 		}
 		
 		// Set Window Icon
-		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
-		this.setIconImage(imageIcon.getImage());
+		setIImage("images/guess-icon.png");
+
 		
 		// Set default button
 		getRootPane().setDefaultButton(okBtn);
