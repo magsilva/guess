@@ -24,6 +24,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.basic.BasicMenuUI;
 import java.lang.reflect.*;
+import edu.stanford.ejalbert.BrowserLauncher;
 
 public class GMenuBar extends JMenuBar {
 
@@ -88,8 +89,12 @@ public class GMenuBar extends JMenuBar {
 	    m.invoke(o,togo);
 	    //	    dsk.browse(new URI(url));
 	} catch (Exception ex) {
-	    StatusBar.setErrorStatus("This is only supported in jdk 1.6 right now, you may go to " + url + " manually");
-	    ex.printStackTrace();
+	    // try the backup method
+	    try {
+		BrowserLauncher.openURL(url);
+	    } catch (Exception ex2) {
+		StatusBar.setErrorStatus("Unable to launch browser, you may go to " + url + " manually");
+	    }
 	}
     }
 

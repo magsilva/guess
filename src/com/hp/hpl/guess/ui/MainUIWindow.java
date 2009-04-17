@@ -258,136 +258,136 @@ public class MainUIWindow extends JFrame {
     	return SystemColor.text;
     }
 
-	private void createPanes() {
-		
-		final Color lineColor1 = new Color(224, 232, 242);
-		final Color lineColor2 = new Color(255, 255, 255);
-		final Color lineColor3 = new Color(180, 188, 197);
-		final Color lineColor4 = new Color(238, 243, 250);
-		
-		tabbedPaneH = new JideTabbedPane();
-		tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
-		tabbedPaneH.setHideOneTab(true);
-		tabbedPaneH.setBorder(BorderFactory.createEmptyBorder());
-		tabbedPaneH.setContentBorderInsets(new Insets(0,0,0,0));
-		
-		tabbedPaneV = new JideTabbedPane();
-		tabbedPaneV.setTabPlacement(JTabbedPane.LEFT);
-		tabbedPaneV.setHideOneTab(true);
-		tabbedPaneV.setBorder(BorderFactory.createEmptyBorder());
-		tabbedPaneV.setContentBorderInsets(new Insets(0,0,0,0));
-		
-		splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-			      canvas,
-			      tabbedPaneH);
-		
-		
-		splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+    private void createPanes() {
+	
+	final Color lineColor1 = new Color(224, 232, 242);
+	final Color lineColor2 = new Color(255, 255, 255);
+	final Color lineColor3 = new Color(180, 188, 197);
+	final Color lineColor4 = new Color(238, 243, 250);
+	
+	tabbedPaneH = new JideTabbedPane();
+	tabbedPaneH.setTabPlacement(JTabbedPane.BOTTOM);
+	tabbedPaneH.setHideOneTab(true);
+	tabbedPaneH.setBorder(BorderFactory.createEmptyBorder());
+	tabbedPaneH.setContentBorderInsets(new Insets(0,0,0,0));
+	
+	tabbedPaneV = new JideTabbedPane();
+	tabbedPaneV.setTabPlacement(JTabbedPane.LEFT);
+	tabbedPaneV.setHideOneTab(true);
+	tabbedPaneV.setBorder(BorderFactory.createEmptyBorder());
+	tabbedPaneV.setContentBorderInsets(new Insets(0,0,0,0));
+	
+	splitPaneH = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+				    canvas,
+				    tabbedPaneH);
+	
+	
+	splitPaneV = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 				    tabbedPaneV,
 				    splitPaneH);
+	
+	splitPaneH.setBorder(BorderFactory.createEmptyBorder());
+	splitPaneV.setBorder(BorderFactory.createEmptyBorder());
+	
+	splitPaneH.setOneTouchExpandable(false);
+	splitPaneV.setOneTouchExpandable(false);
+	
+	splitPaneH.setDividerSize(4);
+	splitPaneV.setDividerSize(4);
+	
+	splitPaneH.setResizeWeight(1);
+	
+	
+	tabbedPaneH.setBackground(getBgColor());
+	tabbedPaneV.setBackground(getBgColor());
+	
+	tabbedPaneH.setTabColorProvider(new ColorProvider() {
+		public Color getBackgroundAt(int arg0) {
+		    if (tabbedPaneH.getSelectedIndex()==arg0) {
+			return getBgColor();
+		    }
+		    return getBgColor();
+		}
 		
-		splitPaneH.setBorder(BorderFactory.createEmptyBorder());
-		splitPaneV.setBorder(BorderFactory.createEmptyBorder());
+		public Color getForegroudAt(int arg0) {
+		    return Color.BLACK; 
+		}
 		
-		splitPaneH.setOneTouchExpandable(false);
-		splitPaneV.setOneTouchExpandable(false);
+		public float getGradientRatio(int arg0) {
+		    if (tabbedPaneH.getSelectedIndex()==arg0) {
+			return 0.9f;
+		    }
+		    return 0.5f;
+		}
+	    });
+	
+	tabbedPaneV.setTabColorProvider(new ColorProvider() {
+		public Color getBackgroundAt(int arg0) {
+		    if (tabbedPaneV.getSelectedIndex()==arg0) {
+			return getBgColor();
+		    }
+		    return getBgColor();
+		}
 		
-		splitPaneH.setDividerSize(4);
-		splitPaneV.setDividerSize(4);
+		public Color getForegroudAt(int arg0) {
+		    return Color.BLACK; 
+		}
 		
-		splitPaneH.setResizeWeight(1);
-		
-		
-		tabbedPaneH.setBackground(getBgColor());
-		tabbedPaneV.setBackground(getBgColor());
-		
-		tabbedPaneH.setTabColorProvider(new ColorProvider() {
-			public Color getBackgroundAt(int arg0) {
-				if (tabbedPaneH.getSelectedIndex()==arg0) {
-					return getBgColor();
-				}
-				return getBgColor();
-			}
-
-			public Color getForegroudAt(int arg0) {
-				return Color.BLACK; 
-			}
-
-			public float getGradientRatio(int arg0) {
-				if (tabbedPaneH.getSelectedIndex()==arg0) {
-					return 0.9f;
-				}
-				return 0.5f;
-			}
-		});
-		
-		tabbedPaneV.setTabColorProvider(new ColorProvider() {
-			public Color getBackgroundAt(int arg0) {
-				if (tabbedPaneV.getSelectedIndex()==arg0) {
-					return getBgColor();
-				}
-				return getBgColor();
-			}
-
-			public Color getForegroudAt(int arg0) {
-				return Color.BLACK; 
-			}
-
-			public float getGradientRatio(int arg0) {
-				if (tabbedPaneV.getSelectedIndex()==arg0) {
-					return 0.9f;
-				}
-				return 0.5f;
-			}
-		});		
-		
-		
-		splitPaneH.setBackground(getBgColor());
-		splitPaneV.setBackground(getBgColor());
-				
-		splitPaneH.setUI(new BasicSplitPaneUI() {
+		public float getGradientRatio(int arg0) {
+		    if (tabbedPaneV.getSelectedIndex()==arg0) {
+			return 0.9f;
+		    }
+		    return 0.5f;
+		}
+	    });		
+	
+	
+	splitPaneH.setBackground(getBgColor());
+	splitPaneV.setBackground(getBgColor());
+	
+	splitPaneH.setUI(new BasicSplitPaneUI() {
 		public BasicSplitPaneDivider createDefaultDivider() {
-		  return new BasicSplitPaneDivider(this) {
+		    return new BasicSplitPaneDivider(this) {
 			private static final long serialVersionUID = 1L;
-
+			
 			public void setBorder(Border b) {
-		    	Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor1);
-		    	Border b2 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor2);
-		    	Border b3 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor3);
-		    	Border b4 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor4);
-		    	 
-		    	Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
-		    	Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
-		    	Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
-		    	
-		      	super.setBorder(b1b2b3b4);
-		      }
-		  };
+			    Border b1 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor1);
+			    Border b2 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor2);
+			    Border b3 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor3);
+			    Border b4 = BorderFactory.createMatteBorder(1, 0, 0, 0, lineColor4);
+			    
+			    Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
+			    Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
+			    Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
+			    
+			    super.setBorder(b1b2b3b4);
+			}
+		    };
 		}
-		});
-		
-		splitPaneV.setUI(new BasicSplitPaneUI() {
+	    });
+	
+	splitPaneV.setUI(new BasicSplitPaneUI() {
 		public BasicSplitPaneDivider createDefaultDivider() {
-		  return new BasicSplitPaneDivider(this) {
-			  private static final long serialVersionUID = 1L;
-		      public void setBorder(Border b) {
-			    	Border b1 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor4);
-			    	Border b2 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor3);
-			    	Border b3 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor2);
-			    	Border b4 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor1);
-			    	 
-			    	Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
-			    	Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
-			    	Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
-			    	
-			      	super.setBorder(b1b2b3b4);
-		      }
-		  };
+		    return new BasicSplitPaneDivider(this) {
+			private static final long serialVersionUID = 1L;
+			public void setBorder(Border b) {
+			    Border b1 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor4);
+			    Border b2 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor3);
+			    Border b3 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor2);
+			    Border b4 = BorderFactory.createMatteBorder(0, 0, 0, 1, lineColor1);
+			    
+			    Border b1b2 = BorderFactory.createCompoundBorder(b1, b2);
+			    Border b1b2b3 = BorderFactory.createCompoundBorder(b1b2, b3);
+			    Border b1b2b3b4 = BorderFactory.createCompoundBorder(b1b2b3, b4);
+			    
+			    super.setBorder(b1b2b3b4);
+			}
+		    };
 		}
-		});
-	}
-
-	/**
+	    });
+    }
+    
+    /**
      * set the location of the horizontal panel
      * @param loc the integer location, distance from top
      */
@@ -513,23 +513,23 @@ public class MainUIWindow extends JFrame {
      * @param splitpane
      */
     private void hideDividers(JSplitPane splitpane) {
-		BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitpane.getUI();
-		bspui.getDivider().setVisible(false);
-		splitpane.setEnabled(false);
-		
-		
-		if (splitpane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
-			tabbedPaneV.setVisible(false);
-			splitpane.setDividerLocation(0);
-			splitpane.setLastDividerLocation(0);
-			userPrefs.putInt("VDividerLocation", 0);
-		} else {
-			tabbedPaneH.setVisible(false);
-			splitpane.setDividerLocation(splitPaneH.getMaximumDividerLocation());
-			splitpane.setLastDividerLocation(splitPaneH.getMaximumDividerLocation());
-			userPrefs.putInt("HDividerLocation", splitPaneH.getMaximumDividerLocation());
-		}
-		
+	BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitpane.getUI();
+	bspui.getDivider().setVisible(false);
+	splitpane.setEnabled(false);
+	
+	
+	if (splitpane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+	    tabbedPaneV.setVisible(false);
+	    splitpane.setDividerLocation(0);
+	    splitpane.setLastDividerLocation(0);
+	    userPrefs.putInt("VDividerLocation", 0);
+	} else {
+	    tabbedPaneH.setVisible(false);
+	    splitpane.setDividerLocation(splitPaneH.getMaximumDividerLocation());
+	    splitpane.setLastDividerLocation(splitPaneH.getMaximumDividerLocation());
+	    userPrefs.putInt("HDividerLocation", splitPaneH.getMaximumDividerLocation());
+	}
+	
     }
     
     /**
@@ -537,16 +537,16 @@ public class MainUIWindow extends JFrame {
      * @param splitpane
      */
     private void showDividers(JSplitPane splitpane, int dividerLoction) {
-		BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitpane.getUI();
-		bspui.getDivider().setVisible(true);
-		splitpane.setEnabled(true);
-		if (splitpane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
-			tabbedPaneV.setVisible(true);
-			setVDividerLocation(dividerLoction);
-		} else {
-			tabbedPaneH.setVisible(true);
-			setHDividerLocation(dividerLoction);
-		}
+	BasicSplitPaneUI bspui = (BasicSplitPaneUI)splitpane.getUI();
+	bspui.getDivider().setVisible(true);
+	splitpane.setEnabled(true);
+	if (splitpane.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+	    tabbedPaneV.setVisible(true);
+	    setVDividerLocation(dividerLoction);
+	} else {
+	    tabbedPaneH.setVisible(true);
+	    setHDividerLocation(dividerLoction);
+	}
     }    
     
     public void close(Dockable d) {

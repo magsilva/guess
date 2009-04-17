@@ -316,6 +316,15 @@ public class Guess
     }
 
     /**
+     * @pyexport
+     */
+    public static void help(String tohelp) {
+	if (tpjc != null) {
+	    tpjc.help(tohelp);
+	}
+    }
+
+    /**
      * gets the current working graph, if the sytem
      * hasn't been inited you get back null
      * @return the working graph or null
@@ -1110,26 +1119,26 @@ public class Guess
 		textMode = true;
 	    } else {
 		if (enableMainUI) {
-			tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
+		    tpjc = new TextPaneJythonConsole((PythonInterpreter)interp);
 		    myWin.dock(tpjc);
 		    
-			// Show console?
-			if (!userPrefsMenu.getBoolean("openConsole", true)) {
-				getMainUIWindow().close(tpjc);
-			}
-			// show information window?
-			if (userPrefsMenu.getBoolean("openInformationWindow", false)) {
-				InfoWindow.create();
-			}
-			// show video window?
-			if (userPrefsMenu.getBoolean("openVideoWindow", false)) {
-				VideoWindow.create();
-			}			
-			// run in fullscreen?
-			if (userPrefsMenu.getBoolean("openFullscreen", false)) {
-				Guess.getMainUIWindow().setFullScreenMode(true);
-			}
-			
+		    // Show console?
+		    if (!userPrefsMenu.getBoolean("openConsole", true)) {
+			getMainUIWindow().close(tpjc);
+		    }
+		    // show information window?
+		    if (userPrefsMenu.getBoolean("openInformationWindow", false)) {
+			InfoWindow.create();
+		    }
+		    // show video window?
+		    if (userPrefsMenu.getBoolean("openVideoWindow", false)) {
+			VideoWindow.create();
+		    }			
+		    // run in fullscreen?
+		    if (userPrefsMenu.getBoolean("openFullscreen", false)) {
+			Guess.getMainUIWindow().setFullScreenMode(true);
+		    }
+		    
 		}
 	    }
 	    //LabNotebook.createNotebook((PythonInterpreter)interp);

@@ -111,6 +111,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
     private InternalTextPane itp = null;
 
+    public void help(String tohelp) {
+	itp.help(tohelp);
+    }
+
     public TextPaneJythonConsole(PythonInterpreter jython) {
 	super();
 	itp = new InternalTextPane(jython);
@@ -172,6 +176,10 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 	private boolean demoMode = false;//true;
 	
+	public void help(String tohelp) {
+	    document.help(tohelp);
+	}
+
 	public void shutdown() {
 	    document.shutdown();
 	}
@@ -675,7 +683,9 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	    jython.exec("ENV = {}");
 	    
 	    setEnvironment("PS1", "\u00BB ");
-	    setEnvironment("PS2", "... ");
+	    setEnvironment("PS2", ". ");
+
+	    //setEnvironment("PS2", "... ");
 	    setEnvironment("PATH_SEPARATOR", System.getProperty("path.separator"));
 	    setEnvironment("COLS", "80");
 
@@ -1169,6 +1179,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 	     * @since 1.0
 	     */
 	    public void completeCommandLine() {
+		//System.out.println("complete commandline...");
 		try {
 		    int start = getCommandLineStartOffset();
 		    int end = getCaretPosition();
@@ -1176,13 +1187,15 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 		    // is it a request for completion ?
 		    if (command.trim().startsWith("./")) {
-			FilenameFilter filter = new CompletionFilenameFilter(command.substring(command.indexOf(
+			FilenameFilter filter = 
+			    new CompletionFilenameFilter(command.substring(command.indexOf(
 													       "./") + 2));
-			StringTokenizer tokens = new StringTokenizer(getEnvironment(
-										    "PATH"), getEnvironment("PATH_SEPARATOR"));
+			StringTokenizer tokens = 
+			    new StringTokenizer(getEnvironment("PATH"), 
+						getEnvironment("PATH_SEPARATOR"));
 			Vector<String> candidates = new Vector<String>();
 			int longestCandidate = -1;
-
+			
 			// find all
 			if (tokens.countTokens() > 0) {
 			    yank = command;
@@ -1193,11 +1206,11 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 				    if (dir.isDirectory()) {
 					String[] files = dir.list(filter);
-
+					
 					for (int index = 0; index < files.length;
 					     index++) {
 					    candidates.addElement(files[index]);
-
+					    
 					    if (files[index].length() > longestCandidate) {
 						longestCandidate = files[index].length();
 					    }
@@ -1459,6 +1472,31 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		    }
 		}
 	    }
+	    
+
+	    /**
+	     */
+	    public void help(String tohelp) {
+		tohelp = tohelp.toLowerCase();
+		if (func_dict == null) {
+		    func_dict = 
+			(PyDictionary)jython.get("__FUNCTION_DICTIONARY");
+		}
+		if (func_dict != null) {
+		    PyList keys = func_dict.keys();
+		    for (int i = 0 ; i < keys.__len__() ; i++) {
+			PyObject k = keys.pop();
+			PyObject v = func_dict.__finditem__(k);
+			String ks = k.toString().toLowerCase();
+			String vs = v.toString().toLowerCase();
+			//System.out.println(vs);
+			if ((ks.contains(tohelp)) ||
+			    (vs.contains(tohelp))) {
+			    System.out.println(k);
+			}
+		    }
+		}
+	    }
 
 	    /**
 	     *
@@ -1483,6 +1521,7 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 		    // delimit the command to execute
 		    int start = getCommandLineStartOffset(offset);
 		    int length = getCommandLineEndOffset() - start - 1; // "-1" to get ride of final '\n'
+		    //System.out.println(start + " " + offset + " " + length);
 		    command = getText(start, length);
 
 		    // this is a request for external file execution
@@ -1576,7 +1615,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    // are there more line to read ?
 			    if (multilining > 0) {
 				superInsertString(getLength(),
-						  getEnvironment("PS2"), getStyle(PROMPT_STYLE));
+						  getEnvironment("PS2"), 
+						  getStyle(PROMPT_STYLE));
 				printOutErr();
 				return;
 			    }
@@ -1585,7 +1625,8 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 			    command = multiline.toString();
 			    multiline = null;
 			} else {
-			    superInsertString(getLength(), getEnvironment("PS2"),
+			    superInsertString(getLength(), 
+					      getEnvironment("PS2"),
 					      getStyle(PROMPT_STYLE));
 
 			    printOutErr();
@@ -1595,13 +1636,14 @@ public class TextPaneJythonConsole extends JScrollPane implements Dockable {
 
 		    // let Jython execute the command if necessary
 		    if (command.trim().length() > 0) {
+
 			try {
 			    StatusBar.setStatus("");
 			    if (command.equals("quit")) {
 				com.hp.hpl.guess.Guess.shutdown();
 			    }
 			    // keep command in history
-			    // System.out.println(command);
+			    //System.out.println(command);
 			    addHistoryItem(command);
 
 			    aftercommand = getLength();

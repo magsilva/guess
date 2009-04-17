@@ -120,11 +120,17 @@ public class KamadaGraphLayout extends AbstractLayout {
 
     public KamadaGraphLayout(Graph g, boolean firstLayout, int width, 
 			     int height) {
+	this(g,firstLayout,width,height,5000);
+    }
+
+    public KamadaGraphLayout(Graph g, boolean firstLayout, int width, 
+			     int height, int mpass) {
 	super(g);
 	this.width = width;
 	this.height = height;
 	this.nodeList = g.getNodes();
 	this.firstLayout = firstLayout;
+	this.maxPasses = mpass;
     }
 
 

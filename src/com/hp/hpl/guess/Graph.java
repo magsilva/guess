@@ -718,6 +718,16 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	}
 
 	/**
+	 * Kamada-Kawai, puts nodes in 1000 x 1000 square
+	 * @param passes
+	 * @pyexport
+	 */
+	public void kkLayout(int passes) 
+	{
+	    kkLayout(1000, 1000, passes);
+	}
+
+	/**
 	 * Sugiyama
 	 * @pyexport
 	 */
@@ -900,44 +910,91 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		layout(new KKLayout(this));
 	}
 
-	/**
-	 * the JUNG Kamada-Kawai (int)
-	 * @pyexport
-	 */
-	public void jkkLayout2() {
-		layout(new KKLayoutInt(this));
-	}
 
 	/**
-	 * the JUNG Kamada-Kawai (regular)
+	 * the JUNG Kamada-Kawai (regular) with user defined iterations
+	 * @param iters
 	 * @pyexport
 	 */
-	public void weightedKKLayout() {
-		layout(new WeightedKK(this));
+	public void jkkLayout1(int iters) {
+	    KKLayout kk = new KKLayout(this);
+	    kk.setMaxIterations(iters);
+	    layout(kk);
 	}
 
-	/**
-	 * Fruchterman-Rheingold into a width x height grid
-	 * @param width
-	 * @param height
-	 * @pyexport
-	 */
-	public void frLayout(int width, int height) 
-	{
-		layout(new FruchGraphLayout(this, true, width, height));
-	}
+    /**
+     * the JUNG Kamada-Kawai (int)
+     * @pyexport
+     */
+    public void jkkLayout2() {
+	layout(new KKLayoutInt(this));
+    }
 
-	/**
-	 * Kamada-Kawai into a width x height grid
-	 * @param width
-	 * @param height
-	 * @pyexport
-	 */
-	public void kkLayout(int width, int height) 
-	{
-		layout(new KamadaGraphLayout(this, true, width, height));
-	}
 
+    /**
+     * the JUNG Kamada-Kawai (int) with user defined iterations
+     * @param iters
+     * @pyexport
+     */
+    public void jkkLayout2(int iters) {
+	KKLayoutInt kk = new KKLayoutInt(this);
+	kk.setMaxIterations(iters);
+	layout(kk);
+    }
+    
+    /**
+     * a weighted JUNG Kamada-Kawai (regular)
+     * @pyexport
+     */
+    public void weightedKKLayout() {
+	layout(new WeightedKK(this));
+    }
+
+    /**
+     * a weighted JUNG Kamada-Kawai (regular) with user defined iterations
+     * @param iters
+     * @pyexport
+     */
+    public void weightedKKLayout(int iters) {
+	WeightedKK kk = new WeightedKK(this);
+	kk.setMaxIterations(iters);
+	layout(kk);
+    }
+
+    /**
+     * Fruchterman-Rheingold into a width x height grid
+     * @param width
+     * @param height
+     * @pyexport
+     */
+    public void frLayout(int width, int height) 
+    {
+	layout(new FruchGraphLayout(this, true, width, height));
+    }
+    
+    /**
+     * Kamada-Kawai into a width x height grid
+     * @param width
+     * @param height
+     * @pyexport
+     */
+    public void kkLayout(int width, int height) 
+    {
+	layout(new KamadaGraphLayout(this, true, width, height));
+    }
+
+    /**
+     * Kamada-Kawai into a width x height grid and some number of iterations
+     * @param width
+     * @param height
+     * @param passes
+     * @pyexport
+     */
+    public void kkLayout(int width, int height, int passes) 
+    {
+	layout(new KamadaGraphLayout(this, true, width, height, passes));
+    }
+    
     /**
      * physics layout
      * @param gather merges connected nodes first (not very useful)
@@ -948,15 +1005,15 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		layout(new Physics(this, gather), max);
 	}
 
-     /**
+    /**
      * physics layout, asks every 30 seconds if you want to keep running
      * @pyexport
      */
     public void physicsLayout()
     {
-		layout(new Physics(this, false));
-	}
-
+	layout(new Physics(this, false));
+    }
+    
     /**
      * run physics layout for max steps
      * @param max the number of steps
@@ -995,25 +1052,25 @@ public class Graph extends SparseGraph implements NumberEdgeValue
     {
 		layout(new CircleLayout(this));
 	}
-
-	/**
-	 * packs all nodes
-	 * @pyexport
-	 */
-	public void binPackLayout() 
-	{
-		binPackLayout(true);
-	}
-
-	/**
-	 * packs all nodes
-	 * @pyexport
-	 */
-	public void binPackLayout(boolean rescale) 
-	{
-		layout(new BinPack(this, rescale));
-	}
-
+    
+    /**
+     * packs all nodes
+     * @pyexport
+     */
+    public void binPackLayout() 
+    {
+	binPackLayout(true);
+    }
+    
+    /**
+     * packs all nodes
+     * @pyexport
+     */
+    public void binPackLayout(boolean rescale) 
+    {
+	layout(new BinPack(this, rescale));
+    }
+    
     /**
      * places all nodes in a circle with node c in the middle
      * and its neighbors around that center with a radius
@@ -1470,6 +1527,8 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	}
 
 	/**
+	 * sets the page rank bias
+	 * @param bias the bias
 	 * @pyexport
 	 */
 	public void setPageRankBias(double bias) {
@@ -1478,6 +1537,7 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	}
 
 	/**
+	 * returne the pagerank bias
 	 * @pyexport
 	 */
 	public double getPageRankBias() {
@@ -1485,6 +1545,8 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	}
 
 	/**
+	 * which field to use for weighting
+	 * @param f the field
 	 * @pyexport
 	 */
 	public void setRankerWeightField(Field f) {
@@ -1610,24 +1672,32 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		}
 
 	}
-
-	/**
-	 * @pyexport
-	 */
+    
+    /**
+     * Create a new node field
+     * @param fieldname the name of the field
+     * @param sqlType the type of the node (see java.sql)
+     * @param defaultValue the default this field should take
+     * @pyexport
+     */
     public Field addNodeField(String fieldName, int sqlType, 
-			     Object defaultValue)
+			      Object defaultValue)
     {
 	Field field = new Field(this, fieldName, Field.NODE, 
 				sqlType, defaultValue);
-		nodeSchemaInt.addFieldToSL(field);
-
-		interp.setImmutable(fieldName, field);
-		return (field);
-	}
-
-	/**
-	 * @pyexport
-	 */
+	nodeSchemaInt.addFieldToSL(field);
+	
+	interp.setImmutable(fieldName, field);
+	return (field);
+    }
+    
+    /**
+     * Create a new edge field
+     * @param fieldname the name of the field
+     * @param sqlType the type of the node (see java.sql)
+     * @param defaultValue the default this field should take
+     * @pyexport
+     */
     public Field addEdgeField(String fieldName, int sqlType, 
 			     Object defaultValue)
     {
@@ -1654,158 +1724,176 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		return (field);
 	}
 
-	/**
-	 * @pyexport
-	 */
-	public NodeSchema getNodeSchema() 
-	{
-		return nodeSchemaInt;
+    /**
+     * grab the node schema
+     * @pyexport
+     */
+    public NodeSchema getNodeSchema() 
+    {
+	return nodeSchemaInt;
+    }
+    
+    /**
+     * grab the edge schema
+     * @pyexport
+     */
+    public EdgeSchema getEdgeSchema() 
+    {
+	return edgeSchemaInt;
+    }
+    
+    /**
+     * sort some set by some field
+     * @param seq the set to sort
+     * @param field the field to sort by
+     * @pyexport
+     */
+    public Collection<GraphElement> sortBy(PySequence seq, Field field) {
+	ArrayList<SortableGraphElement> list = new ArrayList<SortableGraphElement>();
+	Iterator it = seq.findGraphElements().iterator();
+	
+	while (it.hasNext()) {
+	    GraphElement ge = (GraphElement) it.next();
+	    list.add(new SortableGraphElement(ge, 
+					      (Comparable) ge.__getattr__(field.getName())));
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public EdgeSchema getEdgeSchema() 
-	{
-		return edgeSchemaInt;
+	
+	Collections.sort(list);
+	
+	Vector hs = new Vector();
+	it = list.iterator();
+	while (it.hasNext()) {
+	    hs.add(((SortableGraphElement) it.next()).el);
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public Collection<GraphElement> sortBy(PySequence seq, Field field) {
-		ArrayList<SortableGraphElement> list = new ArrayList<SortableGraphElement>();
-		Iterator it = seq.findGraphElements().iterator();
-
-		while (it.hasNext()) {
-			GraphElement ge = (GraphElement) it.next();
-			list.add(new SortableGraphElement(ge, 
-				(Comparable) ge.__getattr__(field.getName())));
-		}
-
-		Collections.sort(list);
-
-		Vector hs = new Vector();
-		it = list.iterator();
-		while (it.hasNext()) {
-			hs.add(((SortableGraphElement) it.next()).el);
-		}
-		return (hs);
+	return (hs);
+    }
+    
+    /**
+     * sort all graph elements by some field, guesses a the type
+     * of object you want to sort by based on the field type
+     * @param field the field to sort by
+     * @pyexport
+     */
+    public Collection<GraphElement> sortBy(Field field) {
+	
+	Iterator it = null;
+	
+	if (field.getType() == Field.NODE) {
+	    it = getNodes().iterator();
+	} else if (field.getType() == Field.EDGE) {
+	    it = getEdges().iterator();
+	} else {
+	    throw new Error("invalid Field type");
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public Collection<GraphElement> sortBy(Field field) {
-
-		Iterator it = null;
-
-		if (field.getType() == Field.NODE) {
-			it = getNodes().iterator();
-		} else if (field.getType() == Field.EDGE) {
-			it = getEdges().iterator();
-		} else {
-			throw new Error("invalid Field type");
-		}
-		ArrayList list = new ArrayList();
-		while (it.hasNext()) {
-			GraphElement ge = (GraphElement) it.next();
-			list.add(new SortableGraphElement(ge, 
-			(Comparable) ge.__getattr__(field.getName())));
-		}
-		Collections.sort(list);
-		Vector hs = new Vector();
-		it = list.iterator();
-		while (it.hasNext()) {
-			hs.add(((SortableGraphElement) it.next()).el);
-		}
-		return (hs);
+	ArrayList list = new ArrayList();
+	while (it.hasNext()) {
+	    GraphElement ge = (GraphElement) it.next();
+	    list.add(new SortableGraphElement(ge, 
+					      (Comparable) ge.__getattr__(field.getName())));
 	}
-
-	class SortableGraphElement implements Comparable {
-
-		public Comparable key = null;
-
-		public GraphElement el = null;
-
-		public SortableGraphElement(GraphElement el, Comparable key) {
-			this.key = key;
-			this.el = el;
-		}
-
-		public int compareTo(Object o) {
-			try {
-				return (this.key.compareTo(((SortableGraphElement) o).key));
-			} catch (Exception ex) {
-				ExceptionWindow.getExceptionWindow(ex);
-				return (-1);
-			}
-		}
+	Collections.sort(list);
+	Vector hs = new Vector();
+	it = list.iterator();
+	while (it.hasNext()) {
+	    hs.add(((SortableGraphElement) it.next()).el);
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public Collection<SortableHashSet> groupBy(PySequence seq, Field field) {
-		Hashtable<Object, SortableHashSet> map = new Hashtable<Object, SortableHashSet>();
-		Iterator<GraphElement> it = seq.findGraphElements().iterator();
-
-		while (it.hasNext()) {
-			GraphElement ge = (GraphElement) it.next();
-			Object attrib = ge.__getattr__(field.getName());
-			if (!map.containsKey(attrib)) {
-				map.put(attrib, new SortableHashSet(field,(Comparable) attrib));
-			}
-			((HashSet<GraphElement>) map.get(attrib)).add(ge);
-		}
-		return (map.values());
+	return (hs);
+    }
+    
+    class SortableGraphElement implements Comparable {
+	
+	public Comparable key = null;
+	
+	public GraphElement el = null;
+	
+	public SortableGraphElement(GraphElement el, Comparable key) {
+	    this.key = key;
+	    this.el = el;
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public Collection<SortableHashSet> groupBy(Field field) {
-		if (field.getType() == Field.NODE) {
-			return (groupNodesBy(field.getName()));
-		} else if (field.getType() == Field.EDGE) {
-			return (groupEdgesBy(field.getName()));
-		} else {
-			throw new Error("invalid Field type");
-		}
+	
+	public int compareTo(Object o) {
+	    try {
+		return (this.key.compareTo(((SortableGraphElement) o).key));
+	    } catch (Exception ex) {
+		ExceptionWindow.getExceptionWindow(ex);
+		return (-1);
+	    }
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public Collection<SortableHashSet> groupAndSortBy(Field field) {
-		if (field.getType() == Field.NODE) {
-			return (groupAndSortNodesBy(field.getName()));
-		} else if (field.getType() == Field.EDGE) {
-			return (groupAndSortEdgesBy(field.getName()));
-		} else {
-			throw new Error("invalid Field type");
-		}
+    }
+    
+    /**
+     * genererates a set of sets grouped by some field that defined equivalence
+     * @param seq the thing to group by
+     * @param field the field to sort by
+     * @pyexport
+     */
+    public Collection<SortableHashSet> groupBy(PySequence seq, Field field) {
+	Hashtable<Object, SortableHashSet> map = new Hashtable<Object, SortableHashSet>();
+	Iterator<GraphElement> it = seq.findGraphElements().iterator();
+	
+	while (it.hasNext()) {
+	    GraphElement ge = (GraphElement) it.next();
+	    Object attrib = ge.__getattr__(field.getName());
+	    if (!map.containsKey(attrib)) {
+		map.put(attrib, new SortableHashSet(field,(Comparable) attrib));
+	    }
+	    ((HashSet<GraphElement>) map.get(attrib)).add(ge);
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public Collection groupAndSortBy(PySequence seq, Field field) {
-		ArrayList al = new ArrayList();
-		al.addAll(groupBy(seq, field));
-		Collections.sort(al);
-		return (al);
+	return (map.values());
+    }
+    
+    /**
+     * generates a set of sets on all graph objects, guesses type by field
+     * @param field the field that defined equivalence
+     * @pyexport
+     */
+    public Collection<SortableHashSet> groupBy(Field field) {
+	if (field.getType() == Field.NODE) {
+	    return (groupNodesBy(field.getName()));
+	} else if (field.getType() == Field.EDGE) {
+	    return (groupEdgesBy(field.getName()));
+	} else {
+	    throw new Error("invalid Field type");
 	}
-
-	public Collection<SortableHashSet> groupAndSortNodesBy(String field) {
-		ArrayList al = new ArrayList();
-		al.addAll(groupNodesBy(field));
-		Collections.sort(al);
-		return (al);
+    }
+    
+    /**
+     * simulatenous sort and group
+     * @param field the field to group and sort by
+     * @pyexport
+     */
+    public Collection<SortableHashSet> groupAndSortBy(Field field) {
+	if (field.getType() == Field.NODE) {
+	    return (groupAndSortNodesBy(field.getName()));
+	} else if (field.getType() == Field.EDGE) {
+	    return (groupAndSortEdgesBy(field.getName()));
+	} else {
+	    throw new Error("invalid Field type");
 	}
-
-	private final static String __nullKey = new String("___GUESS_NULL");
-
+    }
+    
+    /**
+     * simulatenous group annd sort
+     * @param seq the set to group and sort
+     * @param field the field
+     * @pyexport
+     */
+    public Collection groupAndSortBy(PySequence seq, Field field) {
+	ArrayList al = new ArrayList();
+	al.addAll(groupBy(seq, field));
+	Collections.sort(al);
+	return (al);
+    }
+    
+    public Collection<SortableHashSet> groupAndSortNodesBy(String field) {
+	ArrayList al = new ArrayList();
+	al.addAll(groupNodesBy(field));
+	Collections.sort(al);
+	return (al);
+    }
+    
+    private final static String __nullKey = new String("___GUESS_NULL");
+    
 	public Collection<SortableHashSet> groupNodesBy(String field) {
 		Hashtable map = new Hashtable();
 		Iterator it = getNodes().iterator();
@@ -1858,6 +1946,9 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	}
 
 	/**
+	 * generate a random graph
+	 * @param nodes the number of nodes
+	 * @param edges the number of edges
 	 * @pyexport
 	 */
 	public void makeSimpleRandom(int nodes, int edges) {
@@ -1865,279 +1956,300 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		makeFromGenerator(srg);
 	}
 
-	/**
-	 * @pyexport
-	 */
-	public void makeSimpleDirectedRandom(int nodes, int edges) {
-		SimpleRandomDirectedGenerator srg =
-			new SimpleRandomDirectedGenerator(nodes, edges);
-		makeFromGenerator(srg);
+    /**
+     * make a random directed graph
+     * @param nodes the number of nodes
+     * @param edges the number of edges
+     * @pyexport
+     */
+    public void makeSimpleDirectedRandom(int nodes, int edges) {
+	SimpleRandomDirectedGenerator srg =
+	    new SimpleRandomDirectedGenerator(nodes, edges);
+	makeFromGenerator(srg);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void makeEppsteinRandom(int nodes, int edges, int r) {
+	EppsteinPowerLawGenerator srg = 
+	    new EppsteinPowerLawGenerator(nodes,edges, r);
+	makeFromGenerator(srg);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void makeErdosRenyiRandom(int nodes, double p) {
+	ErdosRenyiGenerator srg = 
+	    new ErdosRenyiGenerator(nodes, p);
+	makeFromGenerator(srg);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void makeLattice1DRandom(int nodes, boolean tor) {
+	Lattice1DGenerator srg = 
+	    new Lattice1DGenerator(nodes, tor);
+	makeFromGenerator(srg);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void makeLattice2DRandom(int nodes, boolean tor) {
+	Lattice2DGenerator srg = 
+	    new Lattice2DGenerator(nodes, tor);
+	makeFromGenerator(srg);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void makeKleinbergRandom(int nodes, double clust) {
+	KleinbergSmallWorldGenerator srg =
+	    new KleinbergSmallWorldGenerator(nodes, clust);
+	makeFromGenerator(srg);
+    }
+    
+    public void makeFromGenerator(GraphGenerator gg) {
+	ArchetypeGraph ag = gg.generateGraph();
+	Iterator it = ag.getVertices().iterator();
+	int i = 0;
+	Hashtable map = new Hashtable();
+	while (it.hasNext()) {
+	    Node n = addNode("nd" + i);
+	    map.put(it.next(), n);
+	    i++;
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeEppsteinRandom(int nodes, int edges, int r) {
-		EppsteinPowerLawGenerator srg = 
-			new EppsteinPowerLawGenerator(nodes,edges, r);
-		makeFromGenerator(srg);
+	it = ag.getEdges().iterator();
+	while (it.hasNext()) {
+	    edu.uci.ics.jung.graph.Edge e = 
+		(edu.uci.ics.jung.graph.Edge) it.next();
+	    Pair p = e.getEndpoints();
+	    Node n1 = (Node) map.get(p.getFirst());
+	    Node n2 = (Node) map.get(p.getSecond());
+	    if (e instanceof DirectedSparseEdge) {
+		// System.out.println("dir");
+		addDirectedEdge(n1, n2);
+	    } else {
+		addUndirectedEdge(n1, n2);
+	    }
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeErdosRenyiRandom(int nodes, double p) {
-		ErdosRenyiGenerator srg = 
-			new ErdosRenyiGenerator(nodes, p);
-		makeFromGenerator(srg);
+	randomLayout();
+    }
+    
+    /**
+     * load a graph from a GML file
+     * @param filename the GML filename to load
+     * @pyexport
+     */
+    public void makeFromGML(String filename) {
+	GraphMLReader gmr = new GraphMLReader(this, filename);
+	boolean tmp = centerAfter;
+	boolean tmp2 = Guess.getSynchronous();
+	Guess.setSynchronous(true);
+	centerAfter = false;
+	randomLayout();
+	Guess.setSynchronous(tmp2);
+	centerAfter = tmp;
+	if (containsDirected()) {
+	    VisFactory.getFactory().setDirected(true);
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeLattice1DRandom(int nodes, boolean tor) {
-		Lattice1DGenerator srg = 
-			new Lattice1DGenerator(nodes, tor);
-		makeFromGenerator(srg);
+    }
+    
+    /**
+     * load a graph from pajek
+     * @param filename the pajek file to load
+     * @pyexport
+     */
+    public void makeFromPajek(String filename) {
+	GuessPajekReader.readFile(this, filename);
+	if (containsDirected()) {
+	    VisFactory.getFactory().setDirected(true);
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeLattice2DRandom(int nodes, boolean tor) {
-		Lattice2DGenerator srg = 
-			new Lattice2DGenerator(nodes, tor);
-		makeFromGenerator(srg);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void makeFromDL(String filename) {
+	// added for Patrick, fill in the blanks
+	// GraphMLReader gmr = new GraphMLReader(this,filename);
+	// randomLayout();
+    }
+    
+    /**
+     * load a graph from a GDF format file
+     * @param filename the file to load
+     * @pyexport
+     */
+    public void makeFromGDF(String filename) throws java.io.IOException {
+	GDFReader gmr = new GDFReader(this, filename);
+	if (containsDirected()) {
+	    VisFactory.getFactory().setDirected(true);
 	}
+    }
 
-	/**
-	 * @pyexport
-	 */
-	public void makeKleinbergRandom(int nodes, double clust) {
-		KleinbergSmallWorldGenerator srg =
-			new KleinbergSmallWorldGenerator(nodes, clust);
-		makeFromGenerator(srg);
+    /**
+     * generate a GDF representation of the file
+     * @param filename the filename to output
+     * @pyexport
+     */
+    public void exportGDF(String filename) {
+	StorageFactory.getSL().exportGDF(filename);
+    }
+    
+    /**
+     * morph from the current state to some other state over a time
+     * @param state the state to morph to 
+     * @param duration the time to morph over
+     * @pyexport
+     */
+    public void morph(String state, long duration) {
+	if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
+	    Morpher.morph(this, state, duration);
 	}
-
-	public void makeFromGenerator(GraphGenerator gg) {
-		ArchetypeGraph ag = gg.generateGraph();
-		Iterator it = ag.getVertices().iterator();
-		int i = 0;
-		Hashtable map = new Hashtable();
-		while (it.hasNext()) {
-			Node n = addNode("nd" + i);
-			map.put(it.next(), n);
-			i++;
+    }
+    
+    public void morph(int state, long duration) {
+	morph("" + state, duration);
+    }
+    
+    /**
+     * color nodes or edges by some field, nodes/edges with
+     * equal field values take on the same (randomly chosen) color
+     * @param f the field to color by
+     * @pyexport
+     */
+    public void colorize(Field f) {
+	VisualUtils.colorize(this, f);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void colorize(Field f, Color start, Color end) {
+	VisualUtils.colorize(this, f, start, end);
+    }
+    
+    public void colorize(Field f, String start, String end) {
+	VisualUtils.colorize(this, f, 
+			     Colors.getColor(start, Color.red), 
+			     Colors.getColor(end, Color.blue));
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void colorize(Field f, Color start, Color middle, Color end) {
+	VisualUtils.colorize(this, f, start, middle, end);
+    }
+    
+    public void colorize(Field f, String start, String middle, String end) {
+	VisualUtils.colorize(this, f, 
+			     Colors.getColor(start, Color.red), 
+			     Colors.getColor(middle, Color.green), 
+			     Colors.getColor(end, Color.blue));
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void resizeRandom(Field f, double start, double end) {
+	VisualUtils.resizeRandom(this, f, start, end);
+    }
+    
+    /**
+     * @pyexport
+     */
+    public void resizeLinear(Field f, double start, double end) {
+	VisualUtils.resizeLinear(this, f, start, end);
+    }
+    
+    /**
+     * calculate the graph density
+     * @pyexport
+     */
+    public double density() {
+	return (NetUtilities.calcDensity(getNodes()));
+    }
+    
+    /**
+     * removes self loops
+     * @pyexport
+     */
+    public Set removeSelfLoops() {
+	Iterator it = getEdges().iterator();
+	HashSet toRemove = new AnnoHashSet("Self loops");
+	while (it.hasNext()) {
+	    Edge e = (Edge) it.next();
+	    if (e.getNode1() == e.getNode2()) {
+		toRemove.add(e);
+	    }
+	}
+	it = toRemove.iterator();
+	while (it.hasNext()) {
+	    removeEdge((Edge) it.next());
+	}
+	return (toRemove);
+    }
+    
+    /**
+     * removes disconnected nodes
+     * @pyexport
+     */
+    public Set removeDisconnected() {
+	Iterator it = getNodes().iterator();
+	HashSet toRemove = new AnnoHashSet("Disconnected");
+	while (it.hasNext()) {
+	    Node n = (Node) it.next();
+	    boolean todo = true;
+	    Iterator edges = n.getIncidentEdges().iterator();
+	    while (edges.hasNext()) {
+		Edge e = (Edge) edges.next();
+		Node t1 = e.getNode1();
+		Node t2 = e.getNode2();
+		if ((n != t1) || (n != t2)) {
+		    todo = false;
+		    break;
 		}
-		it = ag.getEdges().iterator();
-		while (it.hasNext()) {
-			edu.uci.ics.jung.graph.Edge e = 
-			(edu.uci.ics.jung.graph.Edge) it.next();
-			Pair p = e.getEndpoints();
-			Node n1 = (Node) map.get(p.getFirst());
-			Node n2 = (Node) map.get(p.getSecond());
-			if (e instanceof DirectedSparseEdge) {
-				// System.out.println("dir");
-				addDirectedEdge(n1, n2);
-			} else {
-				addUndirectedEdge(n1, n2);
-			}
+	    }
+	    if (todo) {
+		toRemove.add(n);
+	    }
+	}
+	it = toRemove.iterator();
+	while (it.hasNext()) {
+	    Node n = (Node) it.next();
+	    removeNode(n);
+	}
+	return (toRemove);
+    }
+    
+    /**
+     * hides disconnected nodes
+     * @pyexport
+     */
+    public void hideDisconnected() {
+	Iterator it = getNodes().iterator();
+	while (it.hasNext()) {
+	    Node n = (Node) it.next();
+	    boolean todo = true;
+	    Iterator edges = n.getIncidentEdges().iterator();
+	    while (edges.hasNext()) {
+		Edge e = (Edge) edges.next();
+		Node t1 = e.getNode1();
+		Node t2 = e.getNode2();
+		if ((n != t1) || (n != t2)) {
+		    todo = false;
+		    break;
 		}
-		randomLayout();
+	    }
+	    if (todo) {
+		n.__setattr__("visible", new Boolean(false));
+	    }
 	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeFromGML(String filename) {
-		GraphMLReader gmr = new GraphMLReader(this, filename);
-		boolean tmp = centerAfter;
-		boolean tmp2 = Guess.getSynchronous();
-		Guess.setSynchronous(true);
-		centerAfter = false;
-		randomLayout();
-		Guess.setSynchronous(tmp2);
-		centerAfter = tmp;
-		if (containsDirected()) {
-			VisFactory.getFactory().setDirected(true);
-		}
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeFromPajek(String filename) {
-		GuessPajekReader.readFile(this, filename);
-		if (containsDirected()) {
-			VisFactory.getFactory().setDirected(true);
-		}
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeFromDL(String filename) {
-		// added for Patrick, fill in the blanks
-		// GraphMLReader gmr = new GraphMLReader(this,filename);
-		// randomLayout();
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void makeFromGDF(String filename) throws java.io.IOException {
-		GDFReader gmr = new GDFReader(this, filename);
-		if (containsDirected()) {
-			VisFactory.getFactory().setDirected(true);
-		}
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void exportGDF(String filename) {
-		StorageFactory.getSL().exportGDF(filename);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void morph(String state, long duration) {
-		if (VisFactory.getUIMode() == VisFactory.PICCOLO) {
-			Morpher.morph(this, state, duration);
-		}
-	}
-
-	public void morph(int state, long duration) {
-		morph("" + state, duration);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void colorize(Field f) {
-		VisualUtils.colorize(this, f);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void colorize(Field f, Color start, Color end) {
-		VisualUtils.colorize(this, f, start, end);
-	}
-
-	public void colorize(Field f, String start, String end) {
-		VisualUtils.colorize(this, f, 
-		Colors.getColor(start, Color.red), 
-		Colors.getColor(end, Color.blue));
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void colorize(Field f, Color start, Color middle, Color end) {
-		VisualUtils.colorize(this, f, start, middle, end);
-	}
-
-	public void colorize(Field f, String start, String middle, String end) {
-		VisualUtils.colorize(this, f, 
-		Colors.getColor(start, Color.red), 
-		Colors.getColor(middle, Color.green), 
-		Colors.getColor(end, Color.blue));
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void resizeRandom(Field f, double start, double end) {
-		VisualUtils.resizeRandom(this, f, start, end);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void resizeLinear(Field f, double start, double end) {
-		VisualUtils.resizeLinear(this, f, start, end);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public double density() {
-		return (NetUtilities.calcDensity(getNodes()));
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public Set removeSelfLoops() {
-		Iterator it = getEdges().iterator();
-		HashSet toRemove = new AnnoHashSet("Self loops");
-		while (it.hasNext()) {
-			Edge e = (Edge) it.next();
-			if (e.getNode1() == e.getNode2()) {
-				toRemove.add(e);
-			}
-		}
-		it = toRemove.iterator();
-		while (it.hasNext()) {
-			removeEdge((Edge) it.next());
-		}
-		return (toRemove);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public Set removeDisconnected() {
-		Iterator it = getNodes().iterator();
-		HashSet toRemove = new AnnoHashSet("Disconnected");
-		while (it.hasNext()) {
-			Node n = (Node) it.next();
-			boolean todo = true;
-			Iterator edges = n.getIncidentEdges().iterator();
-			while (edges.hasNext()) {
-				Edge e = (Edge) edges.next();
-				Node t1 = e.getNode1();
-				Node t2 = e.getNode2();
-				if ((n != t1) || (n != t2)) {
-					todo = false;
-					break;
-				}
-			}
-			if (todo) {
-				toRemove.add(n);
-			}
-		}
-		it = toRemove.iterator();
-		while (it.hasNext()) {
-			Node n = (Node) it.next();
-			removeNode(n);
-		}
-		return (toRemove);
-	}
-
-	/**
-	 * @pyexport
-	 */
-	public void hideDisconnected() {
-		Iterator it = getNodes().iterator();
-		while (it.hasNext()) {
-			Node n = (Node) it.next();
-			boolean todo = true;
-			Iterator edges = n.getIncidentEdges().iterator();
-			while (edges.hasNext()) {
-				Edge e = (Edge) edges.next();
-				Node t1 = e.getNode1();
-				Node t2 = e.getNode2();
-				if ((n != t1) || (n != t2)) {
-					todo = false;
-					break;
-				}
-			}
-			if (todo) {
-				n.__setattr__("visible", new Boolean(false));
-			}
-		}
-	}
+    }
 }
