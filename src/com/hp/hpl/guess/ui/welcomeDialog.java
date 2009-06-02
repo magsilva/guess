@@ -35,6 +35,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import com.jidesoft.swing.FolderChooser;
+import com.hp.hpl.guess.util.PrefWrapper;
 import java.lang.reflect.*;
 
 public class welcomeDialog extends JDialog {
@@ -77,7 +78,7 @@ public class welcomeDialog extends JDialog {
 	/**
 	 * Save and load user preferences
 	 */
-	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
+	private Preferences userPrefs = PrefWrapper.userNodeForPackage(getClass());
 
 	/**
 	 * Types of opening the database

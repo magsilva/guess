@@ -46,6 +46,7 @@ import org.freehep.graphicsio.swf.SWFExportFileType;
 import org.freehep.util.export.ExportFileType;
 
 import com.hp.hpl.guess.piccolo.GFrame;
+import com.hp.hpl.guess.util.PrefWrapper;
 
 /**
  * An "Export" dialog for saving components as graphic files.
@@ -90,7 +91,7 @@ public class HEPDialog extends JOptionPane {
 	/**
 	 * Save and loads user preferences
 	 */
-	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
+	private Preferences userPrefs = PrefWrapper.userNodeForPackage(getClass());
 
 	private static Vector<ExportFileType> list = new Vector<ExportFileType>();
 	private static HashMap<ExportFileType, Integer> efts = new HashMap<ExportFileType, Integer>();

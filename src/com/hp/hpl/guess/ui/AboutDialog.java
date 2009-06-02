@@ -27,10 +27,13 @@ public class AboutDialog extends JDialog {
 		
 		
 		// Set background image
-		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-about.png"))); 
-	    JLabel background = new JLabel(imageIcon);
-	    background.setBounds(0, 0, 450, 500);
-	    getContentPane().add(background);
+		try {
+		    ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-about.png"))); 
+		    JLabel background = new JLabel(imageIcon);
+		    background.setBounds(0, 0, 450, 500);
+		    getContentPane().add(background);
+		} catch (Exception ex) {
+		}
 
 		final JLabel versionLabel = new JLabel();
 		versionLabel.setHorizontalTextPosition(SwingConstants.CENTER);

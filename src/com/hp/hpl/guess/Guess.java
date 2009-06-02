@@ -53,6 +53,7 @@ import com.hp.hpl.guess.ui.VideoWindow;
 import com.hp.hpl.guess.ui.VisFactory;
 import com.hp.hpl.guess.ui.welcomeDialog;
 import com.hp.hpl.guess.util.intervals.Tracker;
+import com.hp.hpl.guess.util.PrefWrapper;
 import com.jgoodies.looks.Options;
 import com.jidesoft.plaf.LookAndFeelFactory;
 
@@ -151,53 +152,54 @@ public class Guess
     /**
      * Object to get user preferences set by the menu
      */
-	private static Preferences userPrefsMenu = Preferences.userNodeForPackage(GMenuBar.class);
-
-	/**
+    private static Preferences userPrefsMenu = PrefWrapper.userNodeForPackage(GMenuBar.class);
+    
+    /**
      * Object to save user preferences
      */
-	private static Preferences userPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");    
+    private static Preferences userPrefs = PrefWrapper.userRoot().node("/com/hp/hpl/guess");    
 	
+    
+    /**
+     * Zooming or Spacing
+     */
+    public static final int ZOOMING_ZOOM = 1;
+    public static final int ZOOMING_SPACE = 2;
+    private static int zoomingMode = userPrefs.getInt("zoomingMode", Guess.ZOOMING_ZOOM);
+    
+    public static void setZooming(int zoom) {
+	// Not a new zooming mode
+	if (zoom==zoomingMode) return;
 	
-	/**
-	 * Zooming or Spacing
-	 */
-	public static final int ZOOMING_ZOOM = 1;
-	public static final int ZOOMING_SPACE = 2;
-	private static int zoomingMode = userPrefs.getInt("zoomingMode", Guess.ZOOMING_ZOOM);
-	
-	public static void setZooming(int zoom) {
-		// Not a new zooming mode
-		if (zoom==zoomingMode) return;
-		
-		// Just for Piccolo atm
-		if ((zoom == ZOOMING_SPACE) && (VisFactory.getUIMode()!=VisFactory.PICCOLO)) {
-			System.err.println("Spacing is just implemented for Piccolo at the moment.");
-			return;
-		}
-		
-		zoomingMode = zoom;
-		
-		// Save current mode
-		userPrefs.putInt("zoomingMode", zoom);
-		
-		// Scale to 1
-		((GFrame)myF).getCamera().setViewScale(1);
-		
-		// Reinit strokes, so that a PFixedWidthStroke is
-		// used instead of BasicStroke if zoomingMode is 
-		// ZOOMING_SPACE, or the other way around if 
-		// ZOOMING_ZOOM is used.
-		interpSingleton.exec("g.edges.width = g.edges.width");
-		interpSingleton.exec("g.nodes.strokewidth = 1.5");
-		
-		// center view
-		((GFrame)myF).centerFast();
+	// Just for Piccolo atm
+	if ((zoom == ZOOMING_SPACE) && (VisFactory.getUIMode()!=VisFactory.PICCOLO)) {
+	    System.err.println("Spacing is just implemented for Piccolo at the moment.");
+	    return;
 	}
 	
-	public static int getZooming() {
-		return zoomingMode;
-	}
+	zoomingMode = zoom;
+		
+	// Save current mode
+	userPrefs.putInt("zoomingMode", zoom);
+	
+	// Scale to 1
+	((GFrame)myF).getCamera().setViewScale(1);
+	
+	// Reinit strokes, so that a PFixedWidthStroke is
+	// used instead of BasicStroke if zoomingMode is 
+	// ZOOMING_SPACE, or the other way around if 
+	// ZOOMING_ZOOM is used.
+	interpSingleton.exec("g.edges.width = g.edges.width");
+	interpSingleton.exec("g.nodes.strokewidth = 1.5");
+	
+	// center view
+	((GFrame)myF).centerFast();
+    }
+    
+    public static int getZooming() {
+	return zoomingMode;
+    }
+
     /**
      * allow multiple edges
      */
@@ -490,7 +492,7 @@ public class Guess
 			defaultFileFormat = go.getOptarg();
 			break;
 		    case 'r':
-			Preferences globalPrefs = Preferences.userRoot().node("/com/hp/hpl/guess");
+			Preferences globalPrefs = PrefWrapper.userRoot().node("/com/hp/hpl/guess");
 			globalPrefs.removeNode();
 			globalPrefs.flush();
 			System.out.println("Settings cleared. Good Bye.");
@@ -780,11 +782,13 @@ public class Guess
             UIManager.setLookAndFeel(Options.getSystemLookAndFeelClassName());
             UIManager.put(Options.USE_SYSTEM_FONTS_APP_KEY, Boolean.TRUE);
             LookAndFeelFactory.setDefaultStyle(LookAndFeelFactory.VSNET_STYLE_WITHOUT_MENU);
-        } catch (Exception e) {
-            System.err.println("Can't set look & feel");
+        } catch (Error e) {
+	    System.err.println("Can't set look & feel");
             exceptionHandle(e);
-        }
-        
+        } catch (Exception ex) {
+	    System.err.println("Can't set look & feel");
+            exceptionHandle(ex);
+	}
     }
 
     static BufferedReader reader = null;

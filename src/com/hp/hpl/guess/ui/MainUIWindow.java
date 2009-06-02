@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.prefs.Preferences;
+import com.hp.hpl.guess.util.PrefWrapper;
 import java.awt.GridBagConstraints;
 
 import javax.swing.*;
@@ -51,9 +52,9 @@ public class MainUIWindow extends JFrame {
     private JideTabbedPane selected = null;
     
     /**
-	* Object to save user preferences
-	*/
-	private Preferences userPrefs = Preferences.userNodeForPackage(getClass());
+     * Object to save user preferences
+     */
+    private Preferences userPrefs = PrefWrapper.userNodeForPackage(getClass());
 
     public JideTabbedPane getHorizontalTabbedPane() {
 	return(tabbedPaneH);
@@ -108,9 +109,12 @@ public class MainUIWindow extends JFrame {
 	graphicsDevice = aDevice;
 	
 	// Set Window Icon
-	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
-    setIconImage(imageIcon.getImage());
-	
+	try {
+	    ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
+	    setIconImage(imageIcon.getImage());
+	} catch (Exception ex) {
+	}
+
 	//try {
 	//    originalDisplayMode = graphicsDevice.getDisplayMode();
 	//} catch (InternalError e) {

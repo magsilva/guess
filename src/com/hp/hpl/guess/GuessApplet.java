@@ -80,9 +80,12 @@ public class GuessApplet extends Applet
 		//System.out.println(o.getClass());
 		//Guess.getMainUIWindow().dock((DockableAdapter)o);
 	    }
-	} catch (Exception e) {
-	    ExceptionWindow.getExceptionWindow(e);
-	    e.printStackTrace();
+	} catch (ExceptionInInitializerError e1) {
+	    ExceptionWindow.getExceptionWindow(e1.getCause());
+	    e1.getCause().printStackTrace();
+	} catch (Exception e2) {
+	    ExceptionWindow.getExceptionWindow(e2);
+	    e2.printStackTrace();
 	}
     }
 

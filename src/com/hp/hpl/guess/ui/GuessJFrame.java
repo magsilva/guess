@@ -30,10 +30,13 @@ public class GuessJFrame extends JFrame {
 	d.setWindow(this);
 	
 	// Set window icon
-	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit()
-			.getImage(ClassLoader.getSystemResource("images/guess-icon.png")));
-	setIconImage(imageIcon.getImage());
-	
+	try {
+	    ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit()
+						.getImage(ClassLoader.getSystemResource("images/guess-icon.png")));
+	    setIconImage(imageIcon.getImage());
+	} catch (Exception ex) {
+	}
+
 	// Set Menu
 	JMenu fileMenu = new JMenu("Window");
 	JMenuItem jmi = new JMenuItem("Dock");

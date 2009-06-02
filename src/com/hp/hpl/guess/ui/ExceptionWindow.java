@@ -160,9 +160,14 @@ public class ExceptionWindow extends JFrame {
 		});
 		
 		// Set window icon
-		ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit()
-				.getImage(ClassLoader.getSystemResource("images/guess-icon.png")));
-		setIconImage(imageIcon.getImage());
+		try {
+		    ImageIcon imageIcon = 
+			new ImageIcon(Toolkit.getDefaultToolkit()
+				      .getImage(ClassLoader.getSystemResource("images/guess-icon.png")));
+		    setIconImage(imageIcon.getImage());
+		} catch (Exception ex) {
+		    // if we can't find the image
+		}
 
 		// Hide window on escape
 		KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);

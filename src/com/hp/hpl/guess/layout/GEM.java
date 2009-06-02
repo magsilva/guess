@@ -356,6 +356,8 @@ public class GEM extends AbstractLayout {
 	v = graph_center();
 
 
+	//System.out.println(v + " " + nodeCount);
+
 	for (int ui = 0; ui < nodeCount; ui++) {
 	    gemProp[ui].in = 0;
 	}
