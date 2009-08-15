@@ -200,6 +200,16 @@ public class Guess
 	return zoomingMode;
     }
 
+    private static boolean zoomStart = true;
+
+    public static boolean getZoomStart() {
+	return zoomStart;
+    }
+
+    public static void setZoomStart(boolean zs) {
+	zoomStart = zs;
+    }
+
     /**
      * allow multiple edges
      */
@@ -389,7 +399,7 @@ public class Guess
 	} catch (Exception lnfe) { 
 	}
 	
-	LongOpt[] longopts = new LongOpt[16];
+	LongOpt[] longopts = new LongOpt[17];
 	longopts[0] = new LongOpt("prefuse", LongOpt.NO_ARGUMENT, null, 'p');
 	longopts[1] = new LongOpt("touchgraph", 
 				  LongOpt.NO_ARGUMENT, null, 't'); 
@@ -414,8 +424,8 @@ public class Guess
 				   LongOpt.NO_ARGUMENT, null, 'g');
 	longopts[14] = new LongOpt("reset", LongOpt.NO_ARGUMENT, null, 'r');
 	longopts[15] = new LongOpt("quality", LongOpt.REQUIRED_ARGUMENT, null, 'q'); 
-	
-	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmsl", longopts);
+	longopts[16] = new LongOpt("nocenter", LongOpt.NO_ARGUMENT, null, 'z'); 
+	Getopt go = new Getopt("Guess", argv, ":ptcvmofnmslz", longopts);
 	go.setOpterr(false);
 	int c;
 
@@ -490,6 +500,9 @@ public class Guess
 			break;
 		    case 'b':
 			defaultFileFormat = go.getOptarg();
+			break;
+		    case 'z':
+			setZoomStart(false);
 			break;
 		    case 'r':
 			Preferences globalPrefs = PrefWrapper.userRoot().node("/com/hp/hpl/guess");
@@ -1182,7 +1195,8 @@ public class Guess
 	    }
 	}
 
-	myFrame.center();
+	if (getZoomStart()) 
+	    myFrame.center();
 
 	//System.out.println(myFrame);
 

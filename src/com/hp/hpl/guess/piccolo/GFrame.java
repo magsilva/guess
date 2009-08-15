@@ -586,6 +586,7 @@ public class GFrame extends PCanvas implements FrameListener {
     }
     
     public void center(Rectangle2D r2, long t) {
+	//Thread.dumpStack();
 	final Rectangle2D r2d = r2;
 
 	final long tm = t;

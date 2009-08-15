@@ -2,6 +2,7 @@ package com.hp.hpl.guess;
 
 import com.hp.hpl.guess.io.*;
 import com.hp.hpl.guess.layout.*;
+import com.hp.hpl.guess.layout.sugiyama.*;
 import com.hp.hpl.guess.pajek.*;
 import com.hp.hpl.guess.piccolo.*;
 import com.hp.hpl.guess.storage.*;
@@ -727,26 +728,32 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 	    kkLayout(1000, 1000, passes);
 	}
 
-	/**
-	 * Sugiyama
-	 * @pyexport
-	 */
-	public void sugiyamaLayout() {
-		sugiyamaLayout(false);
+    /**
+     * Sugiyama
+     * @pyexport
+     */
+    public void sugiyamaLayout() {
+	//sugiyamaLayout(false);
+	new Sugiyama(this);
+	if (display instanceof GFrame) {
+	    ((GFrame) display).centerFast();
+	} else {
+	    display.center();
 	}
+    }
 
-	/**
-	 * Sugiyama
-	 * @pyexport
-	 */
-	public void sugiyamaLayout(boolean bends) {
-		new SugiyamaLayout(this, bends);
-		if (display instanceof GFrame) {
-			((GFrame) display).centerFast();
-		} else {
-			display.center();
-		}
+    /**
+     * Sugiyama
+     * @pyexport
+     */
+    public void sugiyamaLayout(boolean bends) {
+	new SugiyamaLayout(this, bends);
+	if (display instanceof GFrame) {
+	    ((GFrame) display).centerFast();
+	} else {
+	    display.center();
 	}
+    }
 
 	/**
 	 * Sugiyama
@@ -1240,102 +1247,107 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 
 		Thread layouter = new Thread(new Runnable() {
 			public void run() {
-				try {
-
-					interp.freeze(true);
-
-					layout.initialize(new Dimension(1000, 1000));
-					if (layout.isIncremental()) {
-						int incCounter = 0;
-						long curTime = System.currentTimeMillis();
-						while (!layout.incrementsAreDone() && !dialogLayoutStatus.isCanceled()) {
-							incCounter++;
-							layout.advancePositions();
-							if ((System.currentTimeMillis() - curTime) > 1000) {
-								// Update status Dialog and Graphframe
-								dialogLayoutStatus.setDescription("Ran " + incCounter
-										+ " loops.");
-								if (dialogLayoutStatus.isRedrawGraph()){
-									update();
-								}
-								curTime = System.currentTimeMillis();
-							}
-
-							if (incCounter >= maxIters) {
-								break;
-							}
-						}
-					} else {
-						layout.advancePositions();
-					}
-
-					update();
-				} catch (Exception e) {
-					ExceptionWindow.getExceptionWindow(e);
-				}
+			    try {
 				
-				dialogLayoutStatus.hide();
-				interp.freeze(false);
-			}
+				interp.freeze(true);
+				
+				layout.initialize(new Dimension(1000, 1000));
+				if (layout.isIncremental()) {
+				    int incCounter = 0;
+				    long curTime = System.currentTimeMillis();
+				    while (!layout.incrementsAreDone() && !dialogLayoutStatus.isCanceled()) {
+					incCounter++;
+					layout.advancePositions();
+					if ((System.currentTimeMillis() - curTime) > 1000) {
+					    // Update status Dialog and Graphframe
+					    dialogLayoutStatus.setDescription("Ran " + incCounter
+									      + " loops.");
+					    if (dialogLayoutStatus.isRedrawGraph()){
+						update();
+					    }
+					    curTime = System.currentTimeMillis();
+					}
+					
+					if (incCounter >= maxIters) {
+					    break;
+					}
+				    }
+				} else {
+				    //System.out.println("doing....");
+				    layout.advancePositions();
+				    //System.out.println("done....");
+				}
+				//				System.out.println("doing 2....");
+				update();
+				//System.out.println("done 2....");
+			    } catch (Exception e) {
+				ExceptionWindow.getExceptionWindow(e);
+			    }
 
+			    
+			    dialogLayoutStatus.hide();
+			    interp.freeze(false);
+			    //System.out.println("exiting...");
+			}
+			
 			public void update() {
-				double minX = Double.MAX_VALUE;
-				double minY = Double.MAX_VALUE;
-				double maxX = Double.MIN_VALUE;
-				double maxY = Double.MIN_VALUE;
-				try {
-
-					Iterator nodes = getNodes().iterator();
-					while (nodes.hasNext()) {
-						Node node = (Node) nodes.next();
-						if (!((Boolean) node.__getattr__("fixed"))
-								.booleanValue()) {
-							double x = layout.getX((Node) node);
-							double y = layout.getY((Node) node);				
-							node.__setattr__("x", new Double(x));
-							node.__setattr__("y", new Double(y));							
-							if (x < minX) {
-								minX = x;
-							}
-							if (y < minY) {
-								minY = y;
-							}
-							if ((y + node.getHeight()) > maxY) {
-								maxY = y + node.getHeight();
-							}
-							if ((x + node.getWidth()) > maxX) {
-								maxX = x + node.getWidth();
-							}
-						}
+			    double minX = Double.MAX_VALUE;
+			    double minY = Double.MAX_VALUE;
+			    double maxX = Double.MIN_VALUE;
+			    double maxY = Double.MIN_VALUE;
+			    try {
+				
+				Iterator nodes = getNodes().iterator();
+				while (nodes.hasNext()) {
+				    Node node = (Node) nodes.next();
+				    if (!((Boolean) node.__getattr__("fixed"))
+					.booleanValue()) {
+					double x = layout.getX((Node) node);
+					double y = layout.getY((Node) node);				
+					node.__setattr__("x", new Double(x));
+					node.__setattr__("y", new Double(y));							
+					if (x < minX) {
+					    minX = x;
 					}
-				} catch (Exception ex) {
-					ExceptionWindow.getExceptionWindow(ex);
-				}
-				if (ca) {
-					// System.out.println("trying to center");
-					if (display instanceof GFrame) {
-						// System.out.println("center fast");\
-						if (dialogLayoutStatus.isRedrawGraph()){
-							((GFrame) display).center(minX, minY, maxX, maxY, 500);
-						} else {
-							((GFrame) display).center(minX, minY, maxX, maxY, 0);
-						}
-						// System.out.println("post center fast");
-					} else {
-						// System.out.println("center");
-						display.center();
+					if (y < minY) {
+					    minY = y;
 					}
+					if ((y + node.getHeight()) > maxY) {
+					    maxY = y + node.getHeight();
+					}
+					if ((x + node.getWidth()) > maxX) {
+					    maxX = x + node.getWidth();
+					}
+				    }
 				}
+			    } catch (Exception ex) {
+				ExceptionWindow.getExceptionWindow(ex);
+			    }
+			    if (ca) {
+				//System.out.println("trying to center");
+				if (display instanceof GFrame) {
+				    // System.out.println("center fast"); \
+				    if (dialogLayoutStatus.isRedrawGraph()){
+					((GFrame) display).center(minX, minY, maxX, maxY, 500);
+				    } else {
+					((GFrame) display).center(minX, minY, maxX, maxY, 0);
+				    }
+				    // System.out.println("post center fast");
+				} else {
+				    // System.out.println("center");
+				    display.center();
+				}
+			    }
 			}
-		});
+		    });
 
 		if (!Guess.getSynchronous()) {
-			layouter.start();
+		    layouter.start();
+		    dialogLayoutStatus.show();
 		} else {
-			layouter.run();
+		    layouter.run();
 		}
-		dialogLayoutStatus.show();
-	
+
 	}
 
     /**
