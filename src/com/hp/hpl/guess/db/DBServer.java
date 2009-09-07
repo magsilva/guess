@@ -1650,7 +1650,7 @@ public class DBServer implements StorageListener {
 	    String s = "nodedef> name\nedgedef> node1,node2\n";
 	    loadFromFile(new BufferedReader(new StringReader(s)));
 	} catch (Exception e) {
-	    
+	    e.printStackTrace(System.out);
 	    ExceptionWindow.getExceptionWindow(e);
 	}
     }

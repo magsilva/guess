@@ -54,7 +54,8 @@ public class StorageFactory {
 	    }
 	    singleton.createEmpty();
 	} catch (Exception e) {
-	    ExceptionWindow.getExceptionWindow(e);
+		e.printStackTrace(System.out);
+		ExceptionWindow.getExceptionWindow(e);
 	}
     }
 

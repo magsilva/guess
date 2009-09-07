@@ -147,7 +147,26 @@ public class GuessPEdge extends PPath implements EdgeListener {
 
 	if (state) {
 	    mouseOver = true;
-	    InfoWindow.details(owner);
+	    
+	    //FDN73:
+	    /***
+	    The problem seems to be that InfoWindow is already 
+		registered to call the details method elsewhere so 
+		that when GUESS is used outside its application, 
+		in an external application context, there seem to be 
+		infinite instances of InfoWindow added to the chain 
+		of GraphMouseListeners, one each time a node or link 
+		is "mouseovered" (even if InfoWindow is designed to be 
+		a singleton - it's my understanding that it's not working 
+		if integrated in an external application that does not call 
+		Guess.enableMainUI... with a true value in order to build 
+		it's own interface).
+		Commenting the line solves the problem 
+		(hoping it doesn't break something else) - the stand alone original 
+		application seem to still work fine from my tests, 
+		and my custom GraphMouseListeners are now working.
+	    */ 
+	    //InfoWindow.details(owner);//<---Seems that this makes custom GraphMouseListeners stop working 
 	
 	    //System.out.println("ev1");
 	    //frame.labels.removeAllChildren();

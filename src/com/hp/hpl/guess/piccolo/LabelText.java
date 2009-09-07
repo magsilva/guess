@@ -76,7 +76,9 @@ public class LabelText extends PText {
 	}
 
 	public void paint(PPaintContext apc) {
-		setText(getTextFromFields());
+		//FDN73 this overrides the label visualization, 
+		//so I comment it
+		//setText(getTextFromFields());
 		
 		float scaling = (float) (1 / ((GFrame) VisFactory.getFactory()
 				.getDisplay()).getGCamera().getViewScale());

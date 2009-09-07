@@ -48,5 +48,9 @@ public abstract class EditorPopup extends JPopupMenu {
 		this.currentH = currentH;
     }
 
+	public Object getCurrentH() {
+		return currentH;
+	}
+
 
 }

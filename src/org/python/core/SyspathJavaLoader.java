@@ -19,7 +19,7 @@ public class SyspathJavaLoader extends ClassLoader
         InputStream ret;
 
         if (classLoader != null) ret = classLoader.getResourceAsStream(res);
-        else ret = ClassLoader.getSystemResourceAsStream(res);
+        else ret = Thread.currentThread().getContextClassLoader().getResourceAsStream(res);
 
         if (ret != null) return ret;
 

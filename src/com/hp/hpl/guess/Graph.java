@@ -1342,10 +1342,10 @@ public class Graph extends SparseGraph implements NumberEdgeValue
 		    });
 
 		if (!Guess.getSynchronous()) {
-		    layouter.start();
-		    dialogLayoutStatus.show();
+			layouter.start();
+			dialogLayoutStatus.show();
 		} else {
-		    layouter.run();
+			layouter.run();
 		}
 
 	}

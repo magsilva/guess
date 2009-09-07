@@ -113,6 +113,11 @@ public class Guess
      * are we running inside an applet
      */
     private static boolean appletMode = false;
+    
+    /**
+     * FDN73: do we want to shutdown on exit?
+     */
+    private static boolean shutdownOnExit = false;
 
     /**
      * are we running inside a signed applet
@@ -1291,6 +1296,8 @@ public class Guess
 	g = null;
 	interpSingleton = null;
 	VisFactory.shutdown();
+	//FDN73 needed for use in external apps
+	AnimationFactory.shutdown();
 	
 	if (tpjc != null) {
 	    tpjc.shutdown();
@@ -1300,8 +1307,11 @@ public class Guess
 	    myWin.dispose();
 
 	myWin = null;
-
-	if (!appletMode)
+	//FDN73 check if we're not in applet mode or
+	//if we want to shutdown on exit
+	if (!shutdownOnExit)
+		return;
+	else if (!appletMode)
 	    System.exit(0);
     }
 
@@ -1330,5 +1340,15 @@ public class Guess
 		throw new Error(e);
 	    }
     }
+
+	public static boolean isShutdownOnExit() {
+		return shutdownOnExit;
+	}
+
+	public static void setShutdownOnExit(boolean shutdownOnExit) {
+		Guess.shutdownOnExit = shutdownOnExit;
+	}
+
+	
 }
 

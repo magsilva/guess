@@ -88,6 +88,10 @@ public abstract class AnimationFactory {
 		return singleton;
 	}
 	
+	public static void shutdown() {
+		singleton = null;
+	}
+	
 	/**
 	 * Generates a new animation for a node
 	 * @param animationName

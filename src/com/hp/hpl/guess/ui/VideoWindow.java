@@ -385,7 +385,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnPlay() {
 		if(btnPlay == null) {
 			btnPlay = new JButton();
-		    btnPlay.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/media-playback-start.png"))));
+		    btnPlay.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/media-playback-start.png"))));
 			btnPlay.setText("Play");
 			btnPlay.setSize(110, 25);
 			btnPlay.addActionListener(new ActionListener() {
@@ -404,7 +404,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnStop() {
 		if(btnStop == null) {
 			btnStop = new JButton();
-			btnStop.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/media-playback-pause.png"))));			
+			btnStop.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/media-playback-pause.png"))));			
 			btnStop.setText("Pause");
 			btnStop.setSize(110, 25);
 			btnStop.addActionListener(new ActionListener() {
@@ -423,7 +423,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnExport() {
 		if(btnExport == null) {
 			btnExport = new JButton();
-			btnExport.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/document-save-as.png"))));
+			btnExport.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/document-save-as.png"))));
 			btnExport.setText("Export As...");
 			btnExport.setSize(110, 25);
 			btnExport.addActionListener(new ActionListener() {
@@ -451,7 +451,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnInsert() {
 		if(btnInsert == null) {
 			btnInsert = new JButton();
-			btnInsert.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/list-add.png"))));
+			btnInsert.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/list-add.png"))));
 			btnInsert.setText("Add");
 			btnInsert.setSize(110, 25);
 			btnInsert.addActionListener(new ActionListener() {
@@ -473,7 +473,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnMoveLeft() {
 		if(btnMoveLeft == null) {
 			btnMoveLeft = new JButton();
-			btnMoveLeft.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/go-previous.png"))));
+			btnMoveLeft.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/go-previous.png"))));
 			btnMoveLeft.setText("Move Left");
 			btnMoveLeft.setSize(110, 25);
 			btnMoveLeft.addActionListener(new ActionListener() {
@@ -511,7 +511,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnMoveRight() {
 		if(btnMoveRight == null) {
 			btnMoveRight = new JButton();
-			btnMoveRight.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/go-next.png"))));
+			btnMoveRight.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/go-next.png"))));
 			btnMoveRight.setText("Move Right");
 			btnMoveRight.setSize(110, 25);
 			btnMoveRight.addActionListener(new ActionListener() {
@@ -691,7 +691,7 @@ public class VideoWindow extends JPanel implements Dockable {
 	private JButton getBtnRemove() {
 		if(btnRemove == null) {
 			btnRemove = new JButton();
-			btnRemove.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/list-remove.png"))));
+			btnRemove.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/list-remove.png"))));
 			btnRemove.setText("Remove");
 			btnRemove.setSize(110, 25);
 			btnRemove.addActionListener(new ActionListener() {

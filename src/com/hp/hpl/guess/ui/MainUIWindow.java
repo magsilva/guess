@@ -109,12 +109,13 @@ public class MainUIWindow extends JFrame {
 	graphicsDevice = aDevice;
 	
 	// Set Window Icon
-	try {
-	    ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-icon.png"))); 
-	    setIconImage(imageIcon.getImage());
-	} catch (Exception ex) {
+	try
+	{
+	ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/guess-icon.png"))); 
+    setIconImage(imageIcon.getImage());
+    } catch (Exception ex) {
 	}
-
+	
 	//try {
 	//    originalDisplayMode = graphicsDevice.getDisplayMode();
 	//} catch (InternalError e) {

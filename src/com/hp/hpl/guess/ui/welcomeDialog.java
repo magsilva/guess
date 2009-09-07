@@ -508,7 +508,7 @@ public class welcomeDialog extends JDialog {
 	try {
 	    // hack to make it work with jdk 1.5
 	    ImageIcon imageIcon = 
-		new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource(image)));
+		new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource(image)));
 	    Method m = 
 		getClass().getMethod("setImageIcon",
 				     new Class[]{Class.forName("java.awt.Image")});
@@ -728,7 +728,7 @@ public class welcomeDialog extends JDialog {
 				      g.drawImage (((ImageIcon) getIcon()).getImage(), 0, 0, getWidth (), getHeight (), null);
 				   }
 			};
-			headerSpacer.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-welcome-spacer.png"))));
+			headerSpacer.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/guess-welcome-spacer.png"))));
 		}
 		return headerSpacer;
 	}
@@ -736,7 +736,7 @@ public class welcomeDialog extends JDialog {
 	private JLabel getHeaderText() {
 		if(headerText == null) {
 			headerText = new JLabel();
-			headerText.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-welcome-text.png"))));
+			headerText.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/guess-welcome-text.png"))));
 		}
 		return headerText;
 	}
@@ -744,7 +744,7 @@ public class welcomeDialog extends JDialog {
 	private JLabel getHeaderLogo() {
 		if(headerLogo == null) {
 			headerLogo = new JLabel();
-			headerLogo.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("images/guess-welcome-logo.png"))));
+			headerLogo.setIcon(new ImageIcon(Toolkit.getDefaultToolkit().getImage(Thread.currentThread().getContextClassLoader().getResource("images/guess-welcome-logo.png"))));
 		}
 		return headerLogo;
 	}
